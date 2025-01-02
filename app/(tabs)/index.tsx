@@ -1,9 +1,10 @@
-import { Text, View } from "react-native";
+import { Redirect } from "expo-router";
 
-export default function Index() {
+// siden mvp ikke har en hjem side, må vi manuelt redirecte til arrangementer
+// senere endrer vi dette til den faktiske hjem siden
+
+export default function Arrangementer() {
     return (
-        <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-            <Text className="text-2xl">Index</Text>
-        </View>
-    );
+        <Redirect href={"/arrangementer"} />
+    )
 }
