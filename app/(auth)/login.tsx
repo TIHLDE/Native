@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
+import TihldeLogo from "@/lib/icons/TihldeLogo";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -50,7 +51,10 @@ export default function Login() {
     return (
         <SafeAreaProvider>
             <SafeAreaView className="flex-1 gap-y-8 px-4 justify-center">
-                <View className="gap-y-4">
+                <View className="gap-y-0 items-center w-full">
+                    <TihldeLogo className="" size="large" />
+                </View>
+                <View>
                     <Text>
                         Brukernavn
                     </Text>
