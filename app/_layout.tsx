@@ -7,9 +7,9 @@ import * as React from 'react';
 import { Platform } from 'react-native';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
-import { ThemeToggle } from '@/components/themeToggle';
 import { AuthProvider } from '@/context/auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Toast from "react-native-toast-message";
 
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
@@ -58,6 +58,7 @@ export default function RootLayout() {
                         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     </Stack>
+                    <Toast />
                 </QueryClientProvider>
             </ThemeProvider>
         </AuthProvider>
