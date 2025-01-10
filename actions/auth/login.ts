@@ -1,3 +1,4 @@
+import { setToken } from "@/lib/storage";
 import { BASE_URL } from "../constant";
 import { LeptonError, LoginData } from "../types";
 
@@ -27,6 +28,8 @@ export default async function login({ email, password }: LoginInput): Promise<Lo
     }
 
     const data = await response.json() as LoginData;
+
+    await setToken(data.token);
 
     return data;
 };
