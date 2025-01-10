@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { ThemeToggle } from '@/components/themeToggle';
+import { AuthProvider } from '@/context/auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const LIGHT_THEME: Theme = {
@@ -48,14 +49,18 @@ export default function RootLayout() {
     }
 
     return (
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-            <QueryClientProvider client={queryClient}>
-                <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-                <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                </Stack>
-            </QueryClientProvider>
-        </ThemeProvider>
+        <AuthProvider>
+            <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+                <QueryClientProvider client={queryClient}>  
+                    <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+                    <Stack>
+                        <Stack.Screen name="index" options={{ headerShown: false }} />
+                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    </Stack>
+                </QueryClientProvider>
+            </ThemeProvider>
+        </AuthProvider>
     );
 }
 
