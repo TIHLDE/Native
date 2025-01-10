@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { ThemeToggle } from '@/components/themeToggle';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
@@ -27,6 +28,7 @@ export default function RootLayout() {
     const hasMounted = React.useRef(false);
     const { colorScheme, isDarkColorScheme } = useColorScheme();
     const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
+    const queryClient = new QueryClient();
 
     useIsomorphicLayoutEffect(() => {
         if (hasMounted.current) {
@@ -47,11 +49,12 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-            <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-            <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-
+            <QueryClientProvider client={queryClient}>
+                <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+                <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                </Stack>
+            </QueryClientProvider>
         </ThemeProvider>
     );
 }
