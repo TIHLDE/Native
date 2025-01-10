@@ -1,6 +1,6 @@
 export const NAV_THEME = {
     light: {
-        background: 'hsl(212 100% 92%)', // background
+        background: 'hsl(212 99% 97%)', // background
         border: 'hsl(240 3.7% 84.1%)', // border
         card: 'hsl(211 96% 90%)', // card
         notification: 'hsl(0 72% 49%)', // destructive
