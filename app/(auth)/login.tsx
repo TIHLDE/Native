@@ -1,5 +1,5 @@
 import login, { LoginInput } from "@/actions/auth/login";
-import { LeptonError, LoginData } from "@/actions/types";
+import { ApiError, LoginData } from "@/actions/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
@@ -24,7 +24,7 @@ export default function Login() {
         status
     } = useMutation<
         LoginData,
-        LeptonError,
+        ApiError,
         LoginInput
     >({
         mutationFn: login,
