@@ -1,5 +1,5 @@
 
 
 export type LeptonError = {
-    detail: string;
+    message: string;
 };

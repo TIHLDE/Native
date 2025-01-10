@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 
 export default function Login() {
@@ -17,9 +18,6 @@ export default function Login() {
 
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [token, setToken] = useState<string | null>(null);
-
-    const [error, setError] = useState<string | null>(null);
 
     const {
         mutate,
@@ -31,17 +29,19 @@ export default function Login() {
     >({
         mutationFn: login,
         onSuccess: (data) => {
-            setToken(data.token);
             setAuthState!({
                 token: data.token,
                 auhtenticated: true,
                 isLoading: false,
             });
-            setToken(data.token);
             router.replace("/(tabs)/arrangementer");
         },
         onError: (error) => {
-            setError(error.detail);
+            Toast.show({
+                type: "error",
+                text1: "Feil",
+                text2: error.message,
+            });
         }
     });
 
@@ -86,16 +86,6 @@ export default function Login() {
                         }
                     </Text>
                 </Button>
-
-                <Text>
-                    {token}
-                </Text>
-
-                {error && (
-                    <Text>
-                        {error}
-                    </Text>
-                )}
             </SafeAreaView>
         </SafeAreaProvider>
     );
