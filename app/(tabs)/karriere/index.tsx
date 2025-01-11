@@ -22,8 +22,7 @@ export default function Karriere() {
     return (
         <SafeAreaProvider>
             <SafeAreaView>
-                <ScrollView className="w-full h-fit p-2">
-                    <Text className="text-2xl text-center">Karriere</Text>
+                <ScrollView className="w-full h-fit px-8 mb-8">
                     <View className="flex flex-col justify-center mt-5 gap-4">
                         {
                             jobposts.data.results.map((jobpost: any) => (

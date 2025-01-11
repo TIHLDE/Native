@@ -10,6 +10,7 @@ import { Image, ScrollView, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as WebBrowser from 'expo-web-browser';
 import { Button } from "@/components/ui/button";
+import MarkdownView from "@/components/ui/MarkdownView";
 
 export default function Karriereside() {
     const params = useLocalSearchParams();
@@ -74,7 +75,7 @@ export default function Karriereside() {
                     </Card>
                     <Text className="text-lg font-light mt-2">Beskrivelse</Text>
                     <Card className="w-full h-fit border rounded-lg p-2">
-                        <Text className="text-lg">{jobpost.data.body}</Text>
+                        <MarkdownView content={jobpost.data.body} />
                     </Card>
                 </View>
                 {jobpost.data.link &&
