@@ -40,7 +40,7 @@ export default function Karriereside() {
             <Stack.Screen options={{ title: jobpost.data.company }} />
             <ScrollView className="w-full h-fit">
                 <Image className="w-full h-48" source={{ uri: jobpost.data.image }} resizeMode="cover" />
-                <View className="flex flex-col text-3xl p-2">
+                <View className="flex flex-col text-3xl p-4">
                     <Text className="text-2xl font-semibold mb-2">{jobpost.data.title}</Text>
                     <Text className="text-lg font-light mt-2">Detaljer</Text>
                     <Card className="w-full h-fit border rounded-lg p-2 flex flex-col gap-2">

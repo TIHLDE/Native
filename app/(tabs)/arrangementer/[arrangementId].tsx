@@ -2,6 +2,8 @@ import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { View, Image, ScrollView } from "react-native";
 import { useState, useEffect } from "react";
+import MarkdownView from "@/components/ui/MarkdownView";
+import { Card } from "@/components/ui/card";
 
 type Event = {
     id: number;
@@ -70,7 +72,7 @@ export default function ArrangementSide() {
     if (loading) {
         return (
             <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg text-gray-600">Laster arrangement...</Text>
+                <Text className="text-lg">Laster arrangement...</Text>
             </View>
         );
     }
@@ -86,7 +88,7 @@ export default function ArrangementSide() {
     if (!event) {
         return (
             <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg text-gray-600">Ingen data funnet.</Text>
+                <Text className="text-lg">Ingen data funnet.</Text>
             </View>
         );
     }
@@ -103,8 +105,8 @@ export default function ArrangementSide() {
                     />
                 )}
             </View>
-            <View className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 bg-gray-900 pl-10 pr-10 pt-5 pb-5">
-                <Text className="text-2xl mb-6 text-white font-bold">Detaljer</Text>
+            <Card className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 pl-10 pr-10 pt-5 pb-5">
+                <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
                 <View className="flex flex-row justify-start items-start">
                     <View className="mr-10">
                         <Text className="text-md text-gray-400 mb-2">Fra:</Text>
@@ -153,9 +155,9 @@ export default function ArrangementSide() {
                         )}
                     </View>
                 </View>
-            </View>
-            <View className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 bg-gray-900 pl-10 pr-10 pt-5 pb-5">
-                <Text className="text-2xl mb-6 text-white font-bold">Påmelding</Text>
+            </Card>
+            <Card className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 pl-10 pr-10 pt-5 pb-5">
+                <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
                 <View className="flex flex-row justify-start items-start">
                     <View className="mr-10">
                         <Text className="text-md text-gray-400 mb-2">Påmeldte:</Text>
@@ -183,12 +185,11 @@ export default function ArrangementSide() {
                         </Text>
                     </View>
                 </View>
-
-            </View>
-            <View className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 bg-gray-900 pl-10 pr-10 pt-5 pb-5">
-                <Text className="text-2xl font-bold text-white mb-4">{event.title}</Text>
-                <Text className="text-white">{event.description}</Text>
-            </View>
+            </Card>
+            <Card className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 pl-10 pr-10 pt-5 pb-5">
+                <Text className="text-2xl font-bold mb-4">{event.title}</Text>
+                <MarkdownView content={event.description || "Ingen beskrivelse tilgjengelig"} />
+            </Card>
         </ScrollView>
 
     );
