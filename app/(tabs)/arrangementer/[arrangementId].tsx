@@ -1,9 +1,10 @@
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { View, Image, ScrollView } from "react-native";
-import { useState, useEffect } from "react";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import PageWrapper from "@/components/ui/pagewrapper";
 
 type Event = {
     id: number;
@@ -38,38 +39,14 @@ export default function ArrangementSide() {
     const params = useLocalSearchParams();
     const id = params.arrangementId;
 
-    const [event, setEvent] = useState<Event | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const event = useQuery({
+        queryKey: ["event", id],
+        queryFn: async (): Promise<Event> => {
+            return fetch(`https://api.tihlde.org/events/${id}`).then((res) => res.json());
+        },
+    });
 
-    useEffect(() => {
-        const fetchEvents = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const response = await fetch(`https://api.tihlde.org/events/${id}`);
-                if (!response.ok) {
-                    throw new Error(`Feil ved henting av data`);
-                }
-                const data: Event = await response.json();
-                setEvent(data);
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError("Ukjent feil");
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        if (id) {
-            fetchEvents();
-        }
-    }, [id]);
-
-    if (loading) {
+    if (event.isPending) {
         return (
             <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
                 <Text className="text-lg">Laster arrangement...</Text>
@@ -77,10 +54,10 @@ export default function ArrangementSide() {
         );
     }
 
-    if (error) {
+    if (event.error) {
         return (
             <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg text-red-500">Feil: {error}</Text>
+                <Text className="text-lg text-red-500">Feil: {event.error.message}</Text>
             </View>
         );
     }
@@ -94,12 +71,12 @@ export default function ArrangementSide() {
     }
 
     return (
-        <ScrollView>
-            <Stack.Screen options={{ title: event.title }} />
+        <PageWrapper refreshQueryKey={["event", id as string]}>
+            <Stack.Screen options={{ title: event.data.title }} />
             <View>
-                {event.image && (
+                {event.data.image && (
                     <Image
-                        source={{ uri: event.image }}
+                        source={{ uri: event.data.image }}
                         className="w-full h-64"
                         resizeMode="contain"
                     />
@@ -114,44 +91,44 @@ export default function ArrangementSide() {
                         <Text className="text-md text-gray-400 mb-2">Sted:</Text>
                         <Text className="text-md text-gray-400 mb-2">Arrangør:</Text>
                         <Text className="text-md text-gray-400 mb-2">Kontaktperson:</Text>
-                        {event.paid_information?.price && (
+                        {event.data.paid_information?.price && (
                             <Text className="text-md text-gray-400">Pris:</Text>
                         )}
                     </View>
                     <View>
                         <Text className="text-md mb-2">
-                            {new Date(event.start_date).toLocaleDateString("no-NO", {
+                            {new Date(event.data.start_date).toLocaleDateString("no-NO", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
                             })}{" "}
                             kl.{" "}
-                            {new Date(event.start_date).toLocaleTimeString("no-NO", {
+                            {new Date(event.data.start_date).toLocaleTimeString("no-NO", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                             })}
                         </Text>
                         <Text className="text-md mb-2">
-                            {new Date(event.end_date).toLocaleDateString("no-NO", {
+                            {new Date(event.data.end_date).toLocaleDateString("no-NO", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
                             })}{" "}
                             kl.{" "}
-                            {new Date(event.end_date).toLocaleTimeString("no-NO", {
+                            {new Date(event.data.end_date).toLocaleTimeString("no-NO", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                             })}
                         </Text>
-                        <Text className="text-md mb-2">{event.location || "Ikke oppgitt"}</Text>
-                        <Text className="text-md mb-2">{event.organizer?.name || "Ikke oppgitt"}</Text>
+                        <Text className="text-md mb-2">{event.data.location || "Ikke oppgitt"}</Text>
+                        <Text className="text-md mb-2">{event.data.organizer?.name || "Ikke oppgitt"}</Text>
                         <Text className="text-md mb-2">
-                            {event.contact_person
-                                ? `${event.contact_person.first_name} ${event.contact_person.last_name}`
+                            {event.data.contact_person
+                                ? `${event.data.contact_person.first_name} ${event.data.contact_person.last_name}`
                                 : "Ikke oppgitt"}
                         </Text>
-                        {event.paid_information?.price && (
-                            <Text className="text-md">{event.paid_information.price}</Text>
+                        {event.data.paid_information?.price && (
+                            <Text className="text-md">{event.data.paid_information.price}</Text>
                         )}
                     </View>
                 </View>
@@ -166,19 +143,19 @@ export default function ArrangementSide() {
                     </View>
                     <View>
                         <Text className="text-md mb-2">
-                            {event.list_count}/{event.limit}
+                            {event.data.list_count}/{event.data.limit}
                         </Text>
                         <Text className="text-md mb-2">
-                            {event.waiting_list_count}
+                            {event.data.waiting_list_count}
                         </Text>
                         <Text className="text-md mb-2">
-                            {new Date(event.sign_off_deadline).toLocaleDateString("no-NO", {
+                            {new Date(event.data.sign_off_deadline).toLocaleDateString("no-NO", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
                             })}{" "}
                             kl.{" "}
-                            {new Date(event.sign_off_deadline).toLocaleTimeString("no-NO", {
+                            {new Date(event.data.sign_off_deadline).toLocaleTimeString("no-NO", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                             })}
@@ -187,10 +164,10 @@ export default function ArrangementSide() {
                 </View>
             </Card>
             <Card className="mx-auto w-[90%] shadow-lg rounded-lg mt-10 pl-10 pr-10 pt-5 pb-5">
-                <Text className="text-2xl font-bold mb-4">{event.title}</Text>
-                <MarkdownView content={event.description || "Ingen beskrivelse tilgjengelig"} />
+                <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
+                <MarkdownView content={event.data.description || "Ingen beskrivelse tilgjengelig"} />
             </Card>
-        </ScrollView>
+        </PageWrapper>
 
     );
 }

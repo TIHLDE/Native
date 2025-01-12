@@ -11,6 +11,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as WebBrowser from 'expo-web-browser';
 import { Button } from "@/components/ui/button";
 import MarkdownView from "@/components/ui/MarkdownView";
+import PageWrapper from "@/components/ui/pagewrapper";
 
 export default function Karriereside() {
     const params = useLocalSearchParams();
@@ -22,7 +23,6 @@ export default function Karriereside() {
             return fetch(`https://api.tihlde.org/jobposts/${id}`).then((res) => res.json());
         },
     });
-
     if (jobpost.isPending) return (
         <>
             <Stack.Screen options={{ title: "" }} />
@@ -38,7 +38,7 @@ export default function Karriereside() {
     return (
         <>
             <Stack.Screen options={{ title: jobpost.data.company }} />
-            <ScrollView className="w-full h-fit">
+            <PageWrapper refreshQueryKey={["jobpost", id as string]}>
                 <Image className="w-full h-48" source={{ uri: jobpost.data.image }} resizeMode="cover" />
                 <View className="flex flex-col text-3xl p-4">
                     <Text className="text-2xl font-semibold mb-2">{jobpost.data.title}</Text>
@@ -85,7 +85,7 @@ export default function Karriereside() {
                         </Text>
                     </Button>
                 }
-            </ScrollView>
+            </PageWrapper>
         </>
     );
 }
