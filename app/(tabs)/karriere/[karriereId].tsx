@@ -10,6 +10,7 @@ import { Image, ScrollView, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import * as WebBrowser from 'expo-web-browser';
 import { Button } from "@/components/ui/button";
+import MarkdownView from "@/components/ui/MarkdownView";
 
 export default function Karriereside() {
     const params = useLocalSearchParams();
@@ -39,7 +40,7 @@ export default function Karriereside() {
             <Stack.Screen options={{ title: jobpost.data.company }} />
             <ScrollView className="w-full h-fit">
                 <Image className="w-full h-48" source={{ uri: jobpost.data.image }} resizeMode="cover" />
-                <View className="flex flex-col text-3xl p-2">
+                <View className="flex flex-col text-3xl p-4">
                     <Text className="text-2xl font-semibold mb-2">{jobpost.data.title}</Text>
                     <Text className="text-lg font-light mt-2">Detaljer</Text>
                     <Card className="w-full h-fit border rounded-lg p-2 flex flex-col gap-2">
@@ -74,7 +75,7 @@ export default function Karriereside() {
                     </Card>
                     <Text className="text-lg font-light mt-2">Beskrivelse</Text>
                     <Card className="w-full h-fit border rounded-lg p-2">
-                        <Text className="text-lg">{jobpost.data.body}</Text>
+                        <MarkdownView content={jobpost.data.body} />
                     </Card>
                 </View>
                 {jobpost.data.link &&

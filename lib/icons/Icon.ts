@@ -7,6 +7,7 @@ import { MapPin } from "@/lib/icons/MapPin";
 import { MoonStar } from "@/lib/icons/MoonStar";
 import { Sun } from "@/lib/icons/Sun";
 import { UserRound } from "@/lib/icons/UserRound";
+import { cn } from "../utils";
 
 
 const icons = {
@@ -24,7 +25,9 @@ const icons = {
  * @param icon 
  */
 export default function Icon({ icon, className }: { icon: keyof typeof icons, className?: string }): React.ReactNode {
-    const { isDarkColorScheme } = useColorScheme();
     const Icon = icons[icon];
-    return React.createElement(Icon, { stroke: isDarkColorScheme ? "white" : "black", className: className });
-}
+
+    // av en eller annen grunn fungerer ikke cn på color-*, så derfor gjør jeg dette
+    const hasColorClass = className?.split(' ').some(cls => cls.startsWith('color-'));
+    return React.createElement(Icon, { className: cn({ "color-foreground": !hasColorClass }, className) });
+}   
