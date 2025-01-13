@@ -1,5 +1,5 @@
 import TihldeLogo from '@/lib/icons/TihldeLogo';
-import { Tabs } from 'expo-router';
+import { Stack, Tabs } from 'expo-router';
 import { Calendar } from '~/lib/icons/Calendar';
 import { BriefcaseBusiness } from '~/lib/icons/BriefcaseBusiness';
 import { UserRound } from '~/lib/icons/UserRound';

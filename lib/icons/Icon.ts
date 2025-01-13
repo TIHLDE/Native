@@ -7,6 +7,7 @@ import { MapPin } from "@/lib/icons/MapPin";
 import { MoonStar } from "@/lib/icons/MoonStar";
 import { Sun } from "@/lib/icons/Sun";
 import { UserRound } from "@/lib/icons/UserRound";
+import { QrCode } from "@/lib/icons/QrCode";
 import { cn } from "../utils";
 
 
@@ -17,7 +18,8 @@ const icons = {
     MapPin: MapPin,
     MoonStar: MoonStar,
     Sun: Sun,
-    UserRound: UserRound
+    UserRound: UserRound,
+    QrCode: QrCode
 }
 
 /**
