@@ -93,27 +93,42 @@ export default function Profil() {
                     <Text className="text-lg">{getStudyYearAsClass(user.data.studyyear.group, user.data.study.group)} - {user.data.study.group.name}</Text>
                     <Text className="text-lg">{user.data.email}</Text>
                 </View>
+                <View className="flex flex-row gap-4 w-full h-20">
+                    <Button
+                        className="flex-1 min-h-full"
+                        variant="default"
+                        onPress={() => {
+                            router.back();
+                            router.push("/profil/qrmodal")
+                        }}
+                    >
+                        <Text>
+                            <Icon icon="QrCode" />
+                        </Text>
+                    </Button>
 
-                <Button
-                    variant="destructive"
-                    onPress={onLogout}
-                >
-                    <Text>
-                        Logg ut
-                    </Text>
-                </Button>
-                <Button
-                    variant="default"
-                    onPress={() => {
-                        router.back();
-                        router.push("/profil/qrmodal")
-                    }}
-                >
-                    <Text>
-                        <Icon icon="QrCode" />
-                    </Text>
-                </Button>
-                <ThemeToggle />
+                    <ThemeToggle className="flex-1 min-h-full" />
+
+                    <Button
+                        className="flex-1 min-h-full"
+                        variant="default"
+                    >
+                        <Text>
+                            <Icon icon="Settings">
+
+                            </Icon>
+                        </Text>
+                    </Button>
+                    <Button
+                        className="flex-1 min-h-full"
+                        variant="destructive"
+                        onPress={onLogout}
+                    >
+                        <Text>
+                            Logg ut
+                        </Text>
+                    </Button>
+                </View>
                 <Text className="text-2xl mt-4 font-semibold">Dine arrangementer</Text>
                 <DisplayUserEvents userEvents={userEvents} />
             </View>

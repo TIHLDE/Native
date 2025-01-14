@@ -8,6 +8,7 @@ import { MoonStar } from "@/lib/icons/MoonStar";
 import { Sun } from "@/lib/icons/Sun";
 import { UserRound } from "@/lib/icons/UserRound";
 import { QrCode } from "@/lib/icons/QrCode";
+import { Settings } from "@/lib/icons/Settings";
 import { cn } from "../utils";
 
 
@@ -19,7 +20,8 @@ const icons = {
     MoonStar: MoonStar,
     Sun: Sun,
     UserRound: UserRound,
-    QrCode: QrCode
+    QrCode: QrCode,
+    Settings: Settings,
 }
 
 /**

@@ -11,19 +11,18 @@ interface PageWrapperProps {
 }
 
 export default function PageWrapper({ children, refreshQueryKey, className }: PageWrapperProps) {
+    const queryClient = useQueryClient();
+    let [isRefreshing, setIsRefreshing] = useState(false);
 
     if (!refreshQueryKey) {
         return (
             <SafeAreaWrapper>
-                <ScrollView className={cn("min-h-full", className || "")}>
+                <ScrollView className={cn("min-h-full", className ?? "")}>
                     {children}
                 </ScrollView>
             </SafeAreaWrapper>
         )
     }
-
-    const queryClient = useQueryClient();
-    let [isRefreshing, setIsRefreshing] = useState(false);
 
     const queryKey = Array.isArray(refreshQueryKey) ? refreshQueryKey : [refreshQueryKey];
 
@@ -50,7 +49,7 @@ export default function PageWrapper({ children, refreshQueryKey, className }: Pa
             <ScrollView refreshControl={
                 <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
             }
-                className={cn("min-h-full", className || "")}
+                className={cn("min-h-full", className ?? "")}
             >
                 {children}
             </ScrollView>
