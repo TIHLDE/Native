@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { RefreshControl, ScrollView } from "react-native";
@@ -10,19 +11,21 @@ interface PageWrapperProps {
 }
 
 export default function PageWrapper({ children, refreshQueryKey, className }: PageWrapperProps) {
+    const queryClient = useQueryClient();
+    let [isRefreshing, setIsRefreshing] = useState(false);
+
     if (!refreshQueryKey) {
         return (
             <SafeAreaWrapper>
-                <ScrollView className={className || ""}>
+                <ScrollView className={cn("min-h-full", className ?? "")}>
                     {children}
                 </ScrollView>
             </SafeAreaWrapper>
         )
     }
 
-    const queryClient = useQueryClient();
-    let [isRefreshing, setIsRefreshing] = useState(false);
     const queryKey = Array.isArray(refreshQueryKey) ? refreshQueryKey : [refreshQueryKey];
+
     const handleRefresh = () => {
         setIsRefreshing(true);
         const startTime = Date.now();
@@ -46,7 +49,7 @@ export default function PageWrapper({ children, refreshQueryKey, className }: Pa
             <ScrollView refreshControl={
                 <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
             }
-                className={className || ""}
+                className={cn("min-h-full", className ?? "")}
             >
                 {children}
             </ScrollView>
