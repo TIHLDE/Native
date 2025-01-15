@@ -4,7 +4,13 @@ import { Text, type TextProps, View, type ViewProps } from 'react-native';
 import { cn } from '~/lib/utils';
 import { TextClassContext } from '~/components/ui/text';
 
-const Card = React.forwardRef<ViewRef, ViewProps>(({ className, ...props }, ref) => (
+// Utvid ViewProps for å inkludere children
+interface CardProps extends ViewProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+const Card = React.forwardRef<ViewRef, CardProps>(({ className, children, ...props }, ref) => (
   <View
     ref={ref}
     className={cn(
@@ -12,16 +18,20 @@ const Card = React.forwardRef<ViewRef, ViewProps>(({ className, ...props }, ref)
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </View>
 ));
 Card.displayName = 'Card';
 
-const CardHeader = React.forwardRef<ViewRef, ViewProps>(({ className, ...props }, ref) => (
-  <View ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+const CardHeader = React.forwardRef<ViewRef, CardProps>(({ className, children, ...props }, ref) => (
+  <View ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props}>
+    {children}
+  </View>
 ));
 CardHeader.displayName = 'CardHeader';
 
-const CardTitle = React.forwardRef<TextRef, TextProps>(({ className, ...props }, ref) => (
+const CardTitle = React.forwardRef<TextRef, TextProps>(({ className, children, ...props }, ref) => (
   <Text
     role='heading'
     aria-level={3}
@@ -31,24 +41,36 @@ const CardTitle = React.forwardRef<TextRef, TextProps>(({ className, ...props },
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </Text>
 ));
 CardTitle.displayName = 'CardTitle';
 
-const CardDescription = React.forwardRef<TextRef, TextProps>(({ className, ...props }, ref) => (
-  <Text ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
-));
+const CardDescription = React.forwardRef<TextRef, TextProps>(
+  ({ className, children, ...props }, ref) => (
+    <Text ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props}>
+      {children}
+    </Text>
+  )
+);
 CardDescription.displayName = 'CardDescription';
 
-const CardContent = React.forwardRef<ViewRef, ViewProps>(({ className, ...props }, ref) => (
-  <TextClassContext.Provider value='text-card-foreground'>
-    <View ref={ref} className={cn('p-6 pt-0', className)} {...props} />
-  </TextClassContext.Provider>
-));
+const CardContent = React.forwardRef<ViewRef, CardProps>(
+  ({ className, children, ...props }, ref) => (
+    <TextClassContext.Provider value='text-card-foreground'>
+      <View ref={ref} className={cn('p-6 pt-0', className)} {...props}>
+        {children}
+      </View>
+    </TextClassContext.Provider>
+  )
+);
 CardContent.displayName = 'CardContent';
 
-const CardFooter = React.forwardRef<ViewRef, ViewProps>(({ className, ...props }, ref) => (
-  <View ref={ref} className={cn('flex flex-row items-center p-6 pt-0', className)} {...props} />
+const CardFooter = React.forwardRef<ViewRef, CardProps>(({ className, children, ...props }, ref) => (
+  <View ref={ref} className={cn('flex flex-row items-center p-6 pt-0', className)} {...props}>
+    {children}
+  </View>
 ));
 CardFooter.displayName = 'CardFooter';
 
