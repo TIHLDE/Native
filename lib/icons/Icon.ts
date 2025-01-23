@@ -9,6 +9,10 @@ import { Sun } from "@/lib/icons/Sun";
 import { UserRound } from "@/lib/icons/UserRound";
 import { QrCode } from "@/lib/icons/QrCode";
 import { Settings } from "@/lib/icons/Settings";
+import { CircleCheck } from "@/lib/icons/CircleCheck";
+import { TriangleAlert } from "@/lib/icons/TriangleAlert";
+import { OctagonX } from "@/lib/icons/OctagonX";
+import { Info } from "@/lib/icons/Info";
 import { cn } from "../utils";
 
 
@@ -22,6 +26,10 @@ const icons = {
     UserRound: UserRound,
     QrCode: QrCode,
     Settings: Settings,
+    CircleCheck: CircleCheck,
+    TriangleAlert: TriangleAlert,
+    OctagonX: OctagonX,
+    Info: Info,
 }
 
 /**

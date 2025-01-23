@@ -6,6 +6,7 @@ import { View, ScrollView } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
+import { BASE_URL } from "@/actions/constant";
 
 type Event = {
     id: string;
@@ -24,7 +25,7 @@ export default function Arrangementer() {
             page: pageParam.toString(),
             None: resultsPerPage.toString(),
         });
-        const res = await fetch(`https://api.tihlde.org/events/?${queryParams}`)
+        const res = await fetch(`${BASE_URL}/events/?${queryParams}`)
         return res.json();
     }
 
@@ -53,7 +54,11 @@ export default function Arrangementer() {
     }
 
     if (status === "error") {
-        return <Text className="text-center mt-10 text-lg text-red-500">Feil: {error.message}</Text>;
+        return (
+            <PageWrapper refreshQueryKey={"events"}>
+                <Text className="text-center mt-10 text-lg text-red-500">Feil: {error.message}</Text>
+            </PageWrapper>
+        );
     }
 
     return (

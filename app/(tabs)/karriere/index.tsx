@@ -1,3 +1,4 @@
+import { BASE_URL } from "@/actions/constant";
 import JobPostCard from "@/components/karriere/jobpostcard";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -13,7 +14,7 @@ export default function Karriere() {
     const jobposts = useQuery({
         queryKey: ["jobposts"],
         queryFn: async () => {
-            return fetch("https://api.tihlde.org/jobposts/").then((res) => res.json());
+            return fetch(`${BASE_URL}/jobposts/`).then((res) => res.json());
         },
     });
 
