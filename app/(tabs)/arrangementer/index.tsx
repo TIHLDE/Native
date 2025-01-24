@@ -62,8 +62,8 @@ export default function Arrangementer() {
     }
 
     return (
-        <PageWrapper className="px-10" refreshQueryKey={"events"}>
-            <Text className="text-2xl font-bold text-center mb-6">Arrangementer</Text>
+        <PageWrapper className="w-full h-fit px-4" refreshQueryKey={"events"}>
+            <Text className="flex flex-col justify-center text-2xl font-bold text-center mb-6">Arrangementer</Text>
 
             {data?.pages.map((group, i) => (
                 < React.Fragment key={i} >
