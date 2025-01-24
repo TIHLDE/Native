@@ -1,5 +1,4 @@
 import React from "react";
-import { useColorScheme } from "../useColorScheme";
 import { BriefcaseBusiness } from "@/lib/icons/BriefcaseBusiness";
 import { Calendar } from "@/lib/icons/Calendar";
 import { CalendarClock } from "@/lib/icons/CalendarClock";
