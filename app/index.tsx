@@ -28,7 +28,7 @@ export default function Arrangementer() {
         };
     }, [authState?.isLoading]);
 
-    if (true) {
+    if (showLoading) {
         return (
             <SafeAreaProvider>
                 <SafeAreaView
