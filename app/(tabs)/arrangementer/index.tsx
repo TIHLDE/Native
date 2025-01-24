@@ -6,8 +6,10 @@ import { View, ScrollView } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
+import React from "react";
 
 type Event = {
+    organizer: { slug: string | null; };
     id: string;
     title: string;
     start_date: string;
@@ -57,8 +59,7 @@ export default function Arrangementer() {
     }
 
     return (
-        <PageWrapper className="px-10" refreshQueryKey={"events"}>
-            <Text className="text-2xl font-bold text-center mb-6">Arrangementer</Text>
+        <PageWrapper className="px-2" refreshQueryKey={"events"}>
 
             {data?.pages.map((group, i) => (
                 < React.Fragment key={i} >
@@ -71,6 +72,7 @@ export default function Arrangementer() {
                                 date={new Date(event.start_date)}
                                 image={event.image || null}
                                 onPress={() => router.push(`/arrangementer/${event.id}`)}
+                                organizer={event.organizer}
                             />
                         ))
                     }

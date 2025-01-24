@@ -2,7 +2,7 @@ import { Group } from "@/actions/types";
 import me, { myEvents } from "@/actions/users/me";
 import { ThemeToggle } from "@/components/themeToggle";
 import { Button } from "@/components/ui/button";
-import EventCard from "@/components/ui/eventCard";
+import EventCard from "@/components/arrangement/eventCard";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
