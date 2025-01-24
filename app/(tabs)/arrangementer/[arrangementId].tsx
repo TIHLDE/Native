@@ -1,5 +1,5 @@
 import { Text } from "@/components/ui/text";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { View, Image, ActivityIndicator } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,13 @@ import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import * as WebBrowser from 'expo-web-browser';
 import me from "@/actions/users/me";
+import Toast from "react-native-toast-message";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
+//TODO: backend tillater tydeligvis å melde seg på alt unnatatt bedpres selv om man har ubesvarte 
+// evalueringsskjemaer. Vet ikke om dette er en bug eller ikke. Får høre med mats.
+
+//TODO: test refresh når evalueringsskjema er besvart. Prøvde nå og fungerte ikke.
 
 export default function ArrangementSide() {
     const params = useLocalSearchParams();
@@ -43,8 +50,23 @@ export default function ArrangementSide() {
         },
 
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ["event", id] });
-            await queryClient.invalidateQueries({ queryKey: ["event", id, "registration"] });
+            await queryClient.invalidateQueries({ queryKey: ["event"] });
+        },
+        onError: (error) => {
+            if (!error.message) {
+                Toast.show({
+                    text1: "Feil",
+                    text2: "Kunne ikke melde deg på arrangementet. Prøv igjen senere.",
+                    type: "error",
+                });
+                return;
+            }
+
+            Toast.show({
+                text1: "Feil",
+                text2: error.message,
+                type: "error",
+            });
         }
     });
 
@@ -74,7 +96,7 @@ export default function ArrangementSide() {
     }
 
     return (
-        <PageWrapper refreshQueryKey={[["user"], ["event", id as string]]}>
+        <PageWrapper refreshQueryKey={[["user"], ["event"]]}>
             <Stack.Screen options={{ title: event.data.title }} />
             <View>
                 {event.data.image && (
@@ -188,6 +210,7 @@ export default function ArrangementSide() {
 // Would be ideal to move the registration query and mutation here, but i cant get it to
 // immediately refetch when the page is refreshed via page-wrapper.
 function RegistrationButton({ event, registration, onClick, mutationPending }: { event: Event, registration?: Registration | null, onClick?: () => void, mutationPending?: boolean }) {
+    const router = useRouter();
 
     const user = useQuery({
         queryKey: ["users", "me"],
@@ -197,25 +220,26 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
     const hasUnansweredEvaluations = user.data?.unanswered_evaluations_count !== 0;
 
     // all button stuff:
-    const [isDisabled, setIsDisabled] = useState<boolean>(
-        new Date(event.end_registration_at) < new Date()
-        || new Date(event.start_registration_at) > new Date()
-        || registration?.has_paid_order
-        || mutationPending
-        || user.isPending
-        || user.data?.unanswered_evaluations_count === undefined
-        || user.data.unanswered_evaluations_count > 0
-        || false
-    )
+    const [isDisabled, setIsDisabled] = useState<boolean>();
+
+    useEffect(() => {
+        setIsDisabled(
+            (new Date(event.end_registration_at) < new Date() && !registration)
+            || new Date(event.start_registration_at) > new Date()
+            || registration?.has_paid_order
+            || mutationPending
+            || user.isPending
+            || user.data?.unanswered_evaluations_count === undefined
+            || user.data.unanswered_evaluations_count > 0
+            || false
+        );
+    }, [event, registration]);
 
     const isDestructive = registration;
 
     const getButtonText = (event: Event) => {
 
-        if (new Date(event.end_registration_at) < new Date()) {
-            if (registration) {
-                return "Avmeldingsfrist utløpt";
-            }
+        if (new Date(event.end_registration_at) < new Date() && !registration) {
             return "Påmeldingsfrist utløpt";
         }
 
@@ -240,7 +264,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
 
     // all alert stuff:
     const showAlert = registration || hasUnansweredEvaluations
-    const alertType = (event.paid_information && !registration?.has_paid_order && "warning")
+    const alertType = (event.paid_information && !registration?.has_paid_order && registration && "warning")
         || (registration?.is_on_wait && "info")
         || (hasUnansweredEvaluations && "error")
         || "success";
@@ -261,7 +285,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
     const alertMessage = getAlertMessage();
 
     // countdown stuff:
-    const countdownIsForPayment = event.paid_information && !registration?.has_paid_order;
+    const countdownIsForPayment = event.paid_information && !registration?.has_paid_order && registration;
     const countdownTime =
         (new Date(event.start_registration_at) > new Date() && new Date(event.start_registration_at))
         || ((event.paid_information && registration?.payment_expiredate && new Date(registration.payment_expiredate) > new Date()) && new Date(registration.payment_expiredate));
@@ -274,6 +298,8 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
         }
     }, [event, registration]);
 
+    const [showUnregisterDialog, setShowUnregisterDialog] = useState<boolean>();
+
     return (
         <>
             {showAlert &&
@@ -283,7 +309,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
                             <CountTextWrapper
                                 interval={1000}
                                 prefix="Du er påmeldt, men har "
-                                suffix="på å betale for å beholde plassen."
+                                suffix=" på å betale for å beholde plassen."
                                 startCount={new Date(countdownTime.getTime() - Date.now())} />
                             : alertMessage
                         }
@@ -291,11 +317,19 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
                 </Alert >
             }
 
+
             {showCountdown && countdownTime && countdownIsForPayment &&
                 <PaymentButton eventId={event.id} />
             }
 
-            <Button onPress={onClick} className="mx-5 mt-5" variant={isDestructive ? "destructive" : "default"} disabled={isDisabled} >
+            <Button onPress={() => {
+                if (new Date(event.end_registration_at) < new Date() && registration) {
+                    setShowUnregisterDialog(true);
+                    return;
+                }
+
+                onClick?.();
+            }} className="mx-5 mt-5" variant={isDestructive ? "destructive" : "default"} disabled={isDisabled} >
                 {mutationPending ?
                     <ActivityIndicator />
                     :
@@ -320,6 +354,28 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
                     </>
                 }
             </Button >
+            <AlertDialog open={showUnregisterDialog} onOpenChange={setShowUnregisterDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Ved å melde deg av dette arrangementet vil du få en prikk
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>
+                            <Text>Avbryt</Text>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button onPress={() => {
+                                onClick?.();
+                            }}>
+                                <Text>Bekreft</Text>
+                            </Button>
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog >
         </>
     );
 }
@@ -334,12 +390,14 @@ function PaymentButton({ eventId }: { eventId: number }) {
 
     return (
         <Button onPress={() => {
-            if (payment.data?.payment_link) {
-                WebBrowser.openBrowserAsync(payment.data.payment_link).then(() => {
-                    queryClient.invalidateQueries({ queryKey: ["event"] });
-                    queryClient.refetchQueries({ queryKey: ["event"] });
-                })
-            }
+            // hvis vi ikke klarer å lage en betalingslenke, åpne arrangementet i nettleseren
+            const paymentLink = payment.data?.payment_link || "https://tihlde.org/arrangementer/" + eventId;
+
+            WebBrowser.openBrowserAsync(paymentLink).then(() => {
+                queryClient.invalidateQueries({ queryKey: ["event"] });
+                queryClient.refetchQueries({ queryKey: ["event"] });
+            });
+
         }} className="mx-5 mt-5" variant="default" disabled={payment.isPending}>
             {payment.isPending ?
                 <ActivityIndicator />
