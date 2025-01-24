@@ -10,6 +10,7 @@ import { useColorScheme } from '~/lib/useColorScheme';
 import { AuthProvider } from '@/context/auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from "react-native-toast-message";
+import { PortalHost } from '@rn-primitives/portal';
 
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
@@ -59,6 +60,7 @@ export default function RootLayout() {
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     </Stack>
                     <Toast />
+                    <PortalHost />
                 </QueryClientProvider>
             </ThemeProvider>
         </AuthProvider>

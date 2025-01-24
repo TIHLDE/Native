@@ -12,6 +12,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Button } from "@/components/ui/button";
 import MarkdownView from "@/components/ui/MarkdownView";
 import PageWrapper from "@/components/ui/pagewrapper";
+import { BASE_URL } from "@/actions/constant";
 
 export default function Karriereside() {
     const params = useLocalSearchParams();
@@ -20,7 +21,7 @@ export default function Karriereside() {
     const jobpost = useQuery({
         queryKey: ["jobpost", id],
         queryFn: async () => {
-            return fetch(`https://api.tihlde.org/jobposts/${id}`).then((res) => res.json());
+            return fetch(`${BASE_URL}/jobposts/${id}`).then((res) => res.json());
         },
     });
     if (jobpost.isPending) return (

@@ -1,4 +1,3 @@
-import { Group } from "@/actions/types";
 import me, { myEvents } from "@/actions/users/me";
 import { ThemeToggle } from "@/components/themeToggle";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { Event } from "@/actions/types";
+import { Event, Group } from "@/actions/types";
 import Icon from "@/lib/icons/Icon";
 
 export default function Profil() {
@@ -149,16 +148,16 @@ function DisplayUserEvents({ userEvents }: { userEvents: UseQueryResult<{ result
     }
 
     if (userEvents.data.results.length === 0) {
-        return <Text>Du er ikke påmeldt noen arrangement.</Text>
+        return <Text>Du er ikke påmeldt noen arrangementer.</Text>
     }
 
     return userEvents.data.results.map((event) => (
         <EventCard
             key={event.id}
-            id={event.id}
+            id={event.id.toString()}
             title={event.title}
             date={new Date(event.start_date)}
-            image={event.image || null}
+            image={event.image ?? null}
             onPress={() => {
                 router.back();
                 router.push({
