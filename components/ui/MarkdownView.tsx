@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import Markdown, { MarkdownIt, renderRules } from "react-native-markdown-display";
 import { Text } from "./text";
 import FitImage from 'react-native-fit-image';
-
+import * as WebBrowser from 'expo-web-browser';
 
 // Legge til ekstre regler for markdown her om det trengs.
 const rules = {
@@ -34,6 +34,14 @@ const rules = {
             </View>
         );
     },
+    link: (node: any, children: any, parent: any, styles: any, onLinkPress: any) => (
+        <Text
+            key={node.key}
+            style={styles.link}
+            onPress={() => WebBrowser.openBrowserAsync(node.attributes.href)}>
+            {children}
+        </Text>
+    ),
 
     // Default implementasjonen av image gjør {...props} med key,noe som react ikke liker. 
     // Alt dette er kopiert, men setter key på riktig måte.
@@ -94,6 +102,25 @@ export default function MarkdownView({ content }: { content: string }) {
             },
             list_item: {
                 color: isDarkColorScheme ? NAV_THEME.dark.text : NAV_THEME.light.text,
+            },
+            Heading1: {
+                fontSize: 32,
+                fontWeight: 'bold',
+            },
+            heading2: {
+                fontSize: 24,
+                fontWeight: 'bold',
+            },
+            heading3: {
+                fontSize: 20,
+                fontWeight: "bold",
+            },
+            text: {
+                fontSize: 18,
+            },
+            bullet_list_icon: {
+                fontWeight: "900",
+                fontSize: 22,
             }
 
         }}>
