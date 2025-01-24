@@ -1,0 +1,103 @@
+import { NAV_THEME } from "@/lib/constants";
+import { useColorScheme } from "@/lib/useColorScheme";
+import { StyleSheet, View } from "react-native";
+import Markdown, { MarkdownIt, renderRules } from "react-native-markdown-display";
+import { Text } from "./text";
+import FitImage from 'react-native-fit-image';
+
+
+// Legge til ekstre regler for markdown her om det trengs.
+const rules = {
+    ...renderRules,
+    html_inline: (node: any, children: any, parent: any, styles: any) => {
+        return (
+            <View style={styles.html_inline} key={node.key} className="p-2" >
+                {children}
+            </View>
+        );
+    },
+    hr: (node: any, children: any, parent: any, styles: any) => {
+        return (
+            <View style={styles.hr} key={node.key} className="border-t border-foreground my-4" />
+        );
+    },
+    text: (node: any, children: any, parent: any, styles: any, inheritedStyles = {}) => (
+        <Text key={node.key} style={[inheritedStyles, styles.text]} className="leading-normal">
+            {node.content}
+        </Text>
+    ),
+    // Styling til blockquote burde egentlig ikke ligge her...
+    blockquote: (node: any, children: any, parent: any, styles: any) => {
+        return (
+            <View key={node.key} className="border-l-4 color-foreground border-primary p-2 my-4">
+                {children}
+            </View>
+        );
+    },
+
+    // Default implementasjonen av image gjør {...props} med key,noe som react ikke liker. 
+    // Alt dette er kopiert, men setter key på riktig måte.
+    image: (
+        node: any,
+        children: any,
+        parent: any,
+        styles: any,
+        allowedImageHandlers: any,
+        defaultImageHandler: any,
+    ) => {
+        const { src, alt } = node.attributes;
+
+        const show =
+            allowedImageHandlers.filter((value: any) => {
+                return src.toLowerCase().startsWith(value.toLowerCase());
+            }).length > 0;
+
+        if (show === false && defaultImageHandler === null) {
+            return null;
+        }
+
+        const imageProps: any = {
+            indicator: true,
+            style: styles._VIEW_SAFE_image,
+            source: {
+                uri: show === true ? src : `${defaultImageHandler}${src}`,
+            },
+        };
+
+        if (alt) {
+            imageProps.accessible = true;
+            imageProps.accessibilityLabel = alt;
+        }
+
+        return <FitImage {...imageProps} key={node.key} />;
+    },
+};
+
+const markdownItInstance = new MarkdownIt({ typographer: true, html: true });
+
+export default function MarkdownView({ content }: { content: string }) {
+    const { isDarkColorScheme } = useColorScheme();
+
+    return (
+
+        // Burde egentlig ikke bruke NAV_THEME for å hente ut riktig farke, 
+        // men får ikke css variabler til å fungere
+        <Markdown rules={rules} markdownit={markdownItInstance} style={{
+            paragraph: {
+                marginTop: 0,
+                marginBottom: 0,
+                flexWrap: 'wrap',
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
+                width: '100%',
+            },
+            list_item: {
+                color: isDarkColorScheme ? NAV_THEME.dark.text : NAV_THEME.light.text,
+            }
+
+        }}>
+            {content}
+        </Markdown>
+    );
+}

@@ -11,6 +11,7 @@ import { AuthProvider } from "@/context/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Toast from "react-native-toast-message";
 import * as SplashScreen from "expo-splash-screen";
+import { PortalHost } from '@rn-primitives/portal';
 
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
@@ -55,14 +56,15 @@ export default function RootLayout() {
     return (
         <AuthProvider>
             <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-                <QueryClientProvider client={queryClient}>  
-                    <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-                    <Stack>
+                <QueryClientProvider client={queryClient}>
+                    <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+                    <Stack >
                         <Stack.Screen name="index" options={{ headerShown: false }} />
                         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     </Stack>
                     <Toast />
+                    <PortalHost />
                 </QueryClientProvider>
             </ThemeProvider>
         </AuthProvider>
