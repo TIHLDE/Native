@@ -1,13 +1,8 @@
 import { Image, View } from "react-native";
 import { Text } from "../ui/text";
-import { Card } from "../ui/card";
-import { BriefcaseBusiness } from "lib/icons/BriefcaseBusiness";
-import { CalendarClock } from "@/lib/icons/CalendarClock";
-import { MapPin } from "@/lib/icons/MapPin";
-import { Calendar } from "@/lib/icons/Calendar";
-import useIcon from "@/lib/icons/Icon";
 import Icon from "@/lib/icons/Icon";
 import timeformat from "@/lib/timeformat";
+import { Card, CardContent } from "../ui/card";
 
 export interface JobPostProps {
     title: string;
@@ -25,26 +20,33 @@ export const JOBTYPES = {
 }
 
 export default function JobPostCard(props: JobPostProps) {
-
     return (
-        <Card className="w-full h-fit p-2 border-none shadow-lg">
-            <Image className="w-full h-40 rounded-md" source={{ uri: props.image }} />
-            <View className="flex flex-col gap-2 text-3xl">
-                <Text className="text-2xl mt-2 mb-2">{props.title}</Text>
+        <View className="w-full h-fit border border-gray-300 dark:border-gray-800 shadow-sm rounded-lg bg-card dark:bg-[#020817]">
+            <View className="relative">
+                <View className="absolute left-0.5 top-0.5 bg-gray-900 px-3 py-1 rounded-lg z-50">
+                    <Text className="text-center text-sm text-white">
+                        {new Date(props.deadline).toLocaleDateString('no-NO', { day: 'numeric', month: 'short' })} {new Date(props.deadline).getFullYear()}
+                    </Text>
+                </View>
+                <Image className="aspect-[16/7] object-cover rounded-t-lg" source={{ uri: props.image }} />
+            </View>
+            <View className="w-full h-[1px] bg-gray-300 dark:bg-gray-950" />
+            <View className="flex flex-col gap-2 px-2 pb-4">
+                <Text className="text-2xl mt-2 mb-2 font-medium">{props.title}</Text>
                 <View className="flex flex-row gap-2 ml-2">
-                    <Icon icon="BriefcaseBusiness" className="self-center stroke-1 color-muted-foreground" />
-                    <Text className="text-xl text-muted-foreground">{JOBTYPES[props.jobType]}</Text>
+                    <Icon icon="BriefcaseBusiness" className="self-center stroke-1 dark:text-white" />
+                    <Text className="text-lg ">{JOBTYPES[props.jobType]}</Text>
                 </View>
                 <View className="flex flex-row gap-2 ml-2">
-                    <Icon icon="MapPin" className="self-center stroke-1 color-muted-foreground" />
-                    <Text className="text-xl text-muted-foreground">{props.location}</Text>
+                    <Icon icon="MapPin" className="self-center stroke-1 dark:text-white" />
+                    <Text className="text-lg ">{props.location}</Text>
                 </View>
                 <View className="flex flex-row gap-2 ml-2">
-                    <Icon icon="CalendarClock" className="self-center stroke-1 color-muted-foreground" />
-                    <Text className="text-xl text-muted-foreground">{timeformat(new Date(props.deadline))}</Text>
+                    <Icon icon="CalendarClock" className="self-center stroke-1 dark:text-white" />
+                    <Text className="text-lg ">{timeformat(new Date(props.deadline))}</Text>
                 </View>
             </View>
-        </Card>
+        </View>
     )
 
 }

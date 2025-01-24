@@ -12,5 +12,6 @@ export type User = {
     }
     studyyear: {
         group: Group;
-    }
+    },
+    unanswered_evaluations_count: number,
 }

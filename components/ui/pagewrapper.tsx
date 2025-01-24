@@ -6,7 +6,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 interface PageWrapperProps {
     children: React.ReactNode;
-    refreshQueryKey?: string | string[];
+    refreshQueryKey?: string | string[] | string[][];
     className?: string;
 }
 
@@ -25,23 +25,29 @@ export default function PageWrapper({ children, refreshQueryKey, className }: Pa
     }
 
     const queryKey = Array.isArray(refreshQueryKey) ? refreshQueryKey : [refreshQueryKey];
+    const hasMultipleQueryKeys = Array.isArray(queryKey[0]);
 
     const handleRefresh = () => {
+
         setIsRefreshing(true);
         const startTime = Date.now();
-        queryClient.invalidateQueries({ queryKey: queryKey }).then(() => {
-            if (Date.now() - startTime < 1000) {
 
-                //TODO: we might not want to do this, but providing a minnumum time for the refresh
-                // feels better ux wise
+        const handleFinish = () => {
+            if (Date.now() - startTime < 1000) {
                 setTimeout(() => {
                     setIsRefreshing(false);
                 }, 400 - (Date.now() - startTime));
                 return;
             }
-
             setIsRefreshing(false);
-        });
+        }
+
+        if (hasMultipleQueryKeys) {
+            Promise.all(queryKey.map((key) => queryClient.invalidateQueries({ queryKey: key }))).then(handleFinish);
+            return;
+        }
+
+        queryClient.invalidateQueries({ queryKey: queryKey }).then(handleFinish);
     }
 
     return (

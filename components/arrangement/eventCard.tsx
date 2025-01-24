@@ -17,7 +17,8 @@ const EventCard = ({
     image: string | null;
     onPress: () => void;
     organizer: {
-        name: ReactNode; slug: string | null
+        name: string;
+        slug: string | null
     };
 }) => {
     const formattedDate = date
