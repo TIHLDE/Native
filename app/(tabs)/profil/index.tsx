@@ -1,4 +1,4 @@
-import me, { myEvents } from "@/actions/users/me";
+import me, { myEvents, myPreviousEvents } from "@/actions/users/me";
 import { ThemeToggle } from "@/components/themeToggle";
 import { Button } from "@/components/ui/button";
 import EventCard from "@/components/ui/eventCard";
@@ -8,10 +8,16 @@ import { useAuth } from "@/context/auth";
 import { deleteToken } from "@/lib/storage";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Image, View } from "react-native";
+import { Image, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { Event, Group } from "@/actions/types";
 import Icon from "@/lib/icons/Icon";
+import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
+
+//TODO: Foreløpig er react-native-pager-view broken... Det er ikke mulig å swipe mellom tabs
+// med mindre vi ofrer å vise noe innhold større en rundt 90vh. Forhåpenligvis fikses dette, 
+// men i mellomtiden får vi ofre litt ux...
+// Vi kan også bare... lage en helt egen pager view med reanimated.
 
 export default function Profil() {
     const { setAuthState } = useAuth();
@@ -26,6 +32,11 @@ export default function Profil() {
         queryKey: ["users", "me", "events"],
         queryFn: myEvents,
     });
+
+    const previousEvents = useQuery({
+        queryKey: ["users", "me", "previous-events"],
+        queryFn: myPreviousEvents,
+    })
 
     const getStudyYearAsClass = (studyYear: Group, study: Group): string => {
         const studyyear = Number(studyYear.name);
@@ -107,17 +118,8 @@ export default function Profil() {
                     </Button>
 
                     <ThemeToggle className="flex-1 min-h-full" />
-
-                    <Button
-                        className="flex-1 min-h-full"
-                        variant="default"
-                    >
-                        <Text>
-                            <Icon icon="Settings">
-
-                            </Icon>
-                        </Text>
-                    </Button>
+                </View>
+                <View className="flex flex-row gap-4 w-full h-16">
                     <Button
                         className="flex-1 min-h-full"
                         variant="destructive"
@@ -128,15 +130,28 @@ export default function Profil() {
                         </Text>
                     </Button>
                 </View>
-                <Text className="text-2xl mt-4 font-semibold">Dine arrangementer</Text>
-                <DisplayUserEvents userEvents={userEvents} />
+                <View className="my-2 border-t border-muted-foreground mx-8" />
+                {!userEvents.isPending && !previousEvents.isPending &&
+                    <AnimatedPagerView titles={["Dine arrangementer", "Tidligere arrangementer"]} >
+                        <View key={0} className="max-h-[45vh]">
+                            <ScrollView bounces={false} nestedScrollEnabled>
+                                <DisplayUserEvents userEvents={userEvents} />
+                            </ScrollView>
+                        </View>
+                        <View key={1} className="max-h-[45vh]">
+                            <ScrollView bounces={false} nestedScrollEnabled>
+                                <DisplayUserEvents userEvents={previousEvents} previous />
+                            </ScrollView>
+                        </View>
+                    </AnimatedPagerView>
+                }
             </View>
         </PageWrapper>
     );
 }
 
 
-function DisplayUserEvents({ userEvents }: { userEvents: UseQueryResult<{ results: Event[] }, Error> }) {
+function DisplayUserEvents({ userEvents, previous }: { userEvents: UseQueryResult<{ results: Event[] }, Error>, previous?: boolean }) {
     const router = useRouter();
 
     if (userEvents.isPending) {
@@ -148,7 +163,7 @@ function DisplayUserEvents({ userEvents }: { userEvents: UseQueryResult<{ result
     }
 
     if (userEvents.data.results.length === 0) {
-        return <Text>Du er ikke påmeldt noen arrangementer.</Text>
+        return <Text className="text-center h-fit">{previous ? "Du har ikke deltatt på noen arrangementer" : "Du er ikke påmeldt noen arrangementer."}</Text>
     }
 
     return userEvents.data.results.map((event) => (

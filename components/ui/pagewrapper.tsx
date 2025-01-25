@@ -17,7 +17,7 @@ export default function PageWrapper({ children, refreshQueryKey, className }: Pa
     if (!refreshQueryKey) {
         return (
             <SafeAreaWrapper>
-                <ScrollView className={cn("min-h-full", className ?? "")}>
+                <ScrollView className={cn("min-h-full", className ?? "")} nestedScrollEnabled>
                     {children}
                 </ScrollView>
             </SafeAreaWrapper>
@@ -56,6 +56,7 @@ export default function PageWrapper({ children, refreshQueryKey, className }: Pa
                 <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
             }
                 className={cn("min-h-full", className ?? "")}
+                nestedScrollEnabled
             >
                 {children}
             </ScrollView>
