@@ -1,5 +1,4 @@
 import { JOBTYPES } from "@/components/karriere/jobpostcard";
-import { Card } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
 import timeformat from "@/lib/timeformat";
 import { useQuery } from "@tanstack/react-query";
@@ -40,9 +39,10 @@ export default function Karriereside() {
                 <View className="px-3 pt-4">
                     <Image className="rounded-lg w-full aspect-[16/7] object-cover" source={{ uri: jobpost.data.image }} />
                 </View>
+                <View className="w-full h-[1px] bg-gray-950 my-6" />
                 <View className="flex flex-col px-3 gap-10 pb-12">
-                    <Text className="text-4xl font-semibold mt-6">{jobpost.data.title}</Text>
-                    <View className="w-full h-fit bg-card border border-gray-800 rounded-lg p-2 flex flex-col gap-2">
+                    <Text className="text-4xl font-semibold">{jobpost.data.title}</Text>
+                    <View className="w-full border bg-card dark:bg-[#020817] border-gray-300 dark:border-gray-800 rounded-lg p-2 flex flex-col gap-2 shadow-sm">
                         <View className="flex flex-col gap-2">
                             <View className="flex flex-row gap-4">
                                 <Text className="text-lg w-28 font-medium">Bedrift:</Text>

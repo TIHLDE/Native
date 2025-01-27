@@ -23,13 +23,13 @@ const EventCard = ({
     return (
         <TouchableOpacity
             onPress={onPress}
-            className="bg-[#0D1B2A] rounded-lg overflow-hidden mb-4 shadow-md border border-gray-600 w-full"
+            className="bg-[#0D1B2A] rounded-lg overflow-hidden mb-4 shadow-md border border-gray-800 w-full"
         >
             {image ? (
                 <Image
                     source={{ uri: image }}
-                    className="w-full h-40"
-                    resizeMode="contain"
+                    className="aspect-[16/7] rounded-t-lg"
+                    resizeMode="cover"
                 />
             ) : (
                 <View className="w-full bg-gray-300 h-40 flex justify-center items-center">
