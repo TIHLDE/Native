@@ -273,8 +273,6 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
         || (hasUnansweredEvaluations && "error")
         || "success";
 
-    console.log(event);
-
     const getAlertMessage = () => {
 
         if (registration?.is_on_wait) {
