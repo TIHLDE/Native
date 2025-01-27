@@ -13,6 +13,7 @@ import Toast from "react-native-toast-message";
 import { Event, Group } from "@/actions/types";
 import Icon from "@/lib/icons/Icon";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 //TODO: Foreløpig er react-native-pager-view broken... Det er ikke mulig å swipe mellom tabs
 // med mindre vi ofrer å vise noe innhold større en rundt 90vh. Forhåpenligvis fikses dette, 
@@ -95,50 +96,47 @@ export default function Profil() {
     return (
         <PageWrapper refreshQueryKey={["users", "me"]}>
             <View className="flex flex-col gap-4 p-4">
-                <Text className="text-2xl font-semibold m-auto my-2">Profil</Text>
-                {user.data.image && <Image className="w-24 h-24 rounded-full" source={{ uri: user.data.image }} />}
-                <View className="mt-2">
+                {user.data.image && <Image className="w-24 h-24 rounded-full m-auto" source={{ uri: user.data.image }} />}
+                <View className="mt-2 flex flex-col justify-center items-center">
                     <Text className="text-2xl font-semibold">{user.data.first_name} {user.data.last_name}</Text>
                     <Text className="text-lg text-muted-foreground">@{user.data.user_id}</Text>
                     <Text className="text-lg">{getStudyYearAsClass(user.data.studyyear.group, user.data.study.group)} - {user.data.study.group.name}</Text>
                     <Text className="text-lg">{user.data.email}</Text>
                 </View>
-                <View className="flex flex-row gap-4 w-full h-20">
-                    <Button
-                        className="flex-1 min-h-full"
-                        variant="default"
-                        onPress={() => {
-                            router.back();
-                            router.push("/profil/qrmodal")
-                        }}
-                    >
-                        <Text>
-                            <Icon icon="QrCode" />
-                        </Text>
-                    </Button>
-
-                    <ThemeToggle className="flex-1 min-h-full" />
-                </View>
-                <View className="flex flex-row gap-4 w-full h-16">
-                    <Button
-                        className="flex-1 min-h-full"
-                        variant="destructive"
-                        onPress={onLogout}
-                    >
-                        <Text>
-                            Logg ut
-                        </Text>
-                    </Button>
-                </View>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            className="flex-1 min-h-full mx-8"
+                            variant="destructive"
+                        >
+                            <Text>
+                                Logg ut
+                            </Text>
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="p-8">
+                        <AlertDialogTitle>
+                            Er du sikker på at du vil logge ut?
+                        </AlertDialogTitle>
+                        <AlertDialogAction asChild>
+                            <Button variant="destructive" onPress={onLogout}>
+                                <Text>Logg ut</Text>
+                            </Button>
+                        </AlertDialogAction>
+                        <AlertDialogCancel>
+                            <Text>Avbryt</Text>
+                        </AlertDialogCancel>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <View className="my-2 border-t border-muted-foreground mx-8" />
                 {!userEvents.isPending && !previousEvents.isPending &&
                     <AnimatedPagerView titles={["Dine arrangementer", "Tidligere arrangementer"]} >
-                        <View key={0} className="max-h-[45vh]">
+                        <View key={0} className="max-h-[40vh]">
                             <ScrollView bounces={false} nestedScrollEnabled>
                                 <DisplayUserEvents userEvents={userEvents} />
                             </ScrollView>
                         </View>
-                        <View key={1} className="max-h-[45vh]">
+                        <View key={1} className="max-h-[40vh]">
                             <ScrollView bounces={false} nestedScrollEnabled>
                                 <DisplayUserEvents userEvents={previousEvents} previous />
                             </ScrollView>
