@@ -4,7 +4,7 @@ export default function karriereLayout() {
 
     return (
         <Stack>
-            <Stack.Screen name="index" options={{ headerShown: true, title: "Jobbannonsern", headerTitleAlign: "center" }} />
+            <Stack.Screen name="index" options={{ headerShown: true, title: "Jobbannonser", headerTitleAlign: "center" }} />
         </Stack>
     )
 }
