@@ -73,9 +73,12 @@ export default function ArrangementSide() {
 
     if (event.isPending) {
         return (
-            <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg">Laster arrangement...</Text>
-            </View>
+            <>
+                <Stack.Screen options={{ title: '' }} />
+                <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
+                    <Text className="text-lg">Laster arrangement...</Text>
+                </View>
+            </>
         );
     }
 
@@ -97,7 +100,7 @@ export default function ArrangementSide() {
 
     return (
         <>
-            <Stack.Screen options={{ title: '', headerBackTitle: "Arrangementer", }} />
+            <Stack.Screen options={{ title: '' }} />
             <PageWrapper refreshQueryKey={["event", id as string]}>
                 <View>
                     {event.data.image && (
@@ -171,7 +174,7 @@ export default function ArrangementSide() {
                             </View>
                             <View>
                                 <Text className="text-md mb-2">
-                                    {event.data.list_count}/{event.data.limit}
+                                    {event.data.list_count}/{event.data.limit === 0 ? "∞" : event.data.limit}
                                 </Text>
                                 <Text className="text-md mb-2">
                                     {event.data.waiting_list_count}
@@ -191,6 +194,12 @@ export default function ArrangementSide() {
                             </View>
                         </View>
                     </Card>
+                    <RegistrationButton
+                        event={event.data}
+                        registration={registration}
+                        mutationPending={registrationMutation.isPending}
+                        onClick={() => registrationMutation.mutate(Number(id))}
+                    />
                     <View className="p-5">
                         <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
                         <MarkdownView content={event.data.description || "Ingen beskrivelse tilgjengelig"} />
@@ -205,7 +214,6 @@ export default function ArrangementSide() {
 // Would be ideal to move the registration query and mutation here, but i cant get it to
 // immediately refetch when the page is refreshed via page-wrapper.
 function RegistrationButton({ event, registration, onClick, mutationPending }: { event: Event, registration?: Registration | null, onClick?: () => void, mutationPending?: boolean }) {
-    const router = useRouter();
 
     const user = useQuery({
         queryKey: ["users", "me"],
@@ -226,6 +234,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
             || user.isPending
             || user.data?.unanswered_evaluations_count === undefined
             || user.data.unanswered_evaluations_count > 0
+            || !event.sign_up
             || false
         );
     }, [event, registration]);
@@ -264,6 +273,8 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
         || (hasUnansweredEvaluations && "error")
         || "success";
 
+    console.log(event);
+
     const getAlertMessage = () => {
 
         if (registration?.is_on_wait) {
@@ -272,6 +283,10 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
 
         if (hasUnansweredEvaluations && user.data?.unanswered_evaluations_count) {
             return `Du må svare på ${user.data?.unanswered_evaluations_count > 1 ? user.data?.unanswered_evaluations_count : "ett"} evalueringsskjema${user.data?.unanswered_evaluations_count > 1 ? "er" : ""} før du kan melde deg på flere arrangementer. Du finner dine ubesvarte evalueringsskjemaer under "Spørreskjemaer" på profilsiden.`;
+        }
+
+        if (new Date(event.start_date) < new Date()) {
+            return "Du har deltatt på arrangementet!";
         }
 
         return "Du er påmeldt arrangementet.";
@@ -298,7 +313,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
     return (
         <>
             {showAlert &&
-                <Alert type={alertType} className="mx-5 mt-5">
+                <Alert type={alertType} className="mt-5">
                     <Text>
                         {showCountdown && countdownTime && countdownIsForPayment ?
                             <CountTextWrapper
@@ -324,7 +339,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
                 }
 
                 onClick?.();
-            }} className="mx-5 mt-5" variant={isDestructive ? "destructive" : "default"} disabled={isDisabled} >
+            }} className="mt-5" variant={isDestructive ? "destructive" : "default"} disabled={isDisabled} >
                 {mutationPending ?
                     <ActivityIndicator />
                     :
