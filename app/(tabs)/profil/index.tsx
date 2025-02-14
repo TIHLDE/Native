@@ -1,7 +1,5 @@
 import me, { myEvents, myPreviousEvents } from "@/actions/users/me";
-import { ThemeToggle } from "@/components/themeToggle";
 import { Button } from "@/components/ui/button";
-import EventCard from "@/components/ui/eventCard";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
@@ -11,9 +9,9 @@ import { useRouter } from "expo-router";
 import { Image, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { Event, Group } from "@/actions/types";
-import Icon from "@/lib/icons/Icon";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import EventCard, { EventCardSkeleton } from "@/components/arrangement/eventCard";
 
 //TODO: Foreløpig er react-native-pager-view broken... Det er ikke mulig å swipe mellom tabs
 // med mindre vi ofrer å vise noe innhold større en rundt 90vh. Forhåpenligvis fikses dette, 
@@ -54,7 +52,6 @@ export default function Profil() {
         }
 
         return `Startet i ${studyyear}`
-
     }
 
     const onLogout = async () => {
@@ -153,7 +150,12 @@ function DisplayUserEvents({ userEvents, previous }: { userEvents: UseQueryResul
     const router = useRouter();
 
     if (userEvents.isPending) {
-        return <Text>Loading...</Text>
+        return (<>
+            <EventCardSkeleton />
+            <EventCardSkeleton />
+            <EventCardSkeleton />
+        </>
+        );
     }
 
     if (userEvents.isError) {
@@ -171,6 +173,7 @@ function DisplayUserEvents({ userEvents, previous }: { userEvents: UseQueryResul
             title={event.title}
             date={new Date(event.start_date)}
             image={event.image ?? null}
+            organizer={event.organizer ?? { name: "Ukjent", slug: null }}
             onPress={() => {
                 router.back();
                 router.push({

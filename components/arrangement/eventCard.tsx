@@ -77,4 +77,30 @@ const EventCard = ({
     );
 };
 
+const EventCardSkeleton = () => {
+    return (
+        <View className={`w-full rounded-lg mb-4 overflow-hidden border-2 border-gray-300`}>
+            <Card className="w-full h-fit rounded-lg overflow-hidden">
+                <View className="w-full aspect-[16/7] overflow-hidden">
+                    <View className="w-full h-full bg-gray-300 animate-pulse flex justify-center items-center">
+                    </View>
+                </View>
+                <View className="p-4">
+                    <View className="text-lg w-40 h-2 font-bold bg-foreground opacity-25 mb-2 rounded-md animate-pulse"></View>
+                    <View className="flex flex-row items-center justify-between">
+                        <View className="w-28 h-2 bg-foreground opacity-25 rounded-md animate-pulse"></View>
+                        <View
+                            className={`px-3 rounded-3xl border-2 animate-pulse `}
+                            style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                        >
+                            <View className="bg-background opacity-75 w-20 h-2 m-1 rounded-md"></View>
+                        </View>
+                    </View>
+                </View>
+            </Card>
+        </View>
+    );
+}
+
+export { EventCardSkeleton };
 export default EventCard;

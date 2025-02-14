@@ -1,8 +1,7 @@
-import EventCard from "@/components/arrangement/eventCard";
+import EventCard, { EventCardSkeleton } from "@/components/arrangement/eventCard";
 import { Text } from "@/components/ui/text";
-import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { View, ScrollView } from "react-native";
+import { View } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -27,7 +26,8 @@ export default function Arrangementer() {
             page: pageParam.toString(),
             None: resultsPerPage.toString(),
         });
-        const res = await fetch(`${BASE_URL}/events/?${queryParams}`)
+        const res = await fetch(`${BASE_URL}/events/?${queryParams}`);
+
         return res.json();
     }
 
@@ -36,7 +36,7 @@ export default function Arrangementer() {
         error,
         fetchNextPage,
         hasNextPage,
-        isFetching,
+        isPending,
         isFetchingNextPage,
         status,
     } = useInfiniteQuery({
@@ -65,7 +65,6 @@ export default function Arrangementer() {
 
     return (
         <PageWrapper className="px-2" refreshQueryKey={"events"}>
-
             {data?.pages.map((group, i) => (
                 < React.Fragment key={i} >
                     {Array.isArray(group?.results) &&
@@ -82,8 +81,17 @@ export default function Arrangementer() {
                         ))
                     }
                 </React.Fragment>
-            ))
+            ))}
+
+            {isPending &&
+                <>
+                    <EventCardSkeleton />
+                    <EventCardSkeleton />
+                    <EventCardSkeleton />
+                </>
             }
+
+
             <View className="mb-16">
                 {isFetchingNextPage && <Text className="text-center mt-4 text-lg text-gray-600">Laster flere arrangementer...</Text>}
                 {
