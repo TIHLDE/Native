@@ -1,5 +1,5 @@
 import { BASE_URL } from "@/actions/constant";
-import JobPostCard from "@/components/karriere/jobpostcard";
+import JobPostCard, { JobPostCardSkeleton } from "@/components/karriere/jobpostcard";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { useQuery } from "@tanstack/react-query";
@@ -15,14 +15,13 @@ export default function Karriere() {
         },
     });
 
-    if (jobposts.isPending) return <Text>Loading...</Text>
     if (jobposts.isError) return <Text>Error: {jobposts.error.message}</Text>
 
     return (
         <PageWrapper className="w-full h-fit px-4" refreshQueryKey="jobposts">
             <View className="flex flex-col justify-center mt-5 gap-4">
                 {
-                    jobposts.data.results.map((jobpost: any) => (
+                    jobposts.data?.results.map((jobpost: any) => (
                         <Link href={`/(tabs)/karriere/${jobpost.id}`} key={jobpost.id}>
                             <JobPostCard
                                 title={jobpost.title}
@@ -33,6 +32,13 @@ export default function Karriere() {
                             />
                         </Link>
                     ))
+                }
+                {jobposts.isPending &&
+                    <>
+                        <JobPostCardSkeleton />
+                        <JobPostCardSkeleton />
+                        <JobPostCardSkeleton />
+                    </>
                 }
             </View>
         </PageWrapper>
