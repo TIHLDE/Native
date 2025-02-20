@@ -29,7 +29,7 @@ export function ThemeToggle({ className }: { className?: string }) {
                     {isDarkColorScheme ? (
                         <Sun className='text-foreground self-center' size={24} strokeWidth={1.25} />
                     ) : (
-                        <MoonStar className='text-foreground self-center' size={23} strokeWidth={1.25} />
+                        <MoonStar className='self-center text-white' size={23} strokeWidth={1.25} />
                     )}
                 </View>
             )}
