@@ -20,12 +20,12 @@ export default function Alert({ type = "warning", className, children, icon }: A
     const alertClass = {
         warning: "bg-yellow-200 text-yellow-800",
         error: "bg-red-200 text-red-800",
-        success: "bg-green-200 text-green-800",
+        success: "bg-green-800 text-green-800",
         info: "bg-blue-200 text-blue-800",
     };
 
     return (
-        <View className={cn("p-4 pl-6 rounded-lg flex flex-row items-center gap-4", alertClass[type], className)}>
+        <View className={cn("p-4 pl-6 rounded-lg flex flex-row items-center justify-center gap-4", alertClass[type], className)}>
             {icon ?? <Icon icon={alertIconName[type]} />}
             {/* is there a way to avoit using a flex-1 here and still prevent overflowing text? */}
             <View className="flex-1">

@@ -14,7 +14,6 @@ export function ThemeToggle({ className }: { className?: string }) {
         setColorScheme(newTheme);
         setAndroidNavigationBar(newTheme);
     }
-
     return (
         <Button
             onPress={toggleColorScheme}
