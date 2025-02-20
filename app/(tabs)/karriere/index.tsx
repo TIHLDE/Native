@@ -18,7 +18,7 @@ export default function Karriere() {
     if (jobposts.isError) return <Text>Error: {jobposts.error.message}</Text>
 
     return (
-        <PageWrapper className="w-full h-fit px-4" refreshQueryKey="jobposts">
+        <PageWrapper className="w-full h-fit px-2" refreshQueryKey="jobposts">
             <View className="flex flex-col justify-center mt-5 gap-4">
                 {
                     jobposts.data?.results.map((jobpost: any) => (

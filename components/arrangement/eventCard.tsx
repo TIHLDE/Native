@@ -56,8 +56,8 @@ const EventCard = ({
                             </View>
                         )}
                     </View>
-                    <View className="p-4">
-                        <Text className="text-lg font-bold mb-2">{title || "Tittel"}</Text>
+                    <View className="px-2 pb-4">
+                        <Text className="text-2xl my-2 font-semibold">{title || "Tittel"}</Text>
                         <View className="flex flex-row items-center justify-between">
                             <Text className="text-md font-light">{formattedDate}</Text>
                             <View

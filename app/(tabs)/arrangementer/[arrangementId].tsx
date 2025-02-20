@@ -111,9 +111,9 @@ export default function ArrangementSide() {
                         />
                     )}
                 </View>
-                <View className="flex flex-col text-3xl p-5">
+                <View className="flex flex-col text-3xl px-2 py-5">
                     <Text className="text-2xl font-semibold pl-2">{event.data.title}</Text>
-                    <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
+                    <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5 overflow-hidden">
                         <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
                         <View className="flex flex-row justify-start items-start">
                             <View className="mr-10">

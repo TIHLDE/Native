@@ -32,7 +32,7 @@ export default function Arrangementer() {
         return (
             <SafeAreaProvider>
                 <SafeAreaView
-                    className="flex-1 justify-center items-center bg-blue-950"
+                    className="flex-1 justify-center items-center bg-[#001329]"
                 >
                     <SplashLogo />
                 </SafeAreaView>
