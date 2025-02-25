@@ -164,42 +164,46 @@ export default function ArrangementSide() {
                             </View>
                         </View>
                     </Card>
-                    <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
-                        <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
-                        <View className="flex flex-row justify-start items-start">
-                            <View className="mr-10">
-                                <Text className="text-md text-muted-foreground mb-2">Påmeldte:</Text>
-                                <Text className="text-md text-muted-foreground mb-2">Venteliste:</Text>
-                                <Text className="text-md text-muted-foreground mb-2">Avmeldingsfrist:</Text>
-                            </View>
-                            <View>
-                                <Text className="text-md mb-2">
-                                    {event.data.list_count}/{event.data.limit === 0 ? "∞" : event.data.limit}
-                                </Text>
-                                <Text className="text-md mb-2">
-                                    {event.data.waiting_list_count}
-                                </Text>
-                                <Text className="text-md mb-2">
-                                    {new Date(event.data.sign_off_deadline).toLocaleDateString("no-NO", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                    })}{" "}
-                                    kl.{" "}
-                                    {new Date(event.data.sign_off_deadline).toLocaleTimeString("no-NO", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </Text>
-                            </View>
-                        </View>
-                    </Card>
-                    <RegistrationButton
-                        event={event.data}
-                        registration={registration}
-                        mutationPending={registrationMutation.isPending}
-                        onClick={() => registrationMutation.mutate(Number(id))}
-                    />
+                    {
+                        event.data.sign_up && <>
+                            <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
+                                <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
+                                <View className="flex flex-row justify-start items-start">
+                                    <View className="mr-10">
+                                        <Text className="text-md text-muted-foreground mb-2">Påmeldte:</Text>
+                                        <Text className="text-md text-muted-foreground mb-2">Venteliste:</Text>
+                                        <Text className="text-md text-muted-foreground mb-2">Avmeldingsfrist:</Text>
+                                    </View>
+                                    <View>
+                                        <Text className="text-md mb-2">
+                                            {event.data.list_count}/{event.data.limit === 0 ? "∞" : event.data.limit}
+                                        </Text>
+                                        <Text className="text-md mb-2">
+                                            {event.data.waiting_list_count}
+                                        </Text>
+                                        <Text className="text-md mb-2">
+                                            {new Date(event.data.sign_off_deadline).toLocaleDateString("no-NO", {
+                                                year: "numeric",
+                                                month: "long",
+                                                day: "numeric",
+                                            })}{" "}
+                                            kl.{" "}
+                                            {new Date(event.data.sign_off_deadline).toLocaleTimeString("no-NO", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </Card>
+                            <RegistrationButton
+                                event={event.data}
+                                registration={registration}
+                                mutationPending={registrationMutation.isPending}
+                                onClick={() => registrationMutation.mutate(Number(id))}
+                            />
+                        </>
+                    }
                     <View className="p-5">
                         <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
                         <MarkdownView content={event.data.description || "Ingen beskrivelse tilgjengelig"} />
@@ -225,20 +229,6 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
     // all button stuff:
     const [isDisabled, setIsDisabled] = useState<boolean>();
 
-    useEffect(() => {
-        setIsDisabled(
-            (new Date(event.end_registration_at) < new Date() && !registration)
-            || new Date(event.start_registration_at) > new Date()
-            || registration?.has_paid_order
-            || mutationPending
-            || user.isPending
-            || user.data?.unanswered_evaluations_count === undefined
-            || user.data.unanswered_evaluations_count > 0
-            || !event.sign_up
-            || false
-        );
-    }, [event, registration]);
-
     const isDestructive = registration;
 
     const getButtonText = (event: Event) => {
@@ -262,12 +252,9 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
 
     const [buttonText, setButtonText] = useState<string>("");
 
-    useEffect(() => {
-        setButtonText(getButtonText(event));
-    }, [event, registration]);
-
     // all alert stuff:
     const showAlert = registration || hasUnansweredEvaluations
+
     const alertType = (event.paid_information && !registration?.has_paid_order && registration && "warning")
         || (registration?.is_on_wait && "info")
         || (hasUnansweredEvaluations && "error")
@@ -301,12 +288,30 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
     const [showCountdown, setShowCountdown] = useState<boolean>();
 
     useEffect(() => {
+        setIsDisabled(
+            (new Date(event.end_registration_at) < new Date() && !registration)
+            || new Date(event.start_registration_at) > new Date()
+            || registration?.has_paid_order
+            || mutationPending
+            || user.data?.unanswered_evaluations_count === undefined
+            || user.data.unanswered_evaluations_count > 0
+            || !event.sign_up
+            || false
+        );
+
         if (countdownTime) {
             setShowCountdown(true);
         }
-    }, [event, registration]);
+
+        setButtonText(getButtonText(event));
+
+    }, [event, registration, user]);
 
     const [showUnregisterDialog, setShowUnregisterDialog] = useState<boolean>();
+
+    if (user.isPending) {
+        return <></>
+    }
 
     return (
         <>
@@ -345,7 +350,7 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
                         {showCountdown && countdownTime && !countdownIsForPayment ?
                             <CountTextWrapper
                                 interval={1000}
-                                prefix="Påmeldingen åpner om "
+                                prefix="Påmelding åpner om "
                                 suffix=""
                                 startCount={new Date(countdownTime.getTime() - Date.now())}
                                 onCountdownFinished={() => {

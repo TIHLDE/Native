@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 import { Card } from "@/components/ui/card";
 import { Text } from "@/components/ui/text"
+import ImageMissing from '../ui/imageMissing';
 
 const EventCard = ({
     id,
@@ -51,9 +52,7 @@ const EventCard = ({
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View className="w-full h-full bg-gray-300 flex justify-center items-center">
-                                <Text className="text-gray-600">Bilde mangler</Text>
-                            </View>
+                            <ImageMissing />
                         )}
                     </View>
                     <View className="px-2 pb-4">
