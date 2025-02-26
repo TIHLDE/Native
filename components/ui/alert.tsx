@@ -17,11 +17,12 @@ export default function Alert({ type = "warning", className, children, icon }: A
         success: "CircleCheck",
         info: "Info",
     };
+
     const alertClass = {
-        warning: "bg-yellow-200 text-yellow-800",
-        error: "bg-red-200 text-red-800",
-        success: "bg-green-800 text-green-800",
-        info: "bg-blue-200 text-blue-800",
+        warning: "bg-alert-warning",
+        error: "bg-alert-error",
+        success: "bg-alert-success",
+        info: "bg-alert-info",
     };
 
     return (
