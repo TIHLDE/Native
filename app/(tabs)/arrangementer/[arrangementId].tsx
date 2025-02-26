@@ -335,38 +335,40 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
                 <PaymentButton eventId={event.id} />
             }
 
-            <Button onPress={() => {
-                if (new Date(event.end_registration_at) < new Date() && registration) {
-                    setShowUnregisterDialog(true);
-                    return;
-                }
+            {new Date(event.end_date) >= new Date() &&
+                <Button onPress={() => {
+                    if (new Date(event.end_registration_at) < new Date() && registration) {
+                        setShowUnregisterDialog(true);
+                        return;
+                    }
 
-                onClick?.();
-            }} className="mt-5" variant={isDestructive ? "destructive" : "default"} disabled={isDisabled} >
-                {mutationPending ?
-                    <ActivityIndicator />
-                    :
-                    <>
-                        {showCountdown && countdownTime && !countdownIsForPayment ?
-                            <CountTextWrapper
-                                interval={1000}
-                                prefix="Påmelding åpner om "
-                                suffix=""
-                                startCount={new Date(countdownTime.getTime() - Date.now())}
-                                onCountdownFinished={() => {
-                                    setShowCountdown(false);
-                                    setIsDisabled(false);
-                                    setButtonText("Meld deg på arrangementet");
-                                }}
-                            />
-                            :
-                            <Text>
-                                {buttonText}
-                            </Text>
-                        }
-                    </>
-                }
-            </Button >
+                    onClick?.();
+                }} className="mt-5" variant={isDestructive ? "destructive" : "default"} disabled={isDisabled} >
+                    {mutationPending ?
+                        <ActivityIndicator />
+                        :
+                        <>
+                            {showCountdown && countdownTime && !countdownIsForPayment ?
+                                <CountTextWrapper
+                                    interval={1000}
+                                    prefix="Påmelding åpner om "
+                                    suffix=""
+                                    startCount={new Date(countdownTime.getTime() - Date.now())}
+                                    onCountdownFinished={() => {
+                                        setShowCountdown(false);
+                                        setIsDisabled(false);
+                                        setButtonText("Meld deg på arrangementet");
+                                    }}
+                                />
+                                :
+                                <Text>
+                                    {buttonText}
+                                </Text>
+                            }
+                        </>
+                    }
+                </Button >
+            }
             <AlertDialog open={showUnregisterDialog} onOpenChange={setShowUnregisterDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

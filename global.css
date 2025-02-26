@@ -24,6 +24,10 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    --alert-warning: 52.74 99% 76%;
+    --alert-error: 359.72 100% 82%;
+    --alert-success: 150.06 96% 45%;
+    --alert-info: 210 40% 72%;
   }
 
   .dark:root {
@@ -46,5 +50,9 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+    --alert-warning: 44.37 100% 47%;
+    --alert-error: 356.95 96% 57.99999999999999%;
+    --alert-success: 147.72 97% 20%;
+    --alert-info: 215 76% 53%;
   }
 }

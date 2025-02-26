@@ -2,7 +2,6 @@ import { Image, View } from "react-native";
 import { Text } from "../ui/text";
 import Icon from "@/lib/icons/Icon";
 import timeformat from "@/lib/timeformat";
-import { Card, CardContent } from "../ui/card";
 
 export interface JobPostProps {
     title: string;
