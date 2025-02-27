@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TIHLDE",
-    "slug": "TIHLDE",
+    "slug": "Native",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
