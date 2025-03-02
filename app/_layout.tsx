@@ -11,8 +11,6 @@ import { AuthProvider } from '@/context/auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from "react-native-toast-message";
 import { PortalHost } from '@rn-primitives/portal';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
 
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
@@ -30,7 +28,7 @@ export {
 
 export default function RootLayout() {
     const hasMounted = React.useRef(false);
-    const { colorScheme, isDarkColorScheme } = useColorScheme();
+    const { isDarkColorScheme } = useColorScheme();
     const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
     const queryClient = new QueryClient();
 

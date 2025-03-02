@@ -1,8 +1,6 @@
-import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Rect, G, Mask, Path, Defs, ClipPath } from "react-native-svg";
 
