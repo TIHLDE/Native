@@ -1,8 +1,8 @@
 import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
 import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
-import { useColorScheme } from 'react-native'; 
-import Icon from "@/lib/icons/Icon"; 
+import { useColorScheme } from 'react-native';
+import Icon from "@/lib/icons/Icon";
 import { QrCode } from '@/lib/icons/QrCode';
 
 const screenWidth = Dimensions.get('window').width;
@@ -10,30 +10,27 @@ const screenWidth = Dimensions.get('window').width;
 export default function TabsLayout() {
     const pathname = usePathname();
     const router = useRouter();
-    const colorScheme = useColorScheme();
-
 
     return (
         <Tabs>
             <TabSlot />
             <TabList style={styles.tabBar}>
-    
                 <TabTrigger name="karriere" href="/karriere" style={styles.tabButton}>
                     <Icon
                         icon="BriefcaseBusiness"
-                        className={`self-center stroke-1 text-gray-400 dark:text-gray-300 ${
-                            pathname === "/karriere" ? "text-black dark:text-white" : ""
-                        }`}
+                        className={`self-center stroke-1 text-gray-400 dark:text-gray-300 
+                            ${pathname.includes("/karriere") ? "text-black dark:text-white" : ""
+                            }`}
                     />
-                    <Text className={`text-xs text-black dark:text-gray-300 ${
-                        pathname === "/karriere" ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
-                    }`}>
+                    <Text className={`text-xs text-black dark:text-gray-300 
+                    ${pathname.includes("/karriere") ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
+                        }`}>
                         Karriere
                     </Text>
                 </TabTrigger>
 
                 <View style={[styles.middleButtonContainer, { left: screenWidth / 2 - 35 }]}>
-                <TouchableOpacity 
+                    <TouchableOpacity
                         className="absolute mb-1 left-1/2 -translate-x-1/2 bg-primary dark:bg-secondary w-24 h-24 rounded-full flex items-center justify-center shadow-lg"
                         onPress={() => router.push('/qrmodal')}
                     >
@@ -45,13 +42,13 @@ export default function TabsLayout() {
                 <TabTrigger name="arrangementer" href="/arrangementer" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
-                        className={`self-center stroke-1 text-black dark:text-gray-300 ${
-                            pathname === "/arrangementer" ? "text-black dark:text-white" : ""
-                        }`}
+                        className={`self-center stroke-1 text-black dark:text-gray-300 
+                            ${pathname.includes("/arrangementer") ? "text-black dark:text-white" : ""
+                            }`}
                     />
-                    <Text className={`text-xs text-black dark:text-white ${
-                        pathname === "/arrangementer" ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
-                    }`}>
+                    <Text className={`text-xs text-black dark:text-white 
+                        ${pathname.includes("/arrangementer") ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
+                        }`}>
                         Arrangementer
                     </Text>
                 </TabTrigger>
