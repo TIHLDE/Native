@@ -18,12 +18,11 @@ export default function TabsLayout() {
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="BriefcaseBusiness"
-                        className={`self-center stroke-1 text-gray-400 dark:text-gray-300 
-                            ${pathname.includes("/karriere") ? "text-black dark:text-white" : ""
-                            }`}
+                        className={`self-center stroke-1 
+                            ${pathname.includes("/karriere") ? "color-black dark:color-white" : "color-gray-400 dark:color-gray-300 "}`}
                     />
                     <Text className={`text-xs
-                    ${pathname.includes("/karriere") ? "font-bold border-b-2 border-black dark:border-white pb-1" : ""
+                        ${pathname.includes("/karriere") ? "font-bold border-b-2 border-black dark:border-white pb-1" : ""
                         }`}>
                         Karriere
                     </Text>
@@ -42,9 +41,8 @@ export default function TabsLayout() {
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
-                        className={`self-center stroke-1 text-black dark:text-gray-300 
-                            ${pathname.includes("/arrangementer") ? "text-black dark:text-white" : ""
-                            }`}
+                        className={`self-center stroke-1
+                            ${pathname.includes("/arrangementer") ? "color-black dark:color-white" : "color-black dark:color-gray-300 "}`}
                     />
                     <Text className={`text-xs
                         ${pathname.includes("/arrangementer") ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""

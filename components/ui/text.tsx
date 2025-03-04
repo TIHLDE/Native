@@ -14,7 +14,7 @@ const Text = React.forwardRef<TextRef, SlottableTextProps>(
       <Component
         className={cn('text-base text-foreground dark:text-white web:select-text', textClass, className)}
         ref={ref}
-        style={{ fontFamily: "Inter-Regular" }}
+        style={{ fontFamily: "Inter" }}
         {...props}
       />
     );
