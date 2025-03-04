@@ -12,7 +12,7 @@ export default function karriereLayout() {
                 }}
 
             />
-            <Stack.Screen name="eventmodal" options={{ presentation: "card" }} />
+            <Stack.Screen name="eventmodal" options={{ presentation: "card", headerShown: false }} />
         </Stack>
     )
 }

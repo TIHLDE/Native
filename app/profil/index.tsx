@@ -80,7 +80,7 @@ export default function Profil() {
 
   return (
     <PageWrapper refreshQueryKey={["users", "me"]}>
-      
+
 
       <View className="flex flex-col gap-4 p-4">
         {user.data.image && (
@@ -183,7 +183,6 @@ function DisplayUserEvents({
       image={event.image ?? null}
       organizer={event.organizer ?? { name: "Ukjent", slug: null }}
       onPress={() => {
-        router.back();
         router.push({
           pathname: `/profil/eventmodal`,
           params: { arrangementId: event.id },
