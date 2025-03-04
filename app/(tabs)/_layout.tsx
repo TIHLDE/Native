@@ -1,9 +1,9 @@
 import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
-import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import Icon from "@/lib/icons/Icon";
 import { QrCode } from '@/lib/icons/QrCode';
+import { Text } from '@/components/ui/text';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -15,15 +15,15 @@ export default function TabsLayout() {
         <Tabs>
             <TabSlot />
             <TabList style={styles.tabBar}>
-                <TabTrigger name="karriere" href="/karriere" style={styles.tabButton}>
+                <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="BriefcaseBusiness"
                         className={`self-center stroke-1 text-gray-400 dark:text-gray-300 
                             ${pathname.includes("/karriere") ? "text-black dark:text-white" : ""
                             }`}
                     />
-                    <Text className={`text-xs text-black dark:text-gray-300 
-                    ${pathname.includes("/karriere") ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
+                    <Text className={`text-xs
+                    ${pathname.includes("/karriere") ? "font-bold border-b-2 border-black dark:border-white pb-1" : ""
                         }`}>
                         Karriere
                     </Text>
@@ -39,14 +39,14 @@ export default function TabsLayout() {
                 </View>
 
 
-                <TabTrigger name="arrangementer" href="/arrangementer" style={styles.tabButton}>
+                <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
                         className={`self-center stroke-1 text-black dark:text-gray-300 
                             ${pathname.includes("/arrangementer") ? "text-black dark:text-white" : ""
                             }`}
                     />
-                    <Text className={`text-xs text-black dark:text-white 
+                    <Text className={`text-xs
                         ${pathname.includes("/arrangementer") ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
                         }`}>
                         Arrangementer
