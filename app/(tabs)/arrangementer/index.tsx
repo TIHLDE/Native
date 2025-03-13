@@ -5,7 +5,7 @@ import { ActivityIndicator, FlatList, RefreshControl, View } from "react-native"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
-import React, { useState } from "react";
+import { useState } from "react";
 import { BASE_URL } from "@/actions/constant";
 
 type Event = {
