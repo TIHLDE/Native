@@ -1,5 +1,5 @@
 import { Text } from "@/components/ui/text";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { View, Image, ActivityIndicator } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
@@ -27,6 +27,7 @@ export default function ArrangementSide() {
     const params = useLocalSearchParams();
     const queryClient = useQueryClient();
     const id = params.arrangementId;
+    const router = useRouter();
 
     const event = useQuery({
         queryKey: ["event", id],
@@ -113,7 +114,7 @@ export default function ArrangementSide() {
                 </View>
                 <View className="flex flex-col text-3xl px-2 py-5">
                     <Text className="text-2xl font-semibold pl-2">{event.data.title}</Text>
-                    <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5 overflow-hidden">
+                    <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
                         <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
                         <View className="flex flex-row justify-start items-start">
                             <View className="mr-10">
@@ -164,6 +165,12 @@ export default function ArrangementSide() {
                             </View>
                         </View>
                     </Card>
+                    <Button onPress={() => router.push({
+                        pathname: "/arrangementer/eventRegisterModal",
+                        params: { eventId: id },
+                    })} className="mt-5">
+                        <Text>Registrer oppmøte </Text>
+                    </Button>
                     {
                         event.data.sign_up && <>
                             <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">

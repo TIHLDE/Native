@@ -10,6 +10,7 @@ interface AnimatedPagerViewProps {
     children: React.ReactNode;
     titles: string[];
     className?: string;
+    onPageChange?: (index: number) => void;
 }
 
 //TODO: lag en ny pager view som fungerer, gjerne uten react-native-pager-view
@@ -63,6 +64,9 @@ export default function AnimatedPagerView(props: AnimatedPagerViewProps) {
                 orientation="horizontal"
                 ref={pagerViewRef}
                 overdrag={true}
+                onPageSelected={(e) => {
+                    props.onPageChange?.(e.nativeEvent.position);
+                }}
             >
                 {props.children}
             </PagerView>
