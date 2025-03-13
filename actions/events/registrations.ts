@@ -53,7 +53,7 @@ export async function registerToEvent(eventId: number): Promise<Registration> {
 export async function unregisterFromEvent(eventId: number): Promise<string> {
     const userId = await me().then((user) => user.user_id);
 
-    // Hvorfor må man legge til userId her?? Er drift washed?
+    // Hvorfor må man legge til userId her?? Er index washed?
     const url = `${BASE_URL}/events/${eventId}/registrations/${userId}/`;
     const token = await getToken();
 
