@@ -255,8 +255,8 @@ function RegistrationButton({ event, registration, onClick, mutationPending }: {
     // all alert stuff:
     const showAlert = registration || hasUnansweredEvaluations
 
-    const alertType = (event.paid_information && !registration?.has_paid_order && registration && "warning")
-        || (registration?.is_on_wait && "info")
+    const alertType = (registration?.is_on_wait && "info")
+        || (event.paid_information && !registration?.has_paid_order && registration && "warning")
         || (hasUnansweredEvaluations && "error")
         || "success";
 

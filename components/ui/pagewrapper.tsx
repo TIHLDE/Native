@@ -7,6 +7,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 interface PageWrapperProps {
   children: React.ReactNode;
   refreshQueryKey?: string | string[] | string[][];
+  hasScrollView?: boolean;
   className?: string;
 }
 
@@ -14,9 +15,18 @@ export default function PageWrapper({
   children,
   refreshQueryKey,
   className,
+  hasScrollView = true,
 }: PageWrapperProps) {
   const queryClient = useQueryClient();
   let [isRefreshing, setIsRefreshing] = useState(false);
+
+  if (!hasScrollView) {
+    return (
+      <SafeAreaWrapper>
+        {children}
+      </SafeAreaWrapper>
+    );
+  }
 
   if (!refreshQueryKey) {
     return (
