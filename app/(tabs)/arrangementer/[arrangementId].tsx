@@ -24,6 +24,7 @@ import { publicEventParticipants } from "@/actions/events/participants";
 import { cssInterop, remapProps } from "nativewind";
 import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import UserCard from "@/components/ui/userCard";
+import ImageMissing from "@/components/ui/imageMissing";
 
 //TODO: backend tillater tydeligvis å melde seg på alt unnatatt bedpres selv om man har ubesvarte 
 // evalueringsskjemaer. Vet ikke om dette er en bug eller ikke. Får høre med mats.
@@ -113,13 +114,17 @@ export default function ArrangementSide() {
             <Stack.Screen options={{ title: '' }} />
             <PageWrapper refreshQueryKey={["event", id as string]}>
                 <View>
-                    {event.data.image && (
-                        <Image
+                    {event.data.image
+                        ? <Image
                             source={{ uri: event.data.image }}
                             className="w-full h-48"
                             resizeMode="cover"
                         />
-                    )}
+                        :
+                        <View className="w-full h-48 bg-primary-foreground flex items-center justify-center">
+                            <ImageMissing />
+                        </View>
+                    }
                 </View>
                 <View className="flex flex-col text-3xl px-2 py-5">
                     <Text className="text-2xl font-semibold pl-2">{event.data.title}</Text>
