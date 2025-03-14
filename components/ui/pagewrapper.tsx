@@ -1,7 +1,9 @@
 import { cn } from "@/lib/utils";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { RefreshControl, ScrollView } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 interface PageWrapperProps {
@@ -22,22 +24,30 @@ export default function PageWrapper({
 
   if (!hasScrollView) {
     return (
-      <SafeAreaWrapper>
-        {children}
-      </SafeAreaWrapper>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaWrapper>
+          <BottomSheetModalProvider>
+            {children}
+          </BottomSheetModalProvider>
+        </SafeAreaWrapper>
+      </GestureHandlerRootView>
     );
   }
 
   if (!refreshQueryKey) {
     return (
-      <SafeAreaWrapper>
-        <ScrollView
-          className={cn("min-h-full", className ?? "")}
-          nestedScrollEnabled
-        >
-          {children}
-        </ScrollView>
-      </SafeAreaWrapper>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaWrapper>
+          <BottomSheetModalProvider>
+            <ScrollView
+              className={cn("min-h-full", className ?? "")}
+              nestedScrollEnabled
+            >
+              {children}
+            </ScrollView>
+          </BottomSheetModalProvider>
+        </SafeAreaWrapper>
+      </GestureHandlerRootView>
     );
   }
 
@@ -71,17 +81,21 @@ export default function PageWrapper({
   };
 
   return (
-    <SafeAreaWrapper>
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-        className={cn("min-h-full", className ?? "")}
-        nestedScrollEnabled
-      >
-        {children}
-      </ScrollView>
-    </SafeAreaWrapper>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaWrapper>
+        <BottomSheetModalProvider>
+          <ScrollView
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+            }
+            className={cn("min-h-full", className ?? "")}
+            nestedScrollEnabled
+          >
+            {children}
+          </ScrollView>
+        </BottomSheetModalProvider>
+      </SafeAreaWrapper>
+    </GestureHandlerRootView>
   );
 }
 

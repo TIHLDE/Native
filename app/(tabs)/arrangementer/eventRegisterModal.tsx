@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import Toast from "react-native-toast-message";
 import { getUser } from "@/actions/users/user";
+import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 
 
 export default function EventRegisterModal() {
@@ -106,48 +107,44 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
     }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <BottomSheetModalProvider>
-                <View className="m-auto w-full h-full">
-                    {isFocused &&
-                        <CameraView style={{ flex: 1 }} facing="back"
-                            barcodeScannerSettings={{
-                                barcodeTypes: ["qr"]
-                            }}
-                            onBarcodeScanned={async (code) => {
-                                if (updateRegistrationMutation.isPending) {
-                                    return
-                                };
+        <View className="m-auto w-full h-full">
+            {isFocused &&
+                <CameraView style={{ flex: 1 }} facing="back"
+                    barcodeScannerSettings={{
+                        barcodeTypes: ["qr"]
+                    }}
+                    onBarcodeScanned={async (code) => {
+                        if (updateRegistrationMutation.isPending) {
+                            return
+                        };
 
-                                const user = await getUser(code.data);
-                                setUserToRegister(user);
-                                bottomSheetModalRef.current?.present();
-                            }}
-                            active={!cameraDisabled}
-                        >
-                            <View className="absolute w-full h-full">
-                                <Icon icon="Scan" className="m-auto color-white opacity-80 size-40 stroke-[0.5]" />
-                            </View>
-                        </CameraView>
-                    }
-                    <BottomSheetModal
-                        ref={bottomSheetModalRef}
-                    >
-                        <BottomSheetView className="m-auto">
-                            <View className="p-4 flex flex-col gap-4">
-                                <Text className="text-lg">Er du sikker på at du vil registrere {userToRegister?.first_name}? </Text>
-                                <Button variant="default" onPress={() => {
-                                    updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.user_id ?? "" });
-                                    bottomSheetModalRef.current?.dismiss();
-                                }}>
-                                    <Text>Registrer</Text>
-                                </Button>
-                            </View>
-                        </BottomSheetView>
-                    </BottomSheetModal>
-                </View>
-            </BottomSheetModalProvider>
-        </GestureHandlerRootView>
+                        const user = await getUser(code.data);
+                        setUserToRegister(user);
+                        bottomSheetModalRef.current?.present();
+                    }}
+                    active={!cameraDisabled}
+                >
+                    <View className="absolute w-full h-full">
+                        <Icon icon="Scan" className="m-auto color-white opacity-80 size-40 stroke-[0.5]" />
+                    </View>
+                </CameraView>
+            }
+            <InteropBottomSheetModal
+                ref={bottomSheetModalRef}
+            >
+                <BottomSheetView className="m-auto">
+                    <View className="p-4 flex flex-col gap-4">
+                        <Text className="text-lg">Er du sikker på at du vil registrere {userToRegister?.first_name}? </Text>
+                        <Button variant="default" onPress={() => {
+                            updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.user_id ?? "" });
+                            bottomSheetModalRef.current?.dismiss();
+                        }}>
+                            <Text>Registrer</Text>
+                        </Button>
+                    </View>
+                </BottomSheetView>
+            </InteropBottomSheetModal>
+        </View>
     )
 }
 

@@ -73,7 +73,11 @@ export default function Arrangementer() {
 
     if (isPending) {
         return (
-            <Text className="text-center mt-10 text-lg text-gray-600">Laster arrangementer...</Text>
+            <PageWrapper hasScrollView={false}>
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+            </PageWrapper>
         );
     }
 
@@ -123,15 +127,6 @@ export default function Arrangementer() {
 
                 }
             />
-
-            {isPending &&
-                <>
-                    <EventCardSkeleton />
-                    <EventCardSkeleton />
-                    <EventCardSkeleton />
-                </>
-            }
-
         </PageWrapper >
     );
 }

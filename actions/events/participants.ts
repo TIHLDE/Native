@@ -34,6 +34,38 @@ export async function eventParticipants(eventId: number, pageParam: number): Pro
     return data;
 }
 
+export async function publicEventParticipants(eventId: number, pageParam: number): Promise<Registration[] | null> {
+    const resultsPerPage = 10;
+    const token = await getToken();
+
+    const queryParams = new URLSearchParams({
+        page: pageParam.toString(),
+        None: resultsPerPage.toString(),
+    });
+
+    const url = `${BASE_URL}/events/${eventId}/public_registrations/?${queryParams}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        // @ts-expect-error
+        headers: {
+            "X-Csrf-Token": token,
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json() as LeptonError;
+        if (errorData.detail === "Invalid page.") {
+            return [];
+        }
+
+        throw new Error(errorData.detail);
+    }
+
+    const data = await response.json().then((data) => data.results) as Registration[];
+    return data;
+}
+
 export async function updateEventParticipation(eventId: number, user_id: string, value: boolean): Promise<boolean> {
     const token = await getToken();
 
