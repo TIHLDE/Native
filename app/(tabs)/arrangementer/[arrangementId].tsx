@@ -3,20 +3,27 @@ import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { View, Image, ActivityIndicator } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { BASE_URL } from "@/actions/constant";
 import { Button } from "@/components/ui/button";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
 import Alert from "@/components/ui/alert";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import * as WebBrowser from 'expo-web-browser';
 import me, { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import Icon from "@/lib/icons/Icon";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from "@gorhom/bottom-sheet";
+import { publicEventParticipants } from "@/actions/events/participants";
+import { cssInterop, remapProps } from "nativewind";
+import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
+import UserCard from "@/components/ui/userCard";
 
 //TODO: backend tillater tydeligvis å melde seg på alt unnatatt bedpres selv om man har ubesvarte 
 // evalueringsskjemaer. Vet ikke om dette er en bug eller ikke. Får høre med mats.
@@ -29,6 +36,7 @@ export default function ArrangementSide() {
     const id = params.arrangementId;
     const router = useRouter();
     const permissions = usePermissions();
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     const event = useQuery({
         queryKey: ["event", id],
@@ -101,7 +109,7 @@ export default function ArrangementSide() {
     }
 
     return (
-        <>
+        <GestureHandlerRootView style={{ flex: 1 }}>
             <Stack.Screen options={{ title: '' }} />
             <PageWrapper refreshQueryKey={["event", id as string]}>
                 <View>
@@ -205,6 +213,14 @@ export default function ArrangementSide() {
                                         </Text>
                                     </View>
                                 </View>
+                                <View className="absolute right-5 top-5">
+                                    <Button variant="ghost" onPress={() => {
+                                        bottomSheetModalRef.current?.present();
+
+                                    }}>
+                                        <Icon icon="UserRound" className="color-primary" />
+                                    </Button>
+                                </View>
                             </Card>
                             <RegistrationButton
                                 event={event.data}
@@ -216,12 +232,100 @@ export default function ArrangementSide() {
                     }
                     <View className="p-5">
                         <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
-                        <MarkdownView content={event.data.description || "Ingen beskrivelse tilgjengelig"} />
+                        <MarkdownView content={event.data.description ?? "Ingen beskrivelse tilgjengelig"} />
                     </View>
                 </View>
+                <InteropBottomSheetModal ref={bottomSheetModalRef}
+                    backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                    snapPoints={["50%", "75%"]}
+                    enableDynamicSizing={false}
+
+                    backdropComponent={(props) => (
+                        <BottomSheetBackdrop
+                            opacity={0.5}
+                            appearsOnIndex={0}
+                            disappearsOnIndex={-1}
+                            {...props}
+                        />
+                    )} >
+                    <EventParticipantsModal eventId={Number(id)} />
+                </InteropBottomSheetModal>
             </PageWrapper>
-        </>
+        </GestureHandlerRootView>
     );
+}
+
+function EventParticipantsModal({ eventId }: { eventId: number }) {
+
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isPending,
+        isFetchingNextPage,
+        isError,
+    } = useInfiniteQuery({
+        queryKey: ["event", eventId, "participants", "public"],
+        queryFn: async ({ pageParam }) => {
+            return await publicEventParticipants(eventId, pageParam);
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages, lastPageParam) => {
+            if (!lastPage || lastPage.length === 0) {
+                return undefined;
+            }
+            return lastPageParam + 1;
+        },
+    });
+
+
+    if (isError) {
+        return (
+            <BottomSheetView className="p-5 bg-primary-foreground">
+                <Text className="text-center mt-4 text-xl text-destructive p-4">Kunne ikke hente deltagere. Prøv igjen senere.</Text>
+            </BottomSheetView>
+        )
+    }
+
+    if (isPending) {
+        return (
+            <BottomSheetView className="p-5 bg-primary-foreground">
+                <ActivityIndicator />
+            </BottomSheetView>
+        )
+    }
+
+    return (
+        <BottomSheetFlatList className="p-5 bg-primary-foreground"
+            data={data?.pages.flatMap((page) => {
+                if (!page) {
+                    return [];
+                }
+
+                return page;
+            }
+            )}
+            renderItem={({ item: registration }) => {
+                return (
+                    <UserCard user={registration.user_info} />
+                )
+            }}
+            onEndReached={() => fetchNextPage()}
+            ListHeaderComponent={
+                <>
+                    <Text className="m-auto text-3xl"> Deltagerliste </Text>
+                    <Text className="m-auto text-md text-center text-muted-foreground mt-2"> Oversikt over påmeldte til dette arrangementet. Du kan bestemme selv om du ønsker å stå oppført her med fullt navn eller som anonym gjennom instillingene i profilen din. </Text>
+                    <View className="border-t border-muted-foreground w-full mt-5 mb-5" />
+                </>
+            }
+            ListFooterComponent={
+                <View className="h-20">
+                    {isFetchingNextPage && <ActivityIndicator />}
+                    {!hasNextPage && <Text className="text-center mt-4 text-muted-foreground">Ingen{data?.pages[0] && data.pages[0].length > 0 && " flere"} påmeldte</Text>}
+                </View>
+            }
+        />
+    )
 }
 
 

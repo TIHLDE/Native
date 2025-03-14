@@ -40,6 +40,7 @@ export default function Karriereside() {
                     <Image className="rounded-lg w-full aspect-[16/7] object-cover" source={{ uri: jobpost.data.image }} />
                 </View>
                 <View className="w-full h-[1px] bg-gray-950 my-6" />
+
                 <View className="flex flex-col px-3 gap-10 pb-12">
                     <Text className="text-4xl font-semibold">{jobpost.data.title}</Text>
                     <View className="w-full border bg-card dark:bg-[#020817] border-gray-300 dark:border-gray-800 rounded-lg p-2 flex flex-col gap-2 shadow-sm">
@@ -72,7 +73,6 @@ export default function Karriereside() {
                             }
                         </View>
                     </View>
-                    <MarkdownView content={jobpost.data.body} />
                     {jobpost.data.link &&
                         <Button onPress={handleApply} className="w-full" size="lg" variant="default">
                             <Text className="font-medium">
@@ -80,6 +80,7 @@ export default function Karriereside() {
                             </Text>
                         </Button>
                     }
+                    <MarkdownView content={jobpost.data.body} />
                 </View>
             </PageWrapper>
         </>
