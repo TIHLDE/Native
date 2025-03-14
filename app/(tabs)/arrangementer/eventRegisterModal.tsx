@@ -193,7 +193,12 @@ function ManualRegistration() {
             if (!page) {
                 return [];
             }
-            return page;
+            return page.filter((registration) => {
+                if (registration.is_on_wait) {
+                    return null;
+                }
+                return registration;
+            });
         })}
 
             renderItem={({ item }) => {

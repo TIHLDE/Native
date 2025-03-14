@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import * as WebBrowser from 'expo-web-browser';
-import me from "@/actions/users/me";
+import me, { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -28,6 +28,7 @@ export default function ArrangementSide() {
     const queryClient = useQueryClient();
     const id = params.arrangementId;
     const router = useRouter();
+    const permissions = usePermissions();
 
     const event = useQuery({
         queryKey: ["event", id],
@@ -72,7 +73,7 @@ export default function ArrangementSide() {
     });
 
 
-    if (event.isPending) {
+    if (event.isPending || permissions.isPending) {
         return (
             <>
                 <Stack.Screen options={{ title: '' }} />
@@ -83,10 +84,10 @@ export default function ArrangementSide() {
         );
     }
 
-    if (event.error) {
+    if (event.error || permissions.isError) {
         return (
             <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg text-red-500">Feil: {event.error.message}</Text>
+                <Text className="text-lg text-red-500">Feil: {event.error?.message}</Text>
             </View>
         );
     }
@@ -165,12 +166,14 @@ export default function ArrangementSide() {
                             </View>
                         </View>
                     </Card>
-                    <Button onPress={() => router.push({
-                        pathname: "/arrangementer/eventRegisterModal",
-                        params: { eventId: id },
-                    })} className="mt-5">
-                        <Text>Registrer oppmøte </Text>
-                    </Button>
+                    {permissions.data?.event?.write &&
+                        <Button onPress={() => router.push({
+                            pathname: "/arrangementer/eventRegisterModal",
+                            params: { eventId: id },
+                        })} className="mt-5">
+                            <Text>Registrer oppmøte </Text>
+                        </Button>
+                    }
                     {
                         event.data.sign_up && <>
                             <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
