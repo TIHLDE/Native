@@ -1,12 +1,13 @@
 import EventCard, { EventCardSkeleton } from "@/components/arrangement/eventCard";
 import { Text } from "@/components/ui/text";
 import { router } from "expo-router";
-import { ActivityIndicator, FlatList, RefreshControl, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, View } from "react-native";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { useState } from "react";
 import { BASE_URL } from "@/actions/constant";
+import useRefresh from "@/lib/useRefresh";
 
 type Event = {
     organizer: { slug: string | null; name: string; };
@@ -20,26 +21,6 @@ type Event = {
 
 export default function Arrangementer() {
     const resultsPerPage = 10;
-    const queryClient = useQueryClient();
-
-    const [isRefreshing, setIsRefreshing] = useState(false);
-
-    const handleRefresh = () => {
-        setIsRefreshing(true);
-        const startTime = Date.now();
-
-        const handleFinish = () => {
-            if (Date.now() - startTime < 1000) {
-                setTimeout(() => {
-                    setIsRefreshing(false);
-                }, 400 - (Date.now() - startTime));
-                return;
-            }
-            setIsRefreshing(false);
-        };
-
-        queryClient.invalidateQueries({ queryKey: ["events"] }).then(handleFinish);
-    };
 
     const fetchEvents = async ({ pageParam }: { pageParam: number }): Promise<{ results: Event[] }> => {
         const queryParams = new URLSearchParams({
@@ -69,11 +50,13 @@ export default function Arrangementer() {
             }
             return lastPageParam + 1;
         },
-    })
+    });
+
+    const refreshControl = useRefresh("events");
 
     if (isPending) {
         return (
-            <PageWrapper hasScrollView={false}>
+            <PageWrapper>
                 <EventCardSkeleton />
                 <EventCardSkeleton />
                 <EventCardSkeleton />
@@ -83,14 +66,16 @@ export default function Arrangementer() {
 
     if (isError) {
         return (
-            <PageWrapper refreshQueryKey={"events"}>
-                <Text className="text-center mt-10 text-lg text-red-500">Feil: {error.message}</Text>
+            <PageWrapper>
+                <ScrollView refreshControl={refreshControl}>
+                    <Text className="text-center mt-10 text-lg text-red-500">Feil: {error.message}</Text>
+                </ScrollView>
             </PageWrapper>
         );
     }
 
     return (
-        <PageWrapper hasScrollView={false}>
+        <PageWrapper>
             <FlatList
                 className="px-2 mt-2"
                 data={data?.pages.flatMap((page) => {
@@ -112,9 +97,7 @@ export default function Arrangementer() {
                         />)
                 }}
                 keyExtractor={(item) => item.id}
-                refreshControl={
-                    <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-                }
+                refreshControl={refreshControl}
                 onEndReached={() => {
                     if (!hasNextPage) return;
                     fetchNextPage();
