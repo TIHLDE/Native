@@ -8,9 +8,8 @@ import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import { useEffect, useRef, useState } from "react";
 import Icon from "@/lib/icons/Icon";
 import { useLocalSearchParams } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Registration, User } from "@/actions/types";
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { eventParticipants, updateEventParticipation } from "@/actions/events/participants";
 import { Switch } from "@/components/ui/switch";
@@ -24,7 +23,7 @@ export default function EventRegisterModal() {
     const [page, setPage] = useState(0);
 
     return (
-        <PageWrapper hasScrollView={false}>
+        <PageWrapper>
             <View className="flex flex-col gap-4 p-4">
                 <AnimatedPagerView titles={["QR", "Manuell registrering"]} className="w-full h-full"
                     onPageChange={(i) => setPage(i)}

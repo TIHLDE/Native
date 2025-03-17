@@ -1,5 +1,5 @@
 import { Text } from "@/components/ui/text";
-import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { View, Image, ActivityIndicator } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
 import Alert from "@/components/ui/alert";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import * as WebBrowser from 'expo-web-browser';
@@ -18,13 +18,13 @@ import me, { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Icon from "@/lib/icons/Icon";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
+import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { publicEventParticipants } from "@/actions/events/participants";
-import { cssInterop, remapProps } from "nativewind";
 import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import UserCard from "@/components/ui/userCard";
 import ImageMissing from "@/components/ui/imageMissing";
+import useRefresh from "@/lib/useRefresh";
 
 //TODO: backend tillater tydeligvis å melde seg på alt unnatatt bedpres selv om man har ubesvarte 
 // evalueringsskjemaer. Vet ikke om dette er en bug eller ikke. Får høre med mats.
@@ -81,6 +81,8 @@ export default function ArrangementSide() {
         }
     });
 
+    const refreshControl = useRefresh(["event", id as string]);
+
 
     if (event.isPending || permissions.isPending) {
         return (
@@ -112,149 +114,151 @@ export default function ArrangementSide() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <Stack.Screen options={{ title: '' }} />
-            <PageWrapper refreshQueryKey={["event", id as string]}>
-                <View>
-                    {event.data.image
-                        ? <Image
-                            source={{ uri: event.data.image }}
-                            className="w-full h-48"
-                            resizeMode="cover"
-                        />
-                        :
-                        <View className="w-full h-48 bg-primary-foreground flex items-center justify-center">
-                            <ImageMissing />
-                        </View>
-                    }
-                </View>
-                <View className="flex flex-col text-3xl px-2 py-5">
-                    <Text className="text-2xl font-semibold pl-2">{event.data.title}</Text>
-                    <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
-                        <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
-                        <View className="flex flex-row justify-start items-start">
-                            <View className="mr-10">
-                                <Text className="text-md text-muted-foreground mb-2">Fra:</Text>
-                                <Text className="text-md text-muted-foreground mb-2">Til:</Text>
-                                <Text className="text-md text-muted-foreground mb-2">Sted:</Text>
-                                <Text className="text-md text-muted-foreground mb-2">Arrangør:</Text>
-                                <Text className="text-md text-muted-foreground mb-2">Kontaktperson:</Text>
-                                {event.data.paid_information?.price && (
-                                    <Text className="text-md ">Pris:</Text>
-                                )}
-                            </View>
-                            <View>
-                                <Text className="text-md mb-2">
-                                    {new Date(event.data.start_date).toLocaleDateString("no-NO", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                    })}{" "}
-                                    kl.{" "}
-                                    {new Date(event.data.start_date).toLocaleTimeString("no-NO", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </Text>
-                                <Text className="text-md mb-2">
-                                    {new Date(event.data.end_date).toLocaleDateString("no-NO", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                    })}{" "}
-                                    kl.{" "}
-                                    {new Date(event.data.end_date).toLocaleTimeString("no-NO", {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </Text>
-                                <Text className="text-md mb-2">{event.data.location || "Ikke oppgitt"}</Text>
-                                <Text className="text-md mb-2">{event.data.organizer?.name || "Ikke oppgitt"}</Text>
-                                <Text className="text-md mb-2">
-                                    {event.data.contact_person
-                                        ? `${event.data.contact_person.first_name} ${event.data.contact_person.last_name}`
-                                        : "Ikke oppgitt"}
-                                </Text>
-                                {event.data.paid_information?.price && (
-                                    <Text className="text-md">{event.data.paid_information.price}</Text>
-                                )}
-                            </View>
-                        </View>
-                    </Card>
-                    {permissions.data?.event?.write &&
-                        <Button onPress={() => router.push({
-                            pathname: "/arrangementer/eventRegisterModal",
-                            params: { eventId: id },
-                        })} className="mt-5">
-                            <Text>Registrer oppmøte </Text>
-                        </Button>
-                    }
-                    {
-                        event.data.sign_up && <>
-                            <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
-                                <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
-                                <View className="flex flex-row justify-start items-start">
-                                    <View className="mr-10">
-                                        <Text className="text-md text-muted-foreground mb-2">Påmeldte:</Text>
-                                        <Text className="text-md text-muted-foreground mb-2">Venteliste:</Text>
-                                        <Text className="text-md text-muted-foreground mb-2">Avmeldingsfrist:</Text>
-                                    </View>
-                                    <View>
-                                        <Text className="text-md mb-2">
-                                            {event.data.list_count}/{event.data.limit === 0 ? "∞" : event.data.limit}
-                                        </Text>
-                                        <Text className="text-md mb-2">
-                                            {event.data.waiting_list_count}
-                                        </Text>
-                                        <Text className="text-md mb-2">
-                                            {new Date(event.data.sign_off_deadline).toLocaleDateString("no-NO", {
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric",
-                                            })}{" "}
-                                            kl.{" "}
-                                            {new Date(event.data.sign_off_deadline).toLocaleTimeString("no-NO", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
-                                        </Text>
-                                    </View>
-                                </View>
-                                <View className="absolute right-5 top-5">
-                                    <Button variant="ghost" onPress={() => {
-                                        bottomSheetModalRef.current?.present();
-
-                                    }}>
-                                        <Icon icon="UserRound" className="color-primary" />
-                                    </Button>
-                                </View>
-                            </Card>
-                            <RegistrationButton
-                                event={event.data}
-                                registration={registration}
-                                mutationPending={registrationMutation.isPending}
-                                onClick={() => registrationMutation.mutate(Number(id))}
+            <PageWrapper>
+                <ScrollView refreshControl={refreshControl}>
+                    <View>
+                        {event.data.image
+                            ? <Image
+                                source={{ uri: event.data.image }}
+                                className="w-full h-48"
+                                resizeMode="cover"
                             />
-                        </>
-                    }
-                    <View className="p-5">
-                        <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
-                        <MarkdownView content={event.data.description ?? "Ingen beskrivelse tilgjengelig"} />
+                            :
+                            <View className="w-full h-48 bg-primary-foreground flex items-center justify-center">
+                                <ImageMissing />
+                            </View>
+                        }
                     </View>
-                </View>
-                <InteropBottomSheetModal ref={bottomSheetModalRef}
-                    backgroundStyleClassName="bg-primary-foreground rounded-3xl"
-                    snapPoints={["50%", "75%"]}
-                    enableDynamicSizing={false}
+                    <View className="flex flex-col text-3xl px-2 py-5">
+                        <Text className="text-2xl font-semibold pl-2">{event.data.title}</Text>
+                        <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
+                            <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
+                            <View className="flex flex-row justify-start items-start">
+                                <View className="mr-10">
+                                    <Text className="text-md text-muted-foreground mb-2">Fra:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Til:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Sted:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Arrangør:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Kontaktperson:</Text>
+                                    {event.data.paid_information?.price && (
+                                        <Text className="text-md ">Pris:</Text>
+                                    )}
+                                </View>
+                                <View>
+                                    <Text className="text-md mb-2">
+                                        {new Date(event.data.start_date).toLocaleDateString("no-NO", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        })}{" "}
+                                        kl.{" "}
+                                        {new Date(event.data.start_date).toLocaleTimeString("no-NO", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
+                                    </Text>
+                                    <Text className="text-md mb-2">
+                                        {new Date(event.data.end_date).toLocaleDateString("no-NO", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        })}{" "}
+                                        kl.{" "}
+                                        {new Date(event.data.end_date).toLocaleTimeString("no-NO", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
+                                    </Text>
+                                    <Text className="text-md mb-2">{event.data.location || "Ikke oppgitt"}</Text>
+                                    <Text className="text-md mb-2">{event.data.organizer?.name || "Ikke oppgitt"}</Text>
+                                    <Text className="text-md mb-2">
+                                        {event.data.contact_person
+                                            ? `${event.data.contact_person.first_name} ${event.data.contact_person.last_name}`
+                                            : "Ikke oppgitt"}
+                                    </Text>
+                                    {event.data.paid_information?.price && (
+                                        <Text className="text-md">{event.data.paid_information.price}</Text>
+                                    )}
+                                </View>
+                            </View>
+                        </Card>
+                        {permissions.data?.event?.write &&
+                            <Button onPress={() => router.push({
+                                pathname: "/arrangementer/eventRegisterModal",
+                                params: { eventId: id },
+                            })} className="mt-5">
+                                <Text>Registrer oppmøte </Text>
+                            </Button>
+                        }
+                        {
+                            event.data.sign_up && <>
+                                <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
+                                    <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
+                                    <View className="flex flex-row justify-start items-start">
+                                        <View className="mr-10">
+                                            <Text className="text-md text-muted-foreground mb-2">Påmeldte:</Text>
+                                            <Text className="text-md text-muted-foreground mb-2">Venteliste:</Text>
+                                            <Text className="text-md text-muted-foreground mb-2">Avmeldingsfrist:</Text>
+                                        </View>
+                                        <View>
+                                            <Text className="text-md mb-2">
+                                                {event.data.list_count}/{event.data.limit === 0 ? "∞" : event.data.limit}
+                                            </Text>
+                                            <Text className="text-md mb-2">
+                                                {event.data.waiting_list_count}
+                                            </Text>
+                                            <Text className="text-md mb-2">
+                                                {new Date(event.data.sign_off_deadline).toLocaleDateString("no-NO", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                })}{" "}
+                                                kl.{" "}
+                                                {new Date(event.data.sign_off_deadline).toLocaleTimeString("no-NO", {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View className="absolute right-5 top-5">
+                                        <Button variant="ghost" onPress={() => {
+                                            bottomSheetModalRef.current?.present();
 
-                    backdropComponent={(props) => (
-                        <BottomSheetBackdrop
-                            opacity={0.5}
-                            appearsOnIndex={0}
-                            disappearsOnIndex={-1}
-                            {...props}
-                        />
-                    )} >
-                    <EventParticipantsModal eventId={Number(id)} />
-                </InteropBottomSheetModal>
+                                        }}>
+                                            <Icon icon="UserRound" className="color-primary" />
+                                        </Button>
+                                    </View>
+                                </Card>
+                                <RegistrationButton
+                                    event={event.data}
+                                    registration={registration}
+                                    mutationPending={registrationMutation.isPending}
+                                    onClick={() => registrationMutation.mutate(Number(id))}
+                                />
+                            </>
+                        }
+                        <View className="p-5">
+                            <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
+                            <MarkdownView content={event.data.description ?? "Ingen beskrivelse tilgjengelig"} />
+                        </View>
+                    </View>
+                    <InteropBottomSheetModal ref={bottomSheetModalRef}
+                        backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                        snapPoints={["50%", "75%"]}
+                        enableDynamicSizing={false}
+
+                        backdropComponent={(props) => (
+                            <BottomSheetBackdrop
+                                opacity={0.5}
+                                appearsOnIndex={0}
+                                disappearsOnIndex={-1}
+                                {...props}
+                            />
+                        )} >
+                        <EventParticipantsModal eventId={Number(id)} />
+                    </InteropBottomSheetModal>
+                </ScrollView>
             </PageWrapper>
         </GestureHandlerRootView>
     );
