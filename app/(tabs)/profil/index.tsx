@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
-import { deleteToken } from "@/lib/storage";
+import { deleteToken } from "@/lib/storage/tokenStore";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, ScrollView, View } from "react-native";

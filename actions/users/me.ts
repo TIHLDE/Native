@@ -1,5 +1,5 @@
 
-import { getToken } from "@/lib/storage";
+import { getToken } from "@/lib/storage/tokenStore";
 import { BASE_URL } from "../constant";
 import { LeptonError, User, Event, Permissions } from "../types";
 import { useQuery } from "@tanstack/react-query";
