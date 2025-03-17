@@ -1,4 +1,4 @@
-import { getToken } from "@/lib/storage";
+import { getToken } from "@/lib/storage/tokenStore";
 import { BASE_URL } from "../constant";
 import { LeptonError, Payment } from "../types";
 

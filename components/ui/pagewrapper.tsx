@@ -24,30 +24,22 @@ export default function PageWrapper({
 
   if (!hasScrollView) {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaWrapper>
-          <BottomSheetModalProvider>
-            {children}
-          </BottomSheetModalProvider>
-        </SafeAreaWrapper>
-      </GestureHandlerRootView>
+      <SafeAreaWrapper>
+        {children}
+      </SafeAreaWrapper>
     );
   }
 
   if (!refreshQueryKey) {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaWrapper>
-          <BottomSheetModalProvider>
-            <ScrollView
-              className={cn("min-h-full", className ?? "")}
-              nestedScrollEnabled
-            >
-              {children}
-            </ScrollView>
-          </BottomSheetModalProvider>
-        </SafeAreaWrapper>
-      </GestureHandlerRootView>
+      <SafeAreaWrapper>
+        <ScrollView
+          className={cn("min-h-full", className ?? "")}
+          nestedScrollEnabled
+        >
+          {children}
+        </ScrollView>
+      </SafeAreaWrapper>
     );
   }
 
@@ -81,21 +73,17 @@ export default function PageWrapper({
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaWrapper>
-        <BottomSheetModalProvider>
-          <ScrollView
-            refreshControl={
-              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-            }
-            className={cn("min-h-full", className ?? "")}
-            nestedScrollEnabled
-          >
-            {children}
-          </ScrollView>
-        </BottomSheetModalProvider>
-      </SafeAreaWrapper>
-    </GestureHandlerRootView>
+    <SafeAreaWrapper>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+        className={cn("min-h-full", className ?? "")}
+        nestedScrollEnabled
+      >
+        {children}
+      </ScrollView>
+    </SafeAreaWrapper>
   );
 }
 

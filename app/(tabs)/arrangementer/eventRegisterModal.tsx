@@ -10,7 +10,7 @@ import Icon from "@/lib/icons/Icon";
 import { useLocalSearchParams } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Registration, User } from "@/actions/types";
-import { BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { eventParticipants, updateEventParticipation } from "@/actions/events/participants";
 import { Switch } from "@/components/ui/switch";
@@ -61,8 +61,10 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                 type: "success",
                 text1: `${userToRegister?.first_name} er registrert`,
             });
+            bottomSheetModalRef.current?.dismiss();
         },
         onError: (error) => {
+            bottomSheetModalRef.current?.dismiss();
             if (error.message === "Not found.") {
                 Toast.show({
                     type: "error",
@@ -131,15 +133,27 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             }
             <InteropBottomSheetModal
                 ref={bottomSheetModalRef}
-            >
-                <BottomSheetView className="m-auto">
+                snapPoints={["25%"]}
+                enableDynamicSizing={false}
+                backgroundStyleClassName="rounded-3xl"
+                backdropComponent={(props) => (
+                    <BottomSheetBackdrop
+                        opacity={0.1}
+                        appearsOnIndex={0}
+                        disappearsOnIndex={-1}
+                        {...props}
+                    />
+                )} >
+                <BottomSheetView className="mx-auto mt-5">
                     <View className="p-4 flex flex-col gap-4">
                         <Text className="text-lg">Er du sikker på at du vil registrere {userToRegister?.first_name}? </Text>
                         <Button variant="default" onPress={() => {
                             updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.user_id ?? "" });
-                            bottomSheetModalRef.current?.dismiss();
                         }}>
-                            <Text>Registrer</Text>
+                            {updateRegistrationMutation.isPending
+                                ? <ActivityIndicator />
+                                : <Text>Registrer</Text>
+                            }
                         </Button>
                     </View>
                 </BottomSheetView>

@@ -1,4 +1,4 @@
-import { getToken } from "@/lib/storage";
+import { getToken } from "@/lib/storage/tokenStore";
 import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useState } from "react";
 
 
