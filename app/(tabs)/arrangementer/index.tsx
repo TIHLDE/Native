@@ -1,12 +1,11 @@
 import EventCard, { EventCardSkeleton } from "@/components/arrangement/eventCard";
 import { Text } from "@/components/ui/text";
 import { router } from "expo-router";
-import { View } from "react-native";
+import { ActivityIndicator, FlatList, ScrollView, View } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
-import React from "react";
 import { BASE_URL } from "@/actions/constant";
+import useRefresh from "@/lib/useRefresh";
 
 type Event = {
     organizer: { slug: string | null; name: string; };
@@ -38,7 +37,7 @@ export default function Arrangementer() {
         hasNextPage,
         isPending,
         isFetchingNextPage,
-        status,
+        isError,
     } = useInfiniteQuery({
         queryKey: ["events"],
         queryFn: fetchEvents,
@@ -49,65 +48,66 @@ export default function Arrangementer() {
             }
             return lastPageParam + 1;
         },
-    })
+    });
 
-    if (status === "pending") {
-        <Text className="text-center mt-10 text-lg text-gray-600">Laster arrangementer...</Text>;
+    const refreshControl = useRefresh("events");
+
+    if (isPending) {
+        return (
+            <PageWrapper>
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+            </PageWrapper>
+        );
     }
 
-    if (status === "error") {
+    if (isError) {
         return (
-            <PageWrapper refreshQueryKey={"events"}>
-                <Text className="text-center mt-10 text-lg text-red-500">Feil: {error.message}</Text>
+            <PageWrapper>
+                <ScrollView refreshControl={refreshControl}>
+                    <Text className="text-center mt-10 text-lg text-red-500">Feil: {error.message}</Text>
+                </ScrollView>
             </PageWrapper>
         );
     }
 
     return (
-        <PageWrapper className="px-4" refreshQueryKey={"events"}>
-            {data?.pages.map((group, i) => (
-                < React.Fragment key={i} >
-                    {Array.isArray(group?.results) &&
-                        group.results.map((event) => (
-                            <EventCard
-                                key={event.id}
-                                id={event.id}
-                                title={event.title}
-                                date={new Date(event.start_date)}
-                                image={event.image || null}
-                                onPress={() => router.push(`/arrangementer/${event.id}`)}
-                                organizer={event.organizer}
-                            />
-                        ))
+        <PageWrapper>
+            <FlatList
+                className="px-4 mt-2"
+                data={data?.pages.flatMap((page) => {
+                    if (!page.results) {
+                        return [];
                     }
-                </React.Fragment>
-            ))}
+                    return page.results;
+                })}
+                renderItem={({ item: event }) => {
+                    return (
+                        <EventCard
+                            key={event.id}
+                            id={event.id}
+                            title={event.title}
+                            date={new Date(event.start_date)}
+                            image={event.image ?? null}
+                            onPress={() => router.push(`/arrangementer/${event.id}`)}
+                            organizer={event.organizer}
+                        />)
+                }}
+                keyExtractor={(item) => item.id}
+                refreshControl={refreshControl}
+                onEndReached={() => {
+                    if (!hasNextPage) return;
+                    fetchNextPage();
+                }}
+                ListFooterComponent={
+                    <View className="mb-16">
+                        {isFetchingNextPage && <ActivityIndicator />}
+                        {!hasNextPage && <Text className="text-center mt-4 text-lg text-gray-600">Ingen flere arrangementer</Text>}
+                    </View>
 
-            {isPending &&
-                <>
-                    <EventCardSkeleton />
-                    <EventCardSkeleton />
-                    <EventCardSkeleton />
-                </>
-            }
-
-
-            <View className="mb-16">
-                {isFetchingNextPage && <Text className="text-center mt-4 text-lg text-gray-600">Laster flere arrangementer...</Text>}
-                {
-                    (hasNextPage && !isFetchingNextPage) && (
-                        <Button
-                            onPress={() => fetchNextPage()}
-                            variant={"link"}
-                        >
-                            <Text>
-                                Last flere arrangementer
-                            </Text>
-                        </Button>
-                    )
                 }
-                {!hasNextPage && <Text className="text-center mt-4 text-lg text-gray-600">Ingen flere arrangementer</Text>}
-            </View>
+            />
         </PageWrapper >
     );
 }

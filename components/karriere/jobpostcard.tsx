@@ -2,7 +2,6 @@ import { Image, View } from "react-native";
 import { Text } from "../ui/text";
 import Icon from "@/lib/icons/Icon";
 import timeformat from "@/lib/timeformat";
-import { Card, CardContent } from "../ui/card";
 
 export interface JobPostProps {
     title: string;
@@ -32,18 +31,18 @@ export default function JobPostCard(props: JobPostProps) {
             </View>
             <View className="w-full h-[1px] bg-gray-300 dark:bg-gray-950" />
             <View className="flex flex-col gap-2 px-2 pb-4">
-                <Text className="text-2xl mt-2 mb-2 font-medium">{props.title}</Text>
-                <View className="flex flex-row gap-2 ml-2">
+                <Text className="text-2xl mt-2 mb-2 font-semibold">{props.title}</Text>
+                <View className="flex flex-row gap-2 ml-2 items-center">
                     <Icon icon="BriefcaseBusiness" className="self-center stroke-1 dark:text-white" />
-                    <Text className="text-lg ">{JOBTYPES[props.jobType]}</Text>
+                    <Text className="">{JOBTYPES[props.jobType]}</Text>
                 </View>
-                <View className="flex flex-row gap-2 ml-2">
+                <View className="flex flex-row gap-2 ml-2 items-center">
                     <Icon icon="MapPin" className="self-center stroke-1 dark:text-white" />
-                    <Text className="text-lg ">{props.location}</Text>
+                    <Text className="">{props.location}</Text>
                 </View>
-                <View className="flex flex-row gap-2 ml-2">
+                <View className="flex flex-row gap-2 ml-2 items-center">
                     <Icon icon="CalendarClock" className="self-center stroke-1 dark:text-white" />
-                    <Text className="text-lg ">{timeformat(new Date(props.deadline))}</Text>
+                    <Text className="">{timeformat(new Date(props.deadline))}</Text>
                 </View>
             </View>
         </View>

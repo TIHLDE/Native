@@ -4,6 +4,7 @@ import { MoonStar } from '~/lib/icons/MoonStar';
 import { Sun } from '~/lib/icons/Sun';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { cn } from '~/lib/utils';
+import { Button } from './ui/button';
 
 export function ThemeToggle({ className }: { className?: string }) {
     const { isDarkColorScheme, setColorScheme } = useColorScheme();
@@ -13,7 +14,6 @@ export function ThemeToggle({ className }: { className?: string }) {
         setColorScheme(newTheme);
         setAndroidNavigationBar(newTheme);
     }
-
     return (
         <Pressable onPressIn={toggleColorScheme}>
             {({ pressed }) => (
@@ -26,7 +26,7 @@ export function ThemeToggle({ className }: { className?: string }) {
                     {isDarkColorScheme ? (
                         <Sun className='text-foreground self-center' size={24} strokeWidth={1.25} />
                     ) : (
-                        <MoonStar className='text-foreground self-center' size={23} strokeWidth={1.25} />
+                        <MoonStar className='self-center text-foreground' size={23} strokeWidth={1.25} />
                     )}
                 </View>
             )}

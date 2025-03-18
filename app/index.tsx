@@ -1,8 +1,6 @@
-import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Rect, G, Mask, Path, Defs, ClipPath } from "react-native-svg";
 
@@ -32,7 +30,7 @@ export default function Arrangementer() {
         return (
             <SafeAreaProvider>
                 <SafeAreaView
-                    className="flex-1 justify-center items-center bg-blue-950"
+                    className="flex-1 justify-center items-center bg-[#001329]"
                 >
                     <SplashLogo />
                 </SafeAreaView>

@@ -1,18 +1,16 @@
 import { getToken } from "@/lib/storage/tokenStore";
 import { BASE_URL } from "../constant";
-import { LeptonError, Payment } from "../types";
+import { LeptonError, User } from "../types";
 
-export async function createPayment(eventid: number) {
-    const url = `${BASE_URL}/payments/`;
+export async function getUser(id: string): Promise<User> {
+    const url = `${BASE_URL}/users/${id}/`;
     const token = await getToken();
 
     const response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ event: eventid }),
         //@ts-expect-error
         headers: {
+            "method": "GET",
             "X-Csrf-Token": token,
-            "Content-Type": "application/json",
         }
     });
 
@@ -21,6 +19,6 @@ export async function createPayment(eventid: number) {
         throw new Error(errorData.detail);
     }
 
-    const data = await response.json() as Payment;
+    const data = await response.json() as User;
     return data;
 }

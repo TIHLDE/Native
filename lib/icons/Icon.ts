@@ -12,6 +12,7 @@ import { CircleCheck } from "@/lib/icons/CircleCheck";
 import { TriangleAlert } from "@/lib/icons/TriangleAlert";
 import { OctagonX } from "@/lib/icons/OctagonX";
 import { Info } from "@/lib/icons/Info";
+import { Scan } from "@/lib/icons/Scan";
 import { cn } from "../utils";
 
 
@@ -29,6 +30,7 @@ const icons = {
     TriangleAlert: TriangleAlert,
     OctagonX: OctagonX,
     Info: Info,
+    Scan: Scan,
 }
 
 /**

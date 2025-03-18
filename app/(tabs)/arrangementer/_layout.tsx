@@ -19,10 +19,11 @@ export default function ArrangementerLayout() {
                             style={{ marginRight: 15 }}
                         >
                             <Icon icon="UserRound" className="self-center stroke-1 dark:text-white" />
-                            </TouchableOpacity>
+                        </TouchableOpacity>
                     ),
                 }}
             />
+            <Stack.Screen name="eventRegisterModal" options={{ presentation: "card", title: "Registrer oppmøte" }} />
         </Stack>
     );
 }

@@ -36,8 +36,6 @@ export default function TabsLayout() {
                         <QrCode className="color-white dark:color-white" size={30} />
                     </TouchableOpacity>
                 </View>
-
-
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
@@ -45,7 +43,7 @@ export default function TabsLayout() {
                             ${pathname.includes("/arrangementer") ? "color-primary" : "color-gray-400"}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/arrangementer") ?  "color-primary  dark:color-primary" : "color-gray-400"
+                        ${pathname.includes("/arrangementer") ? "color-primary  dark:color-primary" : "color-gray-400"
                         }`}>
                         Arrangementer
                     </Text>

@@ -8,10 +8,9 @@ import TihldeLogo from "@/lib/icons/TihldeLogo";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { View, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from "react-native";
 
 
 export default function Login() {
@@ -51,57 +50,57 @@ export default function Login() {
 
     return (
         <SafeAreaProvider>
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
-        >
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <SafeAreaView className="flex-1 gap-y-8 px-4 justify-center">
-                    <ScrollView
-                        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 15 }}
-                        keyboardShouldPersistTaps="handled" 
-                    >
-                        <View className="gap-y-0 items-center w-full">
-                            <TihldeLogo size="large" />
-                        </View>
-                        <View>
-                            <Text>Brukernavn</Text>
-                            <Input
-                                className="w-full"
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none" 
-                                keyboardType="email-address" 
-                            />
-                        </View>
-
-                        <View>
-                            <Text>Passord</Text>
-                            <Input
-                                className="w-full"
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                                returnKeyType="done" 
-                            />
-                        </View>
-
-                        <Button
-                            onPress={onPress}
-                            disabled={!email || !password || status === "pending"}
-                        
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+            >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <SafeAreaView className="flex-1 gap-y-8 px-4 justify-center">
+                        <ScrollView
+                            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 15 }}
+                            keyboardShouldPersistTaps="handled"
                         >
-                            <Text>
-                                {status === "pending"
-                                    ? "Logger inn..."
-                                    : "Logg inn"
-                                }
-                            </Text>
-                        </Button>
-                    </ScrollView>
-                </SafeAreaView>
-            </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-    </SafeAreaProvider>
+                            <View className="gap-y-0 items-center w-full">
+                                <TihldeLogo size="large" />
+                            </View>
+                            <View>
+                                <Text>Brukernavn</Text>
+                                <Input
+                                    className="w-full"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                />
+                            </View>
+
+                            <View>
+                                <Text>Passord</Text>
+                                <Input
+                                    className="w-full"
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    secureTextEntry
+                                    returnKeyType="done"
+                                />
+                            </View>
+
+                            <Button
+                                onPress={onPress}
+                                disabled={!email || !password || status === "pending"}
+
+                            >
+                                <Text>
+                                    {status === "pending"
+                                        ? "Logger inn..."
+                                        : "Logg inn"
+                                    }
+                                </Text>
+                            </Button>
+                        </ScrollView>
+                    </SafeAreaView>
+                </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+        </SafeAreaProvider>
     );
 };

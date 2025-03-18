@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-export default function karriereLayout() {
+export default function profilLayout() {
 
     return (
         <Stack>
@@ -10,7 +10,6 @@ export default function karriereLayout() {
                     headerShown: false,
                     title: "Profil"
                 }}
-
             />
             <Stack.Screen name="eventmodal" options={{ presentation: "card", headerShown: false }} />
         </Stack>
