@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
-import { deleteToken } from "@/lib/storage";
+import { deleteToken } from "@/lib/storage/tokenStore";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { Event, Group } from "@/actions/types";
+import { Event } from "@/actions/types";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import {
     AlertDialog,
