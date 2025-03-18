@@ -64,10 +64,10 @@ export default function RootLayout() {
                     headerBackTitle: "Tilbake", 
                     headerTitleAlign: "center",
                     headerRight: () => (
-                                            <TouchableOpacity style={{ marginRight: 15 }}>
-                                                <ThemeToggle />
-                                            </TouchableOpacity>
-                                        ),
+                      <TouchableOpacity style={{ marginRight: 15 }}>
+                          <ThemeToggle />
+                      </TouchableOpacity>
+                  ),
                 }} 
             />
             <Stack.Screen 

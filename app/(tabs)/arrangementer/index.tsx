@@ -64,7 +64,7 @@ export default function Arrangementer() {
     }
 
     return (
-        <PageWrapper className="px-2" refreshQueryKey={"events"}>
+        <PageWrapper className="px-4" refreshQueryKey={"events"}>
             {data?.pages.map((group, i) => (
                 < React.Fragment key={i} >
                     {Array.isArray(group?.results) &&

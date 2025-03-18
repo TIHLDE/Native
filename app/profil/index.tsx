@@ -110,7 +110,7 @@ export default function Profil() {
               Er du sikker på at du vil logge ut?
             </AlertDialogTitle>
             <AlertDialogAction asChild>
-              <Button variant="destructive" onPress={onLogout}>
+              <Button variant="destructive" onPressIn={onLogout}>
                 <Text>Logg ut</Text>
               </Button>
             </AlertDialogAction>

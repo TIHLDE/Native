@@ -1,6 +1,6 @@
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, Image, ActivityIndicator } from "react-native";
+import { View,Modal, Image, ActivityIndicator, TouchableOpacity, FlatList } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +17,10 @@ import * as WebBrowser from 'expo-web-browser';
 import me from "@/actions/users/me";
 import Toast from "react-native-toast-message";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Users } from "lucide-react-native";
+import { useColorScheme } from "react-native";
+
+
 
 //TODO: backend tillater tydeligvis å melde seg på alt unnatatt bedpres selv om man har ubesvarte 
 // evalueringsskjemaer. Vet ikke om dette er en bug eller ikke. Får høre med mats.
@@ -27,6 +31,8 @@ export default function ArrangementSide() {
     const params = useLocalSearchParams();
     const queryClient = useQueryClient();
     const id = params.arrangementId;
+    const colorScheme = useColorScheme();
+    const isDarkMode = colorScheme === "dark";
 
     const event = useQuery({
         queryKey: ["event", id],
@@ -35,10 +41,12 @@ export default function ArrangementSide() {
         },
     });
 
+    
     const { data: registration } = useQuery({
         queryKey: ["event", id, "registration"],
         queryFn: async () => iAmRegisteredToEvent(Number(id)),
     });
+
 
     const registrationMutation = useMutation({
         mutationFn: async (eventId: number) => {
@@ -165,7 +173,13 @@ export default function ArrangementSide() {
                         </View>
                     </Card>
                     <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
-                        <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
+                        <View className="flex flex-row items-center mb-6">
+                            <Text className="text-2xl font-bold mr-2">Påmelding</Text>
+                    
+                            <Users color={isDarkMode ? "white" : "black"} width={20} />
+               
+                        </View>
+                     
                         <View className="flex flex-row justify-start items-start">
                             <View className="mr-10">
                                 <Text className="text-md text-muted-foreground mb-2">Påmeldte:</Text>
@@ -194,6 +208,7 @@ export default function ArrangementSide() {
                             </View>
                         </View>
                     </Card>
+
                     <RegistrationButton
                         event={event.data}
                         registration={registration}

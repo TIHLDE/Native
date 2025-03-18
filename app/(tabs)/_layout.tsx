@@ -18,11 +18,11 @@ export default function TabsLayout() {
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="BriefcaseBusiness"
-                        className={`self-center stroke-1 
-                            ${pathname.includes("/karriere") ? "color-black dark:color-white" : "color-gray-400 dark:color-gray-300 "}`}
+                        className={`self-center stroke-2
+                            ${pathname.includes("/karriere") ? "color-primary" : "color-gray-400 dark:color-gray-300 "}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/karriere") ? "font-bold border-b-2 border-black dark:border-white pb-1" : ""
+                        ${pathname.includes("/karriere") ? "color-primary dark:color-primary" : "color-gray-400"
                         }`}>
                         Karriere
                     </Text>
@@ -30,10 +30,10 @@ export default function TabsLayout() {
 
                 <View style={[styles.middleButtonContainer, { left: screenWidth / 2 - 35 }]}>
                     <TouchableOpacity
-                        className="absolute mb-1 left-1/2 -translate-x-1/2 bg-primary dark:bg-secondary w-24 h-24 rounded-full flex items-center justify-center shadow-lg"
+                        className="absolute mb-1 left-1/2 -translate-x-1/2 bg-primary dark:bg-primary w-24 h-24 rounded-full flex items-center justify-center shadow-lg"
                         onPress={() => router.push('/qrmodal')}
                     >
-                        <QrCode color="white" size={30} />
+                        <QrCode className="color-white dark:color-white" size={30} />
                     </TouchableOpacity>
                 </View>
 
@@ -41,11 +41,11 @@ export default function TabsLayout() {
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
-                        className={`self-center stroke-1
-                            ${pathname.includes("/arrangementer") ? "color-black dark:color-white" : "color-black dark:color-gray-300 "}`}
+                        className={`self-center stroke-2
+                            ${pathname.includes("/arrangementer") ? "color-primary" : "color-gray-400"}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/arrangementer") ? "text-black dark:text-white font-bold border-b-2 border-black dark:border-white pb-1" : ""
+                        ${pathname.includes("/arrangementer") ?  "color-primary  dark:color-primary" : "color-gray-400"
                         }`}>
                         Arrangementer
                     </Text>
