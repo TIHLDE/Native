@@ -1,11 +1,9 @@
 import EventCard, { EventCardSkeleton } from "@/components/arrangement/eventCard";
 import { Text } from "@/components/ui/text";
 import { router } from "expo-router";
-import { ActivityIndicator, FlatList, RefreshControl, ScrollView, View } from "react-native";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { ActivityIndicator, FlatList, ScrollView, View } from "react-native";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { useState } from "react";
 import { BASE_URL } from "@/actions/constant";
 import useRefresh from "@/lib/useRefresh";
 
@@ -77,7 +75,7 @@ export default function Arrangementer() {
     return (
         <PageWrapper>
             <FlatList
-                className="px-2 mt-2"
+                className="px-4 mt-2"
                 data={data?.pages.flatMap((page) => {
                     if (!page.results) {
                         return [];

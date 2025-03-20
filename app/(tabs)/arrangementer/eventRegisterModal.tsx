@@ -115,6 +115,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                         barcodeTypes: ["qr"]
                     }}
                     onBarcodeScanned={async (code) => {
+
                         if (updateRegistrationMutation.isPending) {
                             return
                         };

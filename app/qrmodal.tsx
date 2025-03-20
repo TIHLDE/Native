@@ -1,7 +1,6 @@
 import me from "@/actions/users/me";
 import { Text } from "@/components/ui/text";
 import { NAV_THEME } from "@/lib/constants";
-import TihldeLogo from "@/lib/icons/TihldeLogo";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { View } from "react-native";

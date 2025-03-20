@@ -1,6 +1,6 @@
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, Image, ActivityIndicator } from "react-native";
+import { View, Modal, Image, ActivityIndicator, TouchableOpacity, FlatList } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,10 +46,12 @@ export default function ArrangementSide() {
         },
     });
 
+
     const { data: registration } = useQuery({
         queryKey: ["event", id, "registration"],
         queryFn: async () => iAmRegisteredToEvent(Number(id)),
     });
+
 
     const registrationMutation = useMutation({
         mutationFn: async (eventId: number) => {
@@ -310,8 +312,7 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
                 if (!page) {
                     return [];
                 }
-
-                return page;
+                return page.filter((registration) => { return registration.user_info !== null; })
             }
             )}
             renderItem={({ item: registration }) => {

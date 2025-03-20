@@ -23,7 +23,7 @@ export default function Karriere() {
     return (
         <PageWrapper className="w-full h-fit px-2">
             <ScrollView refreshControl={refreshControl}>
-                <View className="flex flex-col justify-center mt-5 gap-4">
+                <View className="flex flex-col justify-center mt-5 gap-4 pb-20">
                     {
                         jobposts.data?.results.map((jobpost: any) => (
                             <Link href={`/(tabs)/karriere/${jobpost.id}`} key={jobpost.id}>

@@ -8,7 +8,7 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { Event, Group } from "@/actions/types";
+import { Event } from "@/actions/types";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import {
     AlertDialog,
@@ -43,6 +43,8 @@ export default function Profil() {
         queryFn: myPreviousEvents,
     });
 
+    const refreshControl = useRefresh(["users", "me"]);
+
     const onLogout = async () => {
         const isLoggedOut = await deleteToken();
 
@@ -62,8 +64,6 @@ export default function Profil() {
 
         router.replace("/(auth)/login");
     };
-
-    const refreshControl = useRefresh(["users", "me"]);
 
     if (user.isPending) {
         return (
@@ -88,10 +88,6 @@ export default function Profil() {
     return (
         <PageWrapper>
             <ScrollView refreshControl={refreshControl}>
-                <View className="absolute top-4 right-4">
-                    <ThemeToggle />
-                </View>
-
                 <View className="flex flex-col gap-4 p-4">
                     {user.data.image && (
                         <Image
@@ -120,7 +116,7 @@ export default function Profil() {
                                 Er du sikker på at du vil logge ut?
                             </AlertDialogTitle>
                             <AlertDialogAction asChild>
-                                <Button variant="destructive" onPress={onLogout}>
+                                <Button variant="destructive" onPressIn={onLogout}>
                                     <Text>Logg ut</Text>
                                 </Button>
                             </AlertDialogAction>
@@ -152,10 +148,7 @@ export default function Profil() {
     );
 }
 
-function DisplayUserEvents({
-    userEvents,
-    previous,
-}: {
+function DisplayUserEvents({ userEvents, previous }: {
     userEvents: UseQueryResult<{ results: Event[] }, Error>;
     previous?: boolean;
 }) {
@@ -194,7 +187,6 @@ function DisplayUserEvents({
             image={event.image ?? null}
             organizer={event.organizer ?? { name: "Ukjent", slug: null }}
             onPress={() => {
-                router.back();
                 router.push({
                     pathname: `/profil/eventmodal`,
                     params: { arrangementId: event.id },
