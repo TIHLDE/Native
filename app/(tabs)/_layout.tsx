@@ -19,10 +19,10 @@ export default function TabsLayout() {
                     <Icon
                         icon="BriefcaseBusiness"
                         className={`self-center stroke-2
-                            ${pathname.includes("/karriere") ? "color-primary" : "color-gray-400 dark:color-gray-300 "}`}
+                            ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-400 dark:color-gray-300 "}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/karriere") ? "color-primary dark:color-primary" : "color-gray-400"
+                        ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-400"
                         }`}>
                         Karriere
                     </Text>
@@ -30,20 +30,20 @@ export default function TabsLayout() {
 
                 <View style={[styles.middleButtonContainer, { left: screenWidth / 2 - 35 }]}>
                     <TouchableOpacity
-                        className="absolute mb-1 left-1/2 -translate-x-1/2 bg-primary dark:bg-primary w-24 h-24 rounded-full flex items-center justify-center shadow-lg"
+                        className="absolute mb-1 left-1/2 -translate-x-1/2 bg-primary dark:bg-accent w-24 h-24 rounded-full flex items-center justify-center shadow-lg"
                         onPress={() => router.push('/qrmodal')}
                     >
-                        <QrCode className="color-white dark:color-white" size={30} />
+                        <QrCode className="color-white dark:color-background" size={32} />
                     </TouchableOpacity>
                 </View>
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
                         className={`self-center stroke-2
-                            ${pathname.includes("/arrangementer") ? "color-primary" : "color-gray-400"}`}
+                            ${pathname.includes("/arrangementer") ? "color-primary dark:color-accent" : "color-gray-400"}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/arrangementer") ? "color-primary  dark:color-primary" : "color-gray-400"
+                        ${pathname.includes("/arrangementer") ? "color-primary  dark:color-accent" : "color-gray-400"
                         }`}>
                         Arrangementer
                     </Text>

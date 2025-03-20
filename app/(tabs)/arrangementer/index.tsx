@@ -75,7 +75,7 @@ export default function Arrangementer() {
     return (
         <PageWrapper>
             <FlatList
-                className="px-4 mt-2"
+                className="px-2 mt-2"
                 data={data?.pages.flatMap((page) => {
                     if (!page.results) {
                         return [];
