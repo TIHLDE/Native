@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, Pressable } from 'react-native';
 import { Card } from "@/components/ui/card";
 import { Text } from "@/components/ui/text"
 import ImageMissing from '../ui/imageMissing';
@@ -43,7 +43,7 @@ const EventCard = ({
     return (
         <View className={`w-full rounded-lg mb-4 overflow-hidden border-2 ${borderColor}`}>
             <Card className="w-full h-fit rounded-lg overflow-hidden">
-                <TouchableOpacity onPress={onPress} className="p-0 m-0">
+                <Pressable onPress={onPress} className="p-0 m-0">
                     <View className="w-full aspect-[16/7] overflow-hidden">
                         {image ? (
                             <Image
@@ -55,8 +55,8 @@ const EventCard = ({
                             <ImageMissing />
                         )}
                     </View>
-                    <View className="px-2 pb-4">
-                        <Text className="text-2xl my-2 font-semibold">{title || "Tittel"}</Text>
+                    <View className="p-4">
+                        <Text className="text-lg font-bold mb-2">{title || "Tittel"}</Text>
                         <View className="flex flex-row items-center justify-between">
                             <Text className="text-md font-light">{formattedDate}</Text>
                             <View
@@ -67,8 +67,8 @@ const EventCard = ({
                             </View>
                         </View>
                     </View>
+                </Pressable>
 
-                </TouchableOpacity>
             </Card>
         </View>
 

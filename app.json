@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.tihlde.app"
-    }, 
+    },
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -37,6 +37,14 @@
           "fonts": [
             "./assets/fonts/Inter.ttf"
           ]
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
         }
       ]
     ],

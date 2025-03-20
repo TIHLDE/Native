@@ -1,3 +1,4 @@
+import { User } from "./user";
 
 export type Registration = {
     has_attended: boolean;
@@ -7,4 +8,6 @@ export type Registration = {
     payment_expiredate: string;
     payment_orders: string[];
     wait_queue_number: number;
+    registration_id: number;
+    user_info: User;
 }
