@@ -11,7 +11,7 @@ export type TihldeLogoProps = {
 const TihldeLogo = ({ size, className }: TihldeLogoProps) => {
     return (
         <Svg
-            className={cn('m-auto block color-black overflow-visible text-black dark:text-white', className)}
+            className={cn('m-auto block overflow-visible text-black dark:text-white', className)}
             height='81'
             id='svg2'
             viewBox={size === 'large' ? '250 435 2000 450' : '335 365 400 580'}

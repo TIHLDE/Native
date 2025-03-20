@@ -20,7 +20,7 @@ export const JOBTYPES = {
 
 export default function JobPostCard(props: JobPostProps) {
     return (
-        <View className="w-full h-fit border border-gray-300 dark:border-gray-800 shadow-sm rounded-lg bg-card dark:bg-[#020817]">
+        <View className="w-full h-fit border border-gray-300 dark:border-gray-900 shadow-sm rounded-lg bg-card">
             <View className="relative">
                 <View className="absolute left-0.5 top-0.5 bg-gray-900 px-3 py-1 rounded-lg z-50">
                     <Text className="text-center text-sm text-white">
@@ -30,18 +30,18 @@ export default function JobPostCard(props: JobPostProps) {
                 <Image className="aspect-[16/7] object-cover rounded-t-lg" source={{ uri: props.image }} />
             </View>
             <View className="w-full h-[1px] bg-gray-300 dark:bg-gray-950" />
-            <View className="flex flex-col gap-2 px-2 pb-4">
+            <View className="flex flex-col gap-3 px-2 pb-4">
                 <Text className="text-2xl mt-2 mb-2 font-semibold">{props.title}</Text>
                 <View className="flex flex-row gap-2 ml-2 items-center">
-                    <Icon icon="BriefcaseBusiness" className="self-center stroke-1 dark:text-white" />
+                    <Icon icon="BriefcaseBusiness" className="w-6 h-6 self-center stroke-1 dark:text-white" />
                     <Text className="">{JOBTYPES[props.jobType]}</Text>
                 </View>
                 <View className="flex flex-row gap-2 ml-2 items-center">
-                    <Icon icon="MapPin" className="self-center stroke-1 dark:text-white" />
+                    <Icon icon="MapPin" className="w-6 h-6 self-center stroke-1 dark:text-white" />
                     <Text className="">{props.location}</Text>
                 </View>
                 <View className="flex flex-row gap-2 ml-2 items-center">
-                    <Icon icon="CalendarClock" className="self-center stroke-1 dark:text-white" />
+                    <Icon icon="CalendarClock" className="w-6 h-6 self-center stroke-1 dark:text-white" />
                     <Text className="">{timeformat(new Date(props.deadline))}</Text>
                 </View>
             </View>

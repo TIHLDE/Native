@@ -18,7 +18,7 @@ export default function ArrangementerLayout() {
                             onPressIn={() => router.push("/profil")}
                             style={{ marginRight: 15 }}
                         >
-                            <Icon icon="UserRound" className="self-center stroke-1 dark:text-white" />
+                            <Icon icon="UserRound" className="self-center stroke-2 dark:text-white" />
                         </TouchableOpacity>
                     ),
                 }}

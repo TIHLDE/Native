@@ -132,7 +132,7 @@ export default function ArrangementSide() {
                         }
                     </View>
                     <View className="flex flex-col text-3xl px-2 py-5">
-                        <Text className="text-2xl font-semibold pl-2">{event.data.title}</Text>
+                        <Text className="text-4xl font-semibold pl-2">{event.data.title}</Text>
                         <Card className="mx-auto w-[100%] shadow-md rounded-lg mt-5 p-5">
                             <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
                             <View className="flex flex-row justify-start items-start">
@@ -228,7 +228,7 @@ export default function ArrangementSide() {
                                             bottomSheetModalRef.current?.present();
 
                                         }}>
-                                            <Icon icon="UserRound" className="color-primary" />
+                                            <Icon icon="UserRound" className="color-primary stroke-2" />
                                         </Button>
                                     </View>
                                 </Card>

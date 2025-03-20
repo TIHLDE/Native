@@ -57,13 +57,13 @@ export default function Login() {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <SafeAreaView className="flex-1 gap-y-8 px-4 justify-center">
                         <ScrollView
-                            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 15 }}
+                            contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start", gap: 15 }}
                             keyboardShouldPersistTaps="handled"
                         >
-                            <View className="gap-y-0 items-center w-full">
-                                <TihldeLogo size="large" />
+                            <View className="gap-y-0 items-center w-full mt-32 mb-16">
+                                <TihldeLogo size="large" className="color-white"/>
                             </View>
-                            <View>
+                            <View className="gap-y-2">
                                 <Text>Brukernavn</Text>
                                 <Input
                                     className="w-full"
@@ -74,7 +74,7 @@ export default function Login() {
                                 />
                             </View>
 
-                            <View>
+                            <View className="gap-y-2">
                                 <Text>Passord</Text>
                                 <Input
                                     className="w-full"
@@ -88,6 +88,7 @@ export default function Login() {
                             <Button
                                 onPress={onPress}
                                 disabled={!email || !password || status === "pending"}
+                                className="w-full mt-4"
 
                             >
                                 <Text>
