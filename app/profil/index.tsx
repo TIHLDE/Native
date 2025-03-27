@@ -21,7 +21,6 @@ import {
 import EventCard, {
     EventCardSkeleton,
 } from "@/components/arrangement/eventCard";
-import { ThemeToggle } from "@/components/themeToggle";
 import useRefresh from "@/lib/useRefresh";
 
 export default function Profil() {
@@ -129,6 +128,7 @@ export default function Profil() {
                     {!userEvents.isPending && !previousEvents.isPending && (
                         <AnimatedPagerView
                             titles={["Påmeldt", "Tidligere"]}
+
                         >
                             <View key={0} className="max-h-[40vh]">
                                 <ScrollView bounces={false} nestedScrollEnabled>

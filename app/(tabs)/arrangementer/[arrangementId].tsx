@@ -41,6 +41,7 @@ import { nb } from "date-fns/locale";
 
 export default function ArrangementSide() {
     const params = useLocalSearchParams();
+    const path = usePathname();
     const queryClient = useQueryClient();
     const id = params.arrangementId;
     const router = useRouter();
@@ -186,9 +187,10 @@ export default function ArrangementSide() {
                                 </View>
                             </View>
                         </Card>
-                        {permissions.data?.event?.write &&
+                        {permissions.data?.event?.write && event.data.sign_up &&
                             <Button onPress={() => router.push({
-                                pathname: "/arrangementer/eventRegisterModal",
+                                //@ts-ignore
+                                pathname: `${path.split("/")[1]}/eventRegisterModal`,
                                 params: { eventId: id },
                             })} className="mt-5">
                                 <Text>Registrer oppmøte </Text>
