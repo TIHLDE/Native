@@ -184,7 +184,7 @@ export default function ArrangementSide() {
                                 </View>
                             </View>
                         </Card>
-                        {permissions.data?.event?.write &&
+                        {permissions.data?.event?.write && event.data.sign_up &&
                             <Button onPress={() => router.push({
                                 pathname: "/arrangementer/eventRegisterModal",
                                 params: { eventId: id },
