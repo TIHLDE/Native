@@ -1,6 +1,6 @@
 import { JOBTYPES } from "@/components/karriere/jobpostcard";
 import { Text } from "@/components/ui/text";
-import timeformat from "@/lib/timeformat";
+import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Image, ScrollView, View } from "react-native";
@@ -41,45 +41,42 @@ export default function Karriereside() {
             <Stack.Screen options={{ title: jobpost.data.company }} />
             <PageWrapper>
                 <ScrollView refreshControl={refreshControl}>
-                    <View className="px-3 pt-4">
-                        <Image className="rounded-lg w-full aspect-[16/7] object-cover" source={{ uri: jobpost.data.image }} />
+                    <View>
+                        <Image className="w-full h-48" resizeMode="cover" source={{ uri: jobpost.data.image }} />
                     </View>
-                    <View className="w-full h-[1px] bg-gray-950 my-4" />
+                    <View className="flex flex-col text-3xl px-2 py-5">
+                        <Text className="text-4xl font-semibold pl-2">{jobpost.data.title}</Text>
+                        <Card className="mx-auto w-[100%] border-2 border-gray-200 dark:border-gray-900 bg-card rounded-lg mt-5 px-3 py-2">
+                            <Text className="text-2xl mb-4 font-bold">Detaljer</Text>
+                            <View className="flex flex-row justify-start items-start">
+                                <View className="ml-2 mr-10">
+                                    <Text className="text-md text-muted-foreground mb-2">Bedrift:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Søknadsfrist</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Årstrinn:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Stillingstype:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Sted:</Text>
+                                    <Text className="text-md text-muted-foreground mb-2">Kontakt:</Text>
+                                </View>
+                                <View>
+                                    <Text className="text-md mb-2">{jobpost.data.company}</Text>
+                                    <Text className="text-md mb-2">{jobpost.data.company}</Text>
+                                    <Text className="text-md mb-2">{new Date(jobpost.data.deadline).toLocaleDateString("no-NO", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                    })}</Text>
+                                    <Text className="text-md mb-2">{jobpost.data.class_start}. - {jobpost.data.class_end}.</Text>
+                                    <Text className="text-md mb-2">{JOBTYPES[jobpost.data.job_type as keyof typeof JOBTYPES]}</Text>
+                                    <Text className="text-md mb-2">{jobpost.data.location}</Text>
+                                    {jobpost.data.email &&
+                                        <Text className="text-md mb-2">{jobpost.data.email}</Text>
+                                    }
+                                </View>
 
-                    <View className="flex flex-col px-3 gap-10 pb-12">
-                        <Text className="text-4xl font-semibold">{jobpost.data.title}</Text>
-                        <View className="w-full border bg-card dark:bg-[#020817] border-gray-300 dark:border-gray-800 rounded-lg px-3 py-2 flex flex-col gap-2 shadow-sm">
-                            <View className="flex flex-col gap-2">
-                                <View className="flex flex-row gap-4">
-                                    <Text className="text-lg w-32 font-medium">Bedrift:</Text>
-                                    <Text className="text-lg">{jobpost.data.company}</Text>
-                                </View>
-                                <View className="flex flex-row gap-4">
-                                    <Text className="text-lg w-32 font-medium flex text-nowrap">Søknadsfrist:</Text>
-                                    <Text className="text-lg">{timeformat(new Date(jobpost.data.deadline))}</Text>
-                                </View>
-                                <View className="flex flex-row gap-4">
-                                    <Text className="text-lg w-32 font-medium">Årstrinn:</Text>
-                                    <Text className="text-lg">{jobpost.data.class_start}. - {jobpost.data.class_end}.</Text>
-                                </View>
-                                <View className="flex flex-row gap-4">
-                                    <Text className="text-lg w-32 font-medium">Stillingstype:</Text>
-                                    <Text className="text-lg">{JOBTYPES[jobpost.data.job_type as keyof typeof JOBTYPES]}</Text>
-                                </View>
-                                <View className="flex flex-row gap-4">
-                                    <Text className="text-lg w-32 font-medium">Sted:</Text>
-                                    <Text className="text-lg">{jobpost.data.location}</Text>
-                                </View>
-                                {jobpost.data.email &&
-                                    <View className="flex flex-row gap-4 overflow-hidden">
-                                        <Text className="text-lg w-32 font-medium">Kontakt:</Text>
-                                        <Text className="text-lg line-clamp-1 truncate">{jobpost.data.email}</Text>
-                                    </View>
-                                }
                             </View>
-                        </View>
+                        </Card>
                         {jobpost.data.link &&
-                            <Button onPress={handleApply} className="w-full" size="lg" variant="default">
+                            <Button onPress={handleApply} className="w-full mt-5 mb-6" size="lg" variant="default">
                                 <Text className="font-medium">
                                     Søk nå!
                                 </Text>
