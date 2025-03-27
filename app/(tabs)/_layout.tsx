@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'expo-router';
 import Icon from "@/lib/icons/Icon";
 import { QrCode } from '@/lib/icons/QrCode';
 import { Text } from '@/components/ui/text';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -19,31 +20,31 @@ export default function TabsLayout() {
                     <Icon
                         icon="BriefcaseBusiness"
                         className={`self-center stroke-2
-                            ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-400 dark:color-gray-300 "}`}
+                            ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-500 dark:color-gray-300"}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-400"
+                        ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-500 dark:color-gray-300"
                         }`}>
                         Karriere
                     </Text>
                 </TabTrigger>
 
                 <View style={[styles.middleButtonContainer, { left: screenWidth / 2 - 35 }]}>
-                    <TouchableOpacity
-                        className="absolute mb-1 left-1/2 -translate-x-1/2 bg-primary dark:bg-accent w-24 h-24 rounded-full flex items-center justify-center shadow-lg"
-                        onPress={() => router.push('/qrmodal')}
-                    >
-                        <QrCode className="color-white dark:color-background" size={32} />
-                    </TouchableOpacity>
+                    <TouchableWithoutFeedback onPress={() => router.push('/qrmodal')}>
+                        <View className="mb-1 bg-primary dark:bg-accent w-24 h-24 rounded-full flex items-center justify-center shadow-lg">
+                            <QrCode className="color-white dark:color-background" size={32} />
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
+
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="Calendar"
                         className={`self-center stroke-2
-                            ${pathname.includes("/arrangementer") ? "color-primary dark:color-accent" : "color-gray-400"}`}
+                            ${pathname.includes("/arrangementer") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-300"}`}
                     />
                     <Text className={`text-xs
-                        ${pathname.includes("/arrangementer") ? "color-primary  dark:color-accent" : "color-gray-400"
+                        ${pathname.includes("/arrangementer") ? "color-primary  dark:color-accent" : "color-gray-500 dark:color-gray-300"
                         }`}>
                         Arrangementer
                     </Text>
@@ -82,5 +83,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 5,
+    },
+    tabButton: {
+        width: 80,
+        height: 80,
+        borderRadius: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

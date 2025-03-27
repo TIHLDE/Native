@@ -21,9 +21,9 @@ export default function Karriere() {
     if (jobposts.isError) return <Text>Error: {jobposts.error.message}</Text>
 
     return (
-        <PageWrapper className="w-full h-fit px-2">
+        <PageWrapper className="w-full h-fit mt-2">
             <ScrollView refreshControl={refreshControl}>
-                <View className="flex flex-col justify-center mt-5 gap-4 pb-20">
+                <View className="flex flex-col justify-center gap-4 pb-20 px-2">
                     {
                         jobposts.data?.results.map((jobpost: any) => (
                             <Link href={`/(tabs)/karriere/${jobpost.id}`} key={jobpost.id}>

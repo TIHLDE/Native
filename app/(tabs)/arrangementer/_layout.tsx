@@ -1,6 +1,6 @@
 import Icon from "@/lib/icons/Icon";
 import { Stack, useRouter } from "expo-router";
-import { TouchableOpacity } from "react-native";
+import { TouchableWithoutFeedback, View } from "react-native";
 
 export default function ArrangementerLayout() {
     const router = useRouter();
@@ -14,12 +14,13 @@ export default function ArrangementerLayout() {
                     title: "Arrangementer",
                     headerTitleAlign: "center",
                     headerRight: () => (
-                        <TouchableOpacity
-                            onPressIn={() => router.push("/profil")}
-                            style={{ marginRight: 15 }}
-                        >
-                            <Icon icon="UserRound" className="self-center stroke-2 dark:text-white" />
-                        </TouchableOpacity>
+                        <TouchableWithoutFeedback onPressIn={() => router.push("/profil")}>
+                            <View>
+                                <Icon icon="UserRound" className="self-center stroke-2 dark:text-white" />
+                            </View>
+                        </TouchableWithoutFeedback>
+
+
                     ),
                 }}
             />
