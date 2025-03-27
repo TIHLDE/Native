@@ -1,5 +1,5 @@
 import ArrangementSide from "../(tabs)/arrangementer/[arrangementId]";
 
-export default function eventmodal() {
+export default function Eventmodal() {
     return <ArrangementSide />
 }

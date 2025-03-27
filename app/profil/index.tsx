@@ -21,7 +21,6 @@ import {
 import EventCard, {
     EventCardSkeleton,
 } from "@/components/arrangement/eventCard";
-import { ThemeToggle } from "@/components/themeToggle";
 import useRefresh from "@/lib/useRefresh";
 
 export default function Profil() {
@@ -128,7 +127,7 @@ export default function Profil() {
                     <View className="my-2 border-t border-muted-foreground mx-8" />
                     {!userEvents.isPending && !previousEvents.isPending && (
                         <AnimatedPagerView
-                            titles={["Dine arrangementer", "Tidligere arrangementer"]}
+                            titles={["Dine arrangementer", "Tidligere"]}
                         >
                             <View key={0} className="max-h-[40vh]">
                                 <ScrollView bounces={false} nestedScrollEnabled>
