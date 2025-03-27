@@ -1,5 +1,5 @@
 import { Text } from "@/components/ui/text";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
 import { View, Modal, Image, ActivityIndicator, TouchableOpacity, FlatList } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Card } from "@/components/ui/card";
@@ -33,6 +33,7 @@ import useRefresh from "@/lib/useRefresh";
 
 export default function ArrangementSide() {
     const params = useLocalSearchParams();
+    const path = usePathname();
     const queryClient = useQueryClient();
     const id = params.arrangementId;
     const router = useRouter();
@@ -186,7 +187,8 @@ export default function ArrangementSide() {
                         </Card>
                         {permissions.data?.event?.write && event.data.sign_up &&
                             <Button onPress={() => router.push({
-                                pathname: "/arrangementer/eventRegisterModal",
+                                //@ts-ignore
+                                pathname: `${path.split("/")[1]}/eventRegisterModal`,
                                 params: { eventId: id },
                             })} className="mt-5">
                                 <Text>Registrer oppmøte </Text>
