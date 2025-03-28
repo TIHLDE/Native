@@ -21,7 +21,7 @@ const TihldeLogo = ({ size, className }: TihldeLogoProps) => {
             height='81'
             id='svg2'
             viewBox={size === 'large' ? '250 435 2000 450' : '335 365 400 580'}
-            width={size === 'large' ? 361 : 81}>
+            width={size === 'large' ? 320 : 81}>
             <Defs >
                 <ClipPath id='clipPath18'>
                     <Path d='M 0,1005 H 1920 V 0 H 0 Z' id='path16' />

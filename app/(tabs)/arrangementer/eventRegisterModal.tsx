@@ -23,8 +23,8 @@ export default function EventRegisterModal() {
     const [page, setPage] = useState(0);
 
     return (
-        <PageWrapper>
-            <View className="flex flex-col gap-4 p-4">
+        <PageWrapper className="px-2 py-4">
+            <View className="flex flex-col gap-4">
                 <AnimatedPagerView titles={["QR", "Manuell registrering"]} className="w-full h-full"
                     onPageChange={(i) => setPage(i)}
                 >
@@ -133,7 +133,6 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             }
             <InteropBottomSheetModal
                 ref={bottomSheetModalRef}
-                snapPoints={["25%"]}
                 enableDynamicSizing={false}
                 backgroundStyleClassName="rounded-3xl"
                 backdropComponent={(props) => (
@@ -266,8 +265,8 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
     }
 
     return (
-        <View className="flex flex-row items-center justify-between gap-4 p-2 w-1/2 m-auto">
-            <Label className="text-xl" nativeID={`label-${registration.registration_id}`}>{registration.user_info.first_name}</Label>
+        <View className="flex flex-row items-center justify-between gap-4 p-4">
+            <Label className="text-lg font-medium" nativeID={`label-${registration.registration_id}`}>{registration.user_info.first_name} {registration.user_info.last_name}</Label>
             <Switch checked={checked} onCheckedChange={handleCheckedChange} nativeID={`switch-${registration.registration_id}`} />
         </View>
     )

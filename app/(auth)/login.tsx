@@ -20,6 +20,7 @@ import {
     Keyboard,
     Linking
 } from "react-native";
+import PageWrapper from "@/components/ui/pagewrapper";
 
 
 export default function Login() {
@@ -72,7 +73,7 @@ export default function Login() {
                 style={{flex: 1}}
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <SafeAreaView className="flex-1 gap-y-8 py-2 justify-center">
+                    <PageWrapper className="px-2">
                         <ScrollView
                             contentContainerStyle={{flexGrow: 1, justifyContent: "flex-start", gap: 15}}
                             keyboardShouldPersistTaps="handled"
@@ -82,7 +83,7 @@ export default function Login() {
                                 <TihldeLogo size="large" className="color-white"/>
                             </View>
 
-                            <View className={"gap-y-0 px-5 mb-2"}>
+                            <View className={"gap-y-0 mb-2"}>
                                 <Text className="text-2xl mb-2 font-semibold">
                                     Logg inn
                                 </Text>
@@ -91,7 +92,7 @@ export default function Login() {
                                 </Text>
                             </View>
 
-                            <View className="gap-y-2 mb-10 px-5">
+                            <View className="gap-y-2 mb-10">
                                 <Input
                                     placeholder={"Brukernavn"}
                                     className="w-full bg-card border-gray-400 focus:border-black transition duration dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0 border-b-1"
@@ -102,7 +103,7 @@ export default function Login() {
                                 />
                             </View>
 
-                            <View className="gap-y-2 px-5 mb-2">
+                            <View className="gap-y-2  mb-2">
                                 <Input
                                     placeholder={"Passord"}
                                     className="w-full bg-card border-gray-400 focus:border-black transition duration-200 dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0"
@@ -113,7 +114,7 @@ export default function Login() {
                                 />
                             </View>
 
-                            <View className="px-5 mb-1">
+                            <View className=" mb-1">
                                 <Button
                                     onPress={onPress}
                                     disabled={!email || !password || status === "pending"}
@@ -130,7 +131,7 @@ export default function Login() {
                                 </Button>
                             </View>
 
-                            <View className="flex flex-row justify-between px-5">
+                            <View className="flex flex-row justify-between ">
                                 <Button variant={"link"} className={""} onPress={_handlePressButtonForgotPasswordAsync} >
                                     <Text className="dark:text-accent">
                                         Glemt passord?
@@ -143,7 +144,7 @@ export default function Login() {
                                 </Button>
                             </View>
                         </ScrollView>
-                    </SafeAreaView>
+                    </PageWrapper>
                 </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
         </SafeAreaProvider>

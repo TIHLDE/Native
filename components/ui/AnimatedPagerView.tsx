@@ -45,7 +45,7 @@ export default function AnimatedPagerView(props: AnimatedPagerViewProps) {
                 {props.titles.map((title, index) => {
                     return (
 
-                        <Pressable className="p-2 flex-1 active:bg-accent rounded-lg" key={index}
+                        <Pressable className="p-2 flex-1 rounded-lg" key={index}
                             onPress={() => requestAnimationFrame(() => pagerViewRef.current?.setPage(index))}>
                             <Text className="text-lg w-full text-center">{title}</Text>
                         </Pressable>

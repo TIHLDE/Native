@@ -36,8 +36,8 @@ import ImageMissing from "@/components/ui/imageMissing";
 import useRefresh from "@/lib/useRefresh";
 
 // Importer funksjoner fra date-fns med norsk locale
-import { format, isBefore, isAfter } from "date-fns";
-import { nb } from "date-fns/locale";
+import { isBefore, isAfter } from "date-fns";
+import { usePathname } from "expo-router";
 
 export default function ArrangementSide() {
     const params = useLocalSearchParams();
