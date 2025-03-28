@@ -76,7 +76,7 @@ export default function RootLayout() {
                                         headerBackTitle: "Tilbake",
                                         headerTitleAlign: "center",
                                         headerRight: () => (
-                                            <TouchableOpacity style={{ marginRight: 15 }}>
+                                            <TouchableOpacity>
                                                 <ThemeToggle />
                                             </TouchableOpacity>
                                         ),
