@@ -1,4 +1,3 @@
-import React from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { cssInterop } from "nativewind";
 

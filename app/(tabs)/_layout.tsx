@@ -1,5 +1,5 @@
 import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
-import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import Icon from "@/lib/icons/Icon";
 import { QrCode } from '@/lib/icons/QrCode';

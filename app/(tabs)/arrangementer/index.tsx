@@ -103,7 +103,6 @@ export default function Arrangementer() {
                 ListFooterComponent={
                     <View className="mb-16">
                         {isFetchingNextPage && <ActivityIndicator />}
-                        {!hasNextPage && <Text className="text-center mt-4 text-lg text-gray-600">Ingen flere arrangementer</Text>}
                     </View>
 
                 }

@@ -251,7 +251,8 @@ export default function ArrangementSide() {
                     </View>
                     <InteropBottomSheetModal ref={bottomSheetModalRef}
                         backgroundStyleClassName="bg-primary-foreground rounded-3xl"
-                        snapPoints={["50%", "75%"]}
+                        snapPoints={["75%"]}
+                        index={0}
                         enableDynamicSizing={false}
 
                         backdropComponent={(props) => (
@@ -283,7 +284,7 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
         queryFn: async ({ pageParam }) => await publicEventParticipants(eventId, pageParam),
         initialPageParam: 1,
         getNextPageParam: (lastPage, allPages, lastPageParam) => {
-            if (!lastPage || lastPage.length === 0) return undefined;
+            if (lastPage.next === null) return undefined;
             return lastPageParam + 1;
         },
     });
@@ -309,9 +310,12 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
     return (
         <BottomSheetFlatList
             className="p-5 bg-primary-foreground"
-            data={data?.pages.flatMap((page) => (page ? page.filter((registration) => registration.user_info !== null) : []))}
+            data={data?.pages.flatMap((page) => (page ? page.results.filter((registration) => registration.user_info !== null) : []))}
             renderItem={({ item: registration }) => <UserCard user={registration.user_info} />}
-            onEndReached={() => fetchNextPage()}
+            onEndReached={() => {
+                if (!hasNextPage) return;
+                fetchNextPage();
+            }}
             ListHeaderComponent={
                 <>
                     <Text className="m-auto text-3xl"> Deltagerliste </Text>
@@ -321,11 +325,6 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
             ListFooterComponent={
                 <View className="h-20">
                     {isFetchingNextPage && <ActivityIndicator />}
-                    {!hasNextPage && (
-                        <Text className="text-center mt-4 text-muted-foreground">
-                            Ingen{data?.pages[0] && data.pages[0].length > 0 && " flere"} påmeldte
-                        </Text>
-                    )}
                 </View>
             }
         />

@@ -2,8 +2,8 @@ import { getToken } from "@/lib/storage/tokenStore";
 import { BASE_URL } from "../constant";
 import { LeptonError, Registration, User } from "../types";
 
-export async function eventParticipants(eventId: number, pageParam: number): Promise<Registration[] | null> {
-    const resultsPerPage = 10;
+export async function eventParticipants(eventId: number, pageParam: number): Promise<{ results: Registration[], next: string | null }> {
+    const resultsPerPage = 25;
     const token = await getToken();
 
     const queryParams = new URLSearchParams({
@@ -24,18 +24,17 @@ export async function eventParticipants(eventId: number, pageParam: number): Pro
     if (!response.ok) {
         const errorData = await response.json() as LeptonError;
         if (errorData.detail === "Invalid page.") {
-            return [];
+            return { results: [], next: null };
         }
 
         throw new Error(errorData.detail);
     }
 
-    const data = await response.json().then((data) => data.results) as Registration[];
-    return data;
+    return await response.json();
 }
 
-export async function publicEventParticipants(eventId: number, pageParam: number): Promise<Registration[] | null> {
-    const resultsPerPage = 10;
+export async function publicEventParticipants(eventId: number, pageParam: number): Promise<{ results: Registration[], next: string | null }> {
+    const resultsPerPage = 25;
     const token = await getToken();
 
     const queryParams = new URLSearchParams({
@@ -56,14 +55,13 @@ export async function publicEventParticipants(eventId: number, pageParam: number
     if (!response.ok) {
         const errorData = await response.json() as LeptonError;
         if (errorData.detail === "Invalid page.") {
-            return [];
+            return { results: [], next: null };
         }
 
         throw new Error(errorData.detail);
     }
 
-    const data = await response.json().then((data) => data.results) as Registration[];
-    return data;
+    return await response.json();
 }
 
 export async function updateEventParticipation(eventId: number, user_id: string, value: boolean): Promise<boolean> {

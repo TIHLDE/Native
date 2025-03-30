@@ -46,7 +46,7 @@ const RGB_COLORS = {
 } as const;
 
 const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives.RootProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, onPress, onPressIn, ...props }, ref) => {
     const { colorScheme } = useColorScheme();
     const translateX = useDerivedValue(() => (props.checked ? 18 : 0));
     const animatedRootStyle = useAnimatedStyle(() => {
@@ -61,6 +61,10 @@ const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives
     const animatedThumbStyle = useAnimatedStyle(() => ({
       transform: [{ translateX: withTiming(translateX.value, { duration: 200 }) }],
     }));
+
+    const pressHandler =
+    Platform.OS === 'android' ? onPressIn || onPress : onPress || onPressIn;
+
     return (
       <Animated.View
         style={animatedRootStyle}
@@ -73,6 +77,9 @@ const SwitchNative = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives
             className
           )}
           {...props}
+          {...(Platform.OS === 'android'
+            ? { onPressIn: pressHandler }
+            : { onPress: pressHandler })}
           ref={ref}
         >
           <Animated.View style={animatedThumbStyle}>

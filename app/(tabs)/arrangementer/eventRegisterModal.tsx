@@ -25,7 +25,7 @@ export default function EventRegisterModal() {
     return (
         <PageWrapper className="px-2 py-4">
             <View className="flex flex-col gap-4">
-                <AnimatedPagerView titles={["QR", "Manuell registrering"]} className="w-full h-full"
+                <AnimatedPagerView titles={["QR", "Se alle"]} className="w-full h-full"
                     onPageChange={(i) => setPage(i)}
                 >
                     <View key={0} className="flex flex-1" collapsable={false}>
@@ -134,6 +134,8 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             <InteropBottomSheetModal
                 ref={bottomSheetModalRef}
                 enableDynamicSizing={false}
+                snapPoints={["25%"]}
+                index={0}
                 backgroundStyleClassName="rounded-3xl"
                 backdropComponent={(props) => (
                     <BottomSheetBackdrop
@@ -174,14 +176,10 @@ function ManualRegistration() {
         isError,
     } = useInfiniteQuery({
         queryKey: ["event", "participants"],
-        queryFn: async ({ pageParam }) => {
-            return await eventParticipants(id, pageParam);
-        },
+        queryFn: async ({ pageParam }) => await eventParticipants(id, pageParam),
         initialPageParam: 1,
         getNextPageParam: (lastPage, allPages, lastPageParam) => {
-            if (!lastPage || lastPage.length === 0) {
-                return undefined;
-            }
+            if (lastPage.next === null) return undefined;
             return lastPageParam + 1;
         },
     });
@@ -203,7 +201,7 @@ function ManualRegistration() {
             if (!page) {
                 return [];
             }
-            return page.filter((registration) => {
+            return page.results.filter((registration) => {
                 if (registration.is_on_wait) {
                     return null;
                 }
@@ -227,7 +225,6 @@ function ManualRegistration() {
             ListFooterComponent={(
                 <View className="m-auto mt-4">
                     {isFetchingNextPage && <ActivityIndicator />}
-                    {!hasNextPage && <Text className="text-center mt-4 text-muted-foreground">Ingen{data.pages[0] && data.pages[0].length > 0 && " flere"} påmeldte</Text>}
                 </View>
             )}
         />
@@ -264,10 +261,18 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
         setChecked(newValue);
     }
 
+    const handlePress = async () => {
+        if (updateRegistrationMutation.isPending) {
+            return;
+        }
+        await updateRegistrationMutation.mutateAsync(!checked);
+        setChecked(!checked);  
+    };
+
     return (
         <View className="flex flex-row items-center justify-between gap-4 p-4">
             <Label className="text-lg font-medium" nativeID={`label-${registration.registration_id}`}>{registration.user_info.first_name} {registration.user_info.last_name}</Label>
-            <Switch checked={checked} onCheckedChange={handleCheckedChange} nativeID={`switch-${registration.registration_id}`} />
+            <Switch disabled={updateRegistrationMutation.isPending} onCheckedChange={handleCheckedChange} checked={checked} onPressIn={handlePress} nativeID={`switch-${registration.registration_id}`} />
         </View>
     )
 
