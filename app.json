@@ -2,7 +2,7 @@
   "expo": {
     "name": "TIHLDE",
     "slug": "Native",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -13,7 +13,8 @@
       "bundleIdentifier": "com.tihlde.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "2.0.0"
     },
     "android": {
       "softwareKeyboardLayoutMode": "pan",
