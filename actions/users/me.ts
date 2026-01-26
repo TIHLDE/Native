@@ -146,12 +146,40 @@ export async function myMemberships(): Promise<Group[]> {
     }
 
     const data = await response.json();
+    
+    // Debug logging to see what the API actually returns
+    console.log("[myMemberships] Raw API response:", JSON.stringify(data, null, 2));
+    
     // Handle different possible response structures
+    let rawItems: any[] = [];
     if (Array.isArray(data)) {
-        return data as Group[];
+        rawItems = data;
+    } else if (data.results && Array.isArray(data.results)) {
+        rawItems = data.results;
     }
-    if (data.results && Array.isArray(data.results)) {
-        return data.results as Group[];
-    }
-    return [];
+    
+    // Extract the nested group objects from the membership structure
+    // The API returns: { group: { ...group data... }, membership_type: "...", ... }
+    const groups: Group[] = rawItems
+        .map((item) => {
+            // If the item has a nested 'group' property, extract it
+            if (item.group && typeof item.group === 'object') {
+                return item.group as Group;
+            }
+            // Otherwise, assume the item itself is a group
+            return item as Group;
+        })
+        .filter((group): group is Group => group !== null && group !== undefined);
+    
+    // Debug each group to see if fines_activated is present
+    console.log("[myMemberships] Processed groups:", groups.length);
+    groups.forEach((group, index) => {
+        console.log(`[myMemberships] Group ${index} (${group.slug}):`, {
+            fines_activated: group.fines_activated,
+            fines_activated_type: typeof group.fines_activated,
+            all_keys: Object.keys(group),
+        });
+    });
+    
+    return groups;
 }

@@ -19,7 +19,21 @@ export async function getGroup(groupSlug: string): Promise<Group> {
         throw new Error(errorData.detail);
     }
 
-    return await response.json();
+    const data = await response.json() as Group;
+    
+    // Debug logging to verify API response structure
+    console.log(`[getGroup] Response for ${groupSlug}:`, {
+        fines_activated: data.fines_activated,
+        fines_admin: data.fines_admin,
+        fines_admin_type: typeof data.fines_admin,
+        fines_admin_keys: data.fines_admin ? Object.keys(data.fines_admin) : null,
+        permissions: data.permissions,
+        permissions_type: typeof data.permissions,
+        permissions_keys: data.permissions ? Object.keys(data.permissions) : null,
+        full_data: JSON.stringify(data, null, 2),
+    });
+    
+    return data;
 }
 
 export async function getGroupLaws(groupSlug: string): Promise<GroupLaw[]> {

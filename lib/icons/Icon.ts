@@ -13,6 +13,7 @@ import { TriangleAlert } from "@/lib/icons/TriangleAlert";
 import { OctagonX } from "@/lib/icons/OctagonX";
 import { Info } from "@/lib/icons/Info";
 import { Scan } from "@/lib/icons/Scan";
+import { Plus } from "@/lib/icons/Plus";
 import { cn } from "../utils";
 
 
@@ -31,6 +32,7 @@ const icons = {
     OctagonX: OctagonX,
     Info: Info,
     Scan: Scan,
+    Plus: Plus,
 }
 
 /**

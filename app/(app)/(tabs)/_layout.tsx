@@ -31,7 +31,7 @@ export default function TabsLayout() {
                 </NativeTabs.Trigger>
 
                 <NativeTabs.Trigger name="gi-bot">
-                    <NativeIcon sf="exclamationmark.triangle.fill" />
+                    <NativeIcon sf="plus" />
                     <Label>Gi bot</Label>
                 </NativeTabs.Trigger>
 
@@ -102,7 +102,7 @@ export default function TabsLayout() {
                 <TabTrigger name="gi-bot" href="/gi-bot" reset="never" style={styles.tabButton}>
                     <View style={styles.iconContainer}>
                         <Icon
-                            icon="TriangleAlert"
+                            icon="Plus"
                             className={`self-center stroke-2 w-3.5 h-3.5
                                 ${isActive("/gi-bot") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-400"}`}
                         />

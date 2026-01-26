@@ -24,6 +24,7 @@ export default function GiBot() {
     const [description, setDescription] = useState("");
     const [reason, setReason] = useState("");
     const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const [showGroupDropdown, setShowGroupDropdown] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
     const user = useQuery({
@@ -38,8 +39,38 @@ export default function GiBot() {
         queryFn: myMemberships,
     });
 
+    // Debug logging for memberships
+    useEffect(() => {
+        console.log("=== MEMBERSHIPS DEBUG ===");
+        console.log("Memberships data:", memberships.data);
+        console.log("Memberships count:", memberships.data?.length ?? 0);
+        if (memberships.data) {
+            memberships.data.forEach((group, index) => {
+                console.log(`Group ${index}:`, {
+                    slug: group.slug,
+                    name: group.name,
+                    fines_activated: group.fines_activated,
+                    fines_activated_type: typeof group.fines_activated,
+                    all_keys: Object.keys(group),
+                    full_group: JSON.stringify(group, null, 2),
+                });
+            });
+        }
+    }, [memberships.data]);
+
     // Filter memberships to only groups with fines_activated
-    const groupsWithFinesActivated = memberships.data?.filter(group => group.fines_activated) ?? [];
+    const groupsWithFinesActivated = memberships.data?.filter(group => {
+        const hasFinesActivated = group.fines_activated === true;
+        console.log(`[Filter] Group ${group.slug} (${group.name}): fines_activated = ${group.fines_activated} (type: ${typeof group.fines_activated}), included: ${hasFinesActivated}`);
+        return hasFinesActivated;
+    }) ?? [];
+
+    // Debug logging
+    useEffect(() => {
+        console.log("=== FINE GROUP DEBUG ===");
+        console.log("Groups with fines activated:", groupsWithFinesActivated.map(g => ({ slug: g.slug, name: g.name })));
+        console.log("Current user:", user.data ? { user_id: user.data.user_id, name: `${user.data.first_name} ${user.data.last_name}` } : "Not loaded");
+    }, [groupsWithFinesActivated, user.data]);
 
     // Fetch full group data for each group to get permissions
     const groupQueries = useQueries({
@@ -50,29 +81,102 @@ export default function GiBot() {
         })),
     });
 
+    // Create a map of slug -> query result for reliable lookup
+    const groupDataMap = new Map<string, { data?: Group; error?: Error; isPending: boolean }>();
+    groupsWithFinesActivated.forEach((group, index) => {
+        const query = groupQueries[index];
+        if (query) {
+            groupDataMap.set(group.slug, {
+                data: query.data,
+                error: query.error as Error | undefined,
+                isPending: query.isPending,
+            });
+        }
+    });
+
+    // Debug logging for group queries
+    useEffect(() => {
+        console.log("=== GROUP QUERIES DEBUG ===");
+        groupsWithFinesActivated.forEach((group, index) => {
+            const query = groupQueries[index];
+            if (query) {
+                console.log(`Group ${group.slug} (${group.name}):`, {
+                    status: query.isPending ? "loading" : query.isError ? "error" : "success",
+                    hasData: !!query.data,
+                    error: query.error?.message,
+                    data: query.data ? {
+                        fines_activated: query.data.fines_activated,
+                        fines_admin: query.data.fines_admin,
+                        permissions: query.data.permissions,
+                    } : null,
+                });
+            }
+        });
+    }, [groupQueries, groupsWithFinesActivated]);
+
     // Helper function to check if user can give fines for a group
     const canGiveFines = (group: Group, currentUser: UserType | undefined): boolean => {
-        if (!group.fines_activated) return false;
-        if (!currentUser) return false;
+        if (!group.fines_activated) {
+            console.log(`[canGiveFines] Group ${group.slug}: fines_activated is false`);
+            return false;
+        }
+        if (!currentUser) {
+            console.log(`[canGiveFines] Group ${group.slug}: No current user`);
+            return false;
+        }
         
         // User can give fines if they are the fines_admin OR have write permissions
         const isFinesAdmin = group.fines_admin?.user_id === currentUser.user_id;
         const hasWritePermission = group.permissions?.write === true;
         
+        console.log(`[canGiveFines] Group ${group.slug}:`, {
+            fines_admin: group.fines_admin,
+            user_id: currentUser.user_id,
+            isFinesAdmin,
+            permissions: group.permissions,
+            hasWritePermission,
+            result: isFinesAdmin || hasWritePermission,
+        });
+        
         return isFinesAdmin || hasWritePermission;
     };
 
     // Get full group data for groups where user can actually give fines
-    const groupsWithFines: Group[] = groupQueries
-        .map((query, index) => {
-            const fullGroupData = query.data;
-            if (!fullGroupData) return null;
+    // Use slug-based lookup instead of index mapping
+    const groupsWithFines: Group[] = groupsWithFinesActivated
+        .map((group) => {
+            const queryResult = groupDataMap.get(group.slug);
+            if (!queryResult) return null;
+            
+            // If query failed, log the error but don't filter out yet
+            if (queryResult.error) {
+                console.error(`[groupsWithFines] Error loading group ${group.slug}:`, queryResult.error);
+                return null;
+            }
+            
+            // If still loading, return null (will be handled in loading state)
+            if (queryResult.isPending || !queryResult.data) {
+                return null;
+            }
+            
+            const fullGroupData = queryResult.data;
             if (canGiveFines(fullGroupData, user.data)) {
                 return fullGroupData;
             }
             return null;
         })
         .filter((group): group is Group => group !== null);
+
+    // Track which groups have errors
+    const groupsWithErrors = groupsWithFinesActivated
+        .map((group) => {
+            const queryResult = groupDataMap.get(group.slug);
+            if (queryResult?.error) {
+                return { group, error: queryResult.error };
+            }
+            return null;
+        })
+        .filter((item): item is { group: Group; error: Error } => item !== null);
 
     // Auto-select first group if only one available
     useEffect(() => {
@@ -210,8 +314,10 @@ export default function GiBot() {
 
     // Check if any group queries are still loading
     const groupsLoading = groupQueries.some(query => query.isPending);
+    const hasLoadedGroups = groupsWithFines.length > 0;
+    const allGroupsLoaded = !groupsLoading && groupQueries.every(query => !query.isPending);
 
-    if (user.isPending || permissions.isPending || memberships.isPending || groupsLoading) {
+    if (user.isPending || permissions.isPending || memberships.isPending) {
         return (
             <PageWrapper className="flex-1">
                 <View className="flex-1 justify-center items-center p-4">
@@ -235,28 +341,182 @@ export default function GiBot() {
         );
     }
 
-    if (groupsWithFines.length === 0) {
+    // Show error messages for groups that failed to load
+    if (groupsWithErrors.length > 0 && allGroupsLoaded) {
         return (
             <PageWrapper className="flex-1">
                 <ScrollView>
                     <View className="flex-1 justify-center items-center p-4" style={{ paddingTop: insets.top + 100 }}>
-                        <Text className="text-lg text-center">
-                            Du må være medlem av en gruppe med bøter aktivert og ha tilgang til å gi bot for å kunne gi bot.
+                        <Text className="text-lg text-red-500 text-center mb-4">
+                            Kunne ikke laste gruppetilganger:
                         </Text>
+                        {groupsWithErrors.map(({ group, error }) => (
+                            <Text key={group.slug} className="text-sm text-red-500 text-center mb-2">
+                                {group.name}: {error.message}
+                            </Text>
+                        ))}
                     </View>
                 </ScrollView>
             </PageWrapper>
         );
     }
 
-    if (!groupSlug) {
+    // Show message if no groups available (only after all queries have completed)
+    if (groupsWithFines.length === 0 && allGroupsLoaded) {
         return (
             <PageWrapper className="flex-1">
                 <ScrollView>
                     <View className="flex-1 justify-center items-center p-4" style={{ paddingTop: insets.top + 100 }}>
-                        <Text className="text-lg text-center">
-                            Velg en gruppe for å gi bot.
+                        <Text className="text-lg text-center mb-4">
+                            Du må være medlem av en gruppe med bøter aktivert og ha tilgang til å gi bot for å kunne gi bot.
                         </Text>
+                        {groupsWithFinesActivated.length > 0 && (
+                            <View className="mt-4">
+                                <Text className="text-sm text-muted-foreground text-center mb-2">
+                                    Grupper med bøter aktivert ({groupsWithFinesActivated.length}):
+                                </Text>
+                                {groupsWithFinesActivated.map((group) => {
+                                    const queryResult = groupDataMap.get(group.slug);
+                                    return (
+                                        <Text key={group.slug} className="text-xs text-muted-foreground text-center">
+                                            • {group.name} - {queryResult?.isPending ? "Laster..." : queryResult?.error ? `Feil: ${queryResult.error.message}` : "Ingen tilgang"}
+                                        </Text>
+                                    );
+                                })}
+                            </View>
+                        )}
+                    </View>
+                </ScrollView>
+            </PageWrapper>
+        );
+    }
+
+    // Show loading state only if we have no groups yet and queries are still loading
+    if (groupsWithFines.length === 0 && groupsLoading) {
+        return (
+            <PageWrapper className="flex-1">
+                <View className="flex-1 justify-center items-center p-4">
+                    <Text className="text-lg">Laster gruppetilganger...</Text>
+                </View>
+            </PageWrapper>
+        );
+    }
+
+    // If no group selected, show group selection screen
+    if (!groupSlug || groupsWithFines.length === 0) {
+        return (
+            <PageWrapper className="flex-1">
+                <ScrollView>
+                    <View className="flex-1 justify-center items-center p-4" style={{ paddingTop: insets.top + 100, minHeight: '100%' }}>
+                        <View className="flex flex-col gap-4 items-center w-full max-w-md">
+                            <Text className="text-xl font-semibold text-center mb-4">
+                                Velg en gruppe for å gi bot
+                            </Text>
+                            
+                            <Pressable
+                                onPress={() => setShowGroupDropdown(true)}
+                                className="border border-muted-foreground rounded-lg p-4 flex flex-row items-center justify-between w-full"
+                            >
+                                <Text className="text-base">
+                                    {selectedGroup 
+                                        ? selectedGroup.name
+                                        : "Trykk for å velge gruppe"}
+                                </Text>
+                                <Text className="text-muted-foreground">▼</Text>
+                            </Pressable>
+
+                            {/* Group Selection Modal */}
+                            <Modal
+                                visible={showGroupDropdown}
+                                transparent={true}
+                                animationType="fade"
+                                onRequestClose={() => setShowGroupDropdown(false)}
+                            >
+                                <Pressable 
+                                    className="flex-1 bg-black/50 justify-center items-center p-4"
+                                    onPress={() => setShowGroupDropdown(false)}
+                                >
+                                    <Pressable 
+                                        onPress={(e) => e.stopPropagation()}
+                                        className="bg-background rounded-2xl w-full max-w-md"
+                                        style={{ 
+                                            maxHeight: "75%",
+                                        }}
+                                    >
+                                        <View className="flex flex-row items-center justify-between p-4 border-b border-muted-foreground">
+                                            <Text className="text-xl font-semibold">Velg gruppe</Text>
+                                            <Pressable onPress={() => setShowGroupDropdown(false)}>
+                                                <Text className="text-primary text-lg">Lukk</Text>
+                                            </Pressable>
+                                        </View>
+                                        <ScrollView className="flex-1 max-h-96">
+                                            {groupsWithFinesActivated.length === 0 ? (
+                                                <View className="p-4">
+                                                    <Text className="text-center text-muted-foreground">
+                                                        Ingen grupper med bøter aktivert
+                                                    </Text>
+                                                </View>
+                                            ) : (
+                                                <View className="p-2">
+                                                    {groupsWithFinesActivated.map((group) => {
+                                                        const queryResult = groupDataMap.get(group.slug);
+                                                        const isPending = queryResult?.isPending ?? false;
+                                                        const hasError = !!queryResult?.error;
+                                                        const fullGroupData = queryResult?.data;
+                                                        const canSelect = fullGroupData && canGiveFines(fullGroupData, user.data);
+                                                        const isSelected = selectedGroup?.slug === group.slug;
+                                                        
+                                                        return (
+                                                            <Pressable
+                                                                key={group.slug}
+                                                                onPress={() => {
+                                                                    if (canSelect && fullGroupData) {
+                                                                        setSelectedGroup(fullGroupData);
+                                                                        setShowGroupDropdown(false);
+                                                                        // Reset form when changing group
+                                                                        setSelectedUsers([]);
+                                                                        setSelectedLaw(null);
+                                                                    }
+                                                                }}
+                                                                disabled={!canSelect}
+                                                                className={`p-4 border-b border-muted-foreground flex flex-row items-center ${
+                                                                    isSelected ? "bg-primary/20" : ""
+                                                                } ${!canSelect ? "opacity-50" : ""}`}
+                                                            >
+                                                                <View className="flex-1">
+                                                                    <View className="flex flex-row items-center gap-2">
+                                                                        <Text className="text-base font-medium">{group.name}</Text>
+                                                                        {isPending && <ActivityIndicator size="small" />}
+                                                                        {hasError && (
+                                                                            <Text className="text-xs text-red-500">Feil</Text>
+                                                                        )}
+                                                                    </View>
+                                                                    {group.slug && (
+                                                                        <Text className="text-sm text-muted-foreground">{group.slug}</Text>
+                                                                    )}
+                                                                    {isPending && (
+                                                                        <Text className="text-xs text-muted-foreground mt-1">Laster tilganger...</Text>
+                                                                    )}
+                                                                    {hasError && queryResult?.error && (
+                                                                        <Text className="text-xs text-red-500 mt-1">{queryResult.error.message}</Text>
+                                                                    )}
+                                                                    {fullGroupData && !canSelect && !isPending && !hasError && (
+                                                                        <Text className="text-xs text-muted-foreground mt-1">Ingen tilgang</Text>
+                                                                    )}
+                                                                </View>
+                                                                {isSelected && canSelect && (
+                                                                    <Text className="text-primary text-lg">✓</Text>
+                                                                )}
+                                                            </Pressable>
+                                                        );
+                                                    })}
+                                                </View>
+                                            )}
+                                        </ScrollView>
+                                    </Pressable>
+                                </Pressable>
+                            </Modal>
+                        </View>
                     </View>
                 </ScrollView>
             </PageWrapper>
@@ -274,23 +534,118 @@ export default function GiBot() {
                     {/* Group Selection Section */}
                     <View className="flex flex-col gap-2">
                         <Label>Velg gruppe</Label>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-                            {groupsWithFines.map((group) => (
-                                <Button
-                                    key={group.slug}
-                                    variant={selectedGroup?.slug === group.slug ? "default" : "outline"}
-                                    onPress={() => {
-                                        setSelectedGroup(group);
-                                        // Reset form when changing group
-                                        setSelectedUsers([]);
-                                        setSelectedLaw(null);
+                        <Pressable
+                            onPress={() => setShowGroupDropdown(true)}
+                            className="border border-muted-foreground rounded-lg p-3 flex flex-row items-center justify-between"
+                        >
+                            <Text className="text-base">
+                                {selectedGroup ? selectedGroup.name : "Trykk for å velge gruppe"}
+                            </Text>
+                            <Text className="text-muted-foreground">▼</Text>
+                        </Pressable>
+
+                        {/* Group Selection Modal */}
+                        <Modal
+                            visible={showGroupDropdown}
+                            transparent={true}
+                            animationType="fade"
+                            onRequestClose={() => setShowGroupDropdown(false)}
+                        >
+                            <Pressable 
+                                className="flex-1 bg-black/50 justify-center items-center p-4"
+                                onPress={() => setShowGroupDropdown(false)}
+                            >
+                                <Pressable 
+                                    onPress={(e) => e.stopPropagation()}
+                                    className="bg-background rounded-2xl w-full max-w-md"
+                                    style={{ 
+                                        maxHeight: "75%",
                                     }}
-                                    className="mr-2"
                                 >
-                                    <Text className="text-sm">{group.name}</Text>
-                                </Button>
-                            ))}
-                        </ScrollView>
+                                    <View className="flex flex-row items-center justify-between p-4 border-b border-muted-foreground">
+                                        <Text className="text-xl font-semibold">Velg gruppe</Text>
+                                        <Pressable onPress={() => setShowGroupDropdown(false)}>
+                                            <Text className="text-primary text-lg">Lukk</Text>
+                                        </Pressable>
+                                    </View>
+                                    <ScrollView className="flex-1 max-h-96">
+                                        {groupsWithFinesActivated.length === 0 ? (
+                                            <View className="p-4">
+                                                <Text className="text-center text-muted-foreground">
+                                                    Ingen grupper med bøter aktivert
+                                                </Text>
+                                            </View>
+                                        ) : (
+                                            <View className="p-2">
+                                                {groupsWithFinesActivated.map((group) => {
+                                                    const queryResult = groupDataMap.get(group.slug);
+                                                    const isPending = queryResult?.isPending ?? false;
+                                                    const hasError = !!queryResult?.error;
+                                                    const fullGroupData = queryResult?.data;
+                                                    const canSelect = fullGroupData && canGiveFines(fullGroupData, user.data);
+                                                    const isSelected = selectedGroup?.slug === group.slug;
+                                                    
+                                                    return (
+                                                        <Pressable
+                                                            key={group.slug}
+                                                            onPress={() => {
+                                                                if (canSelect && fullGroupData) {
+                                                                    setSelectedGroup(fullGroupData);
+                                                                    setShowGroupDropdown(false);
+                                                                    // Reset form when changing group
+                                                                    setSelectedUsers([]);
+                                                                    setSelectedLaw(null);
+                                                                }
+                                                            }}
+                                                            disabled={!canSelect}
+                                                            className={`p-4 border-b border-muted-foreground flex flex-row items-center ${
+                                                                isSelected ? "bg-primary/20" : ""
+                                                            } ${!canSelect ? "opacity-50" : ""}`}
+                                                        >
+                                                            <View className="flex-1">
+                                                                <View className="flex flex-row items-center gap-2">
+                                                                    <Text className="text-base font-medium">{group.name}</Text>
+                                                                    {isPending && <ActivityIndicator size="small" />}
+                                                                    {hasError && (
+                                                                        <Text className="text-xs text-red-500">Feil</Text>
+                                                                    )}
+                                                                </View>
+                                                                {group.slug && (
+                                                                    <Text className="text-sm text-muted-foreground">{group.slug}</Text>
+                                                                )}
+                                                                {isPending && (
+                                                                    <Text className="text-xs text-muted-foreground mt-1">Laster tilganger...</Text>
+                                                                )}
+                                                                {hasError && queryResult?.error && (
+                                                                    <Text className="text-xs text-red-500 mt-1">{queryResult.error.message}</Text>
+                                                                )}
+                                                                {fullGroupData && !canSelect && !isPending && !hasError && (
+                                                                    <Text className="text-xs text-muted-foreground mt-1">Ingen tilgang</Text>
+                                                                )}
+                                                            </View>
+                                                            {isSelected && canSelect && (
+                                                                <Text className="text-primary text-lg">✓</Text>
+                                                            )}
+                                                        </Pressable>
+                                                    );
+                                                })}
+                                            </View>
+                                        )}
+                                    </ScrollView>
+                                </Pressable>
+                            </Pressable>
+                        </Modal>
+
+                        {/* Show error messages for groups that failed */}
+                        {groupsWithErrors.length > 0 && (
+                            <View className="mt-2">
+                                {groupsWithErrors.map(({ group, error }) => (
+                                    <Text key={group.slug} className="text-xs text-red-500">
+                                        {group.name}: {error.message}
+                                    </Text>
+                                ))}
+                            </View>
+                        )}
                     </View>
 
                     {/* User Selection Section */}
@@ -422,7 +777,7 @@ export default function GiBot() {
                                             className="mb-2"
                                         >
                                             <Text className="text-sm">
-                                                §{law.paragraph} - {law.title} ({law.amount} kr)
+                                                §{law.paragraph} - {law.title} ({law.amount} bøter)
                                             </Text>
                                         </Button>
                                     ))}
