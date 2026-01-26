@@ -1,15 +1,16 @@
-import me, { myEvents, myPreviousEvents } from "@/actions/users/me";
+import me, { myEvents, myPreviousEvents, myMemberships } from "@/actions/users/me";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Image, ScrollView, View } from "react-native";
-import { Event } from "@/actions/types";
+import { Image, ScrollView, View, ActivityIndicator } from "react-native";
+import { Event, Group } from "@/actions/types";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import EventCard, {
     EventCardSkeleton,
 } from "@/components/arrangement/eventCard";
 import useRefresh from "@/lib/useRefresh";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Profil() {
     const router = useRouter();
@@ -29,7 +30,12 @@ export default function Profil() {
         queryFn: myPreviousEvents,
     });
 
-    const refreshControl = useRefresh(["users", "me"]);
+    const memberships = useQuery({
+        queryKey: ["users", "me", "memberships"],
+        queryFn: myMemberships,
+    });
+
+    const refreshControl = useRefresh(["users", "me", "memberships"]);
 
     if (user.isPending) {
         return (
@@ -71,6 +77,65 @@ export default function Profil() {
                         <Text className="text-lg">{user.data.study.group.name}</Text>
                         <Text className="text-lg">{user.data.email}</Text>
                     </View>
+                    <View className="my-2 border-t border-muted-foreground mx-8" />
+                    
+                    {/* Memberships Section */}
+                    <View className="flex flex-col gap-3">
+                        <Text className="text-xl font-semibold">Mine grupper</Text>
+                        {memberships.isPending ? (
+                            <View className="flex items-center justify-center p-4">
+                                <ActivityIndicator />
+                            </View>
+                        ) : memberships.isError ? (
+                            <Text className="text-red-500 text-sm">
+                                Kunne ikke laste grupper
+                            </Text>
+                        ) : memberships.data && memberships.data.length > 0 ? (
+                            <View className="flex flex-col gap-2">
+                                {memberships.data.map((group) => (
+                                    <View key={group.slug}>
+                                        <Card className="p-3">
+                                            <CardContent className="p-0">
+                                                <View className="flex flex-row items-center justify-between">
+                                                    <View className="flex flex-row items-center gap-3 flex-1">
+                                                        {group.image && (
+                                                            <Image
+                                                                source={{ uri: group.image }}
+                                                                className="w-12 h-12 rounded-lg"
+                                                                resizeMode="cover"
+                                                            />
+                                                        )}
+                                                        <View className="flex-1">
+                                                            <Text className="text-lg font-semibold">
+                                                                {group.name}
+                                                            </Text>
+                                                            {group.membership_type && (
+                                                                <Text className="text-sm text-muted-foreground">
+                                                                    {group.membership_type}
+                                                                </Text>
+                                                            )}
+                                                        </View>
+                                                    </View>
+                                                    {group.fines_activated && (
+                                                        <View className="bg-primary/20 px-2 py-1 rounded">
+                                                            <Text className="text-xs text-primary font-medium">
+                                                                Bøter
+                                                            </Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            </CardContent>
+                                        </Card>
+                                    </View>
+                                ))}
+                            </View>
+                        ) : (
+                            <Text className="text-muted-foreground text-sm">
+                                Du er ikke medlem av noen grupper
+                            </Text>
+                        )}
+                    </View>
+                    
                     <View className="my-2 border-t border-muted-foreground mx-8" />
                     <View className="h-[300px] relative">
                         <AnimatedPagerView

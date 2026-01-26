@@ -6,3 +6,4 @@ export * from "./group";
 export * from "./event";
 export * from "./registration";
 export * from "./payment";
+export * from "./fine";

@@ -30,6 +30,11 @@ export default function TabsLayout() {
                     <Label>Arrangementer</Label>
                 </NativeTabs.Trigger>
 
+                <NativeTabs.Trigger name="gi-bot">
+                    <NativeIcon sf="exclamationmark.triangle.fill" />
+                    <Label>Gi bot</Label>
+                </NativeTabs.Trigger>
+
                 <NativeTabs.Trigger name="profil">
                     <NativeIcon sf="person.fill" />
                     <Label>Profil</Label>
@@ -91,6 +96,21 @@ export default function TabsLayout() {
                         ${isActive("/arrangementer") ? "color-primary dark:color-accent font-medium" : "color-gray-500 dark:color-gray-400"
                         }`}>
                         Arrangementer
+                    </Text>
+                </TabTrigger>
+
+                <TabTrigger name="gi-bot" href="/gi-bot" reset="never" style={styles.tabButton}>
+                    <View style={styles.iconContainer}>
+                        <Icon
+                            icon="TriangleAlert"
+                            className={`self-center stroke-2 w-3.5 h-3.5
+                                ${isActive("/gi-bot") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-400"}`}
+                        />
+                    </View>
+                    <Text className={`text-xs mt-1
+                        ${isActive("/gi-bot") ? "color-primary dark:color-accent font-medium" : "color-gray-500 dark:color-gray-400"
+                        }`}>
+                        Gi bot
                     </Text>
                 </TabTrigger>
 
