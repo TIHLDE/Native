@@ -256,7 +256,7 @@ export default function GiBot() {
             return;
         }
 
-        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+        if (amount === "" || isNaN(Number(amount)) || Number(amount) < 0) {
             Toast.show({
                 type: "error",
                 text1: "Feil",
@@ -464,7 +464,9 @@ export default function GiBot() {
                                                         const isPending = queryResult?.isPending ?? false;
                                                         const hasError = !!queryResult?.error;
                                                         const fullGroupData = queryResult?.data;
-                                                        const canSelect = fullGroupData && canGiveFines(fullGroupData, user.data);
+                                                        // User is a member if group is in groupsWithFinesActivated (from myMemberships)
+                                                        // Allow selection if group data is loaded and fines_activated is true
+                                                        const canSelect = !isPending && !hasError && fullGroupData && fullGroupData.fines_activated === true;
                                                         const isSelected = selectedGroup?.slug === group.slug;
                                                         
                                                         return (
@@ -501,8 +503,8 @@ export default function GiBot() {
                                                                     {hasError && queryResult?.error && (
                                                                         <Text className="text-xs text-red-500 mt-1">{queryResult.error.message}</Text>
                                                                     )}
-                                                                    {fullGroupData && !canSelect && !isPending && !hasError && (
-                                                                        <Text className="text-xs text-muted-foreground mt-1">Ingen tilgang</Text>
+                                                                    {fullGroupData && !canSelect && !isPending && !hasError && fullGroupData.fines_activated !== true && (
+                                                                        <Text className="text-xs text-muted-foreground mt-1">Bøter ikke aktivert</Text>
                                                                     )}
                                                                 </View>
                                                                 {isSelected && canSelect && (
@@ -588,7 +590,9 @@ export default function GiBot() {
                                                     const isPending = queryResult?.isPending ?? false;
                                                     const hasError = !!queryResult?.error;
                                                     const fullGroupData = queryResult?.data;
-                                                    const canSelect = fullGroupData && canGiveFines(fullGroupData, user.data);
+                                                    // User is a member if group is in groupsWithFinesActivated (from myMemberships)
+                                                    // Allow selection if group data is loaded and fines_activated is true
+                                                    const canSelect = !isPending && !hasError && fullGroupData && fullGroupData.fines_activated === true;
                                                     const isSelected = selectedGroup?.slug === group.slug;
                                                     
                                                     return (
@@ -625,8 +629,8 @@ export default function GiBot() {
                                                                 {hasError && queryResult?.error && (
                                                                     <Text className="text-xs text-red-500 mt-1">{queryResult.error.message}</Text>
                                                                 )}
-                                                                {fullGroupData && !canSelect && !isPending && !hasError && (
-                                                                    <Text className="text-xs text-muted-foreground mt-1">Ingen tilgang</Text>
+                                                                {fullGroupData && !canSelect && !isPending && !hasError && fullGroupData.fines_activated !== true && (
+                                                                    <Text className="text-xs text-muted-foreground mt-1">Bøter ikke aktivert</Text>
                                                                 )}
                                                             </View>
                                                             {isSelected && canSelect && (
