@@ -61,7 +61,7 @@ export default function RootLayout() {
                 <QueryClientProvider client={queryClient}>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <BottomSheetModalProvider>
-                            <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+                            <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} translucent backgroundColor="transparent" />
                             <Stack>
                                 <Stack.Screen name="index" options={{ headerShown: false }} />
                                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />

@@ -14,6 +14,10 @@ export type User = {
         group: Group;
     },
     unanswered_evaluations_count: number,
+    bio?: string;
+    github?: string;
+    linkedin?: string;
+    allergies?: string;
 }
 
 type PermissionTypes = {

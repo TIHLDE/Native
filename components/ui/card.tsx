@@ -10,19 +10,27 @@ interface CardProps extends ViewProps {
   children?: React.ReactNode;
 }
 
+// Use a class component to avoid Reanimated v4's function component checks
+class CardComponent extends React.Component<CardProps & { forwardedRef: React.Ref<ViewRef> }> {
+  render() {
+    const { className, children, forwardedRef, ...props } = this.props;
+    return (
+      <View
+        ref={forwardedRef}
+        className={cn(
+          "rounded-lg border border-border bg-card",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </View>
+    );
+  }
+}
+
 const Card = React.forwardRef<ViewRef, CardProps>(
-  ({ className, children, ...props }, ref) => (
-    <View
-      ref={ref}
-      className={cn(
-        "rounded-lg border border-border bg-card",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </View>
-  )
+  (props, ref) => <CardComponent {...props} forwardedRef={ref} />
 );
 Card.displayName = "Card";
 

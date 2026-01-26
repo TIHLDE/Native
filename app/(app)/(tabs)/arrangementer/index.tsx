@@ -90,7 +90,10 @@ export default function Arrangementer() {
                             title={event.title}
                             date={new Date(event.start_date)}
                             image={event.image ?? null}
-                            onPress={() => router.push(`/(modals)/arrangement/${event.id}`)}
+                            onPress={() => router.push({
+                                pathname: "/(modals)/arrangement/[arrangementId]",
+                                params: { arrangementId: event.id },
+                            })}
                             organizer={event.organizer}
                         />)
                 }}

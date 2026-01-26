@@ -1,6 +1,6 @@
 
 import { Children, useEffect, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, TouchableOpacity } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import Animated, { useSharedValue, withSpring } from 'react-native-reanimated';
 import { Text } from './text';
@@ -41,25 +41,41 @@ export default function AnimatedPagerView(props: AnimatedPagerViewProps) {
 
     return (
         <View className={props.className} ref={outerRef} >
-            <View className="flex-row w-full justify-center">
-                {props.titles.map((title, index) => {
-                    return (
-
-                        <Pressable className="p-2 flex-1 rounded-lg" key={index}
-                            onPress={() => requestAnimationFrame(() => pagerViewRef.current?.setPage(index))}>
-                            <Text className="text-lg w-full text-center">{title}</Text>
-                        </Pressable>
-                    )
-                })
-                }
+            <View className="relative" style={{ zIndex: 1000, elevation: 1000 }}>
+                <View className="flex-row w-full justify-center">
+                    {props.titles.map((title, index) => {
+                        return (
+                            <TouchableOpacity 
+                                className="p-2 flex-1 rounded-lg" 
+                                key={index}
+                                activeOpacity={0.7}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                onPress={() => {
+                                    if (pagerViewRef.current) {
+                                        pagerViewRef.current.setPage(index);
+                                    }
+                                }}
+                            >
+                                <Text className="text-lg w-full text-center">{title}</Text>
+                            </TouchableOpacity>
+                        )
+                    })
+                    }
+                </View>
+                <Animated.View 
+                    className="absolute bottom-0 left-0 right-0" 
+                    style={{
+                        marginLeft: xpos,
+                        width: scrollIndicatorWidth + "%",
+                    }}
+                    pointerEvents="none"
+                >
+                    <View className="h-0.5 rounded-full bg-foreground mx-8" />
+                </Animated.View>
             </View>
-            <Animated.View className="mb-4" style={{
-                marginLeft: xpos,
-                width: scrollIndicatorWidth + "%",
-            }}>
-                <View className="h-0.5 rounded-full bg-foreground mx-8" />
-            </Animated.View>
-            <PagerView style={{ flex: 1 }}
+            <View className="mb-4" />
+            <PagerView 
+                style={{ flex: 1, zIndex: 0 }}
                 onPageScroll={handleScroll}
                 orientation="horizontal"
                 ref={pagerViewRef}

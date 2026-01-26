@@ -25,6 +25,34 @@ export default async function me(): Promise<User> {
     return data;
 };
 
+export async function updateUserProfile(updates: {
+    bio?: string;
+    github?: string;
+    linkedin?: string;
+    allergies?: string;
+}): Promise<User> {
+    const url = `${BASE_URL}/users/me/`;
+    const token = await getToken();
+
+    const response = await fetch(url, {
+        method: "PATCH",
+        //@ts-expect-error
+        headers: {
+            "X-Csrf-Token": token,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json() as LeptonError;
+        throw new Error(errorData.detail);
+    }
+
+    const data = await response.json() as User;
+    return data;
+}
+
 export async function myPermissions(): Promise<Permissions> {
     const url = `${BASE_URL}/users/me/permissions/`;
     const token = await getToken();

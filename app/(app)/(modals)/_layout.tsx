@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { getGlassMorphismHeaderOptions } from "@/lib/headerConfig";
 
 const modalScreenOptions = {
     presentation: "card" as const,
@@ -13,7 +14,9 @@ export default function ModalsLayout() {
                 name="qrmodal"
                 options={{
                     ...modalScreenOptions,
-                    title: "QR-kode",
+                    ...getGlassMorphismHeaderOptions({
+                        title: "QR-kode",
+                    }),
                     headerShown: true,
                 }}
             />
@@ -21,15 +24,29 @@ export default function ModalsLayout() {
                 name="arrangement/[arrangementId]"
                 options={{
                     ...modalScreenOptions,
+                    ...getGlassMorphismHeaderOptions({
+                        title: "",
+                    }),
                     headerShown: true,
-                    title: "",
                 }}
             />
             <Stack.Screen
                 name="arrangement/[arrangementId]/event-register"
                 options={{
                     ...modalScreenOptions,
-                    title: "Registrer oppmøte",
+                    ...getGlassMorphismHeaderOptions({
+                        title: "Registrer oppmøte",
+                    }),
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
+                name="settings"
+                options={{
+                    ...modalScreenOptions,
+                    ...getGlassMorphismHeaderOptions({
+                        title: "Innstillinger",
+                    }),
                     headerShown: true,
                 }}
             />

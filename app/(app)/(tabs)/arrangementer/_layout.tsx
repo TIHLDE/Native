@@ -1,27 +1,17 @@
-import Icon from "@/lib/icons/Icon";
-import { Stack, useRouter } from "expo-router";
-import { TouchableWithoutFeedback, View } from "react-native";
+import { Stack } from "expo-router";
+import { getGlassMorphismHeaderOptions } from "@/lib/headerConfig";
 
 export default function ArrangementerLayout() {
-    const router = useRouter();
-
     return (
         <Stack>
             <Stack.Screen
                 name="index"
                 options={{
+                    ...getGlassMorphismHeaderOptions({
+                        title: "Arrangementer",
+                        headerTitleAlign: "center",
+                    }),
                     headerShown: true,
-                    title: "Arrangementer",
-                    headerTitleAlign: "center",
-                    headerRight: () => (
-                        <TouchableWithoutFeedback onPressIn={() => router.push("/profil")}>
-                            <View>
-                                <Icon icon="UserRound" className="self-center stroke-2 dark:text-white" />
-                            </View>
-                        </TouchableWithoutFeedback>
-
-
-                    ),
                 }}
             />
         </Stack>

@@ -1,93 +1,163 @@
+import { Platform } from 'react-native';
+import { NativeTabs, Icon as NativeIcon, Label } from 'expo-router/unstable-native-tabs';
 import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import { usePathname, useRouter } from 'expo-router';
+import { View, StyleSheet } from 'react-native';
+import { usePathname } from 'expo-router';
 import Icon from "@/lib/icons/Icon";
 import { QrCode } from '@/lib/icons/QrCode';
 import { Text } from '@/components/ui/text';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
-
-const screenWidth = Dimensions.get('window').width;
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/lib/useColorScheme';
 
 export default function TabsLayout() {
+    // Use NativeTabs on iOS for native liquid glass effect
+    if (Platform.OS === 'ios') {
+        return (
+            <NativeTabs>
+                <NativeTabs.Trigger name="karriere">
+                    <NativeIcon sf="briefcase.fill" />
+                    <Label>Karriere</Label>
+                </NativeTabs.Trigger>
+
+                <NativeTabs.Trigger name="qr-kode">
+                    <NativeIcon sf="qrcode.viewfinder" />
+                    <Label>QR-kode</Label>
+                </NativeTabs.Trigger>
+
+                <NativeTabs.Trigger name="arrangementer">
+                    <NativeIcon sf="calendar" />
+                    <Label>Arrangementer</Label>
+                </NativeTabs.Trigger>
+
+                <NativeTabs.Trigger name="profil">
+                    <NativeIcon sf="person.fill" />
+                    <Label>Profil</Label>
+                </NativeTabs.Trigger>
+            </NativeTabs>
+        );
+    }
+
+    // Fallback to custom tabs for Android
     const pathname = usePathname();
-    const router = useRouter();
+    const insets = useSafeAreaInsets();
+    const { isDarkColorScheme } = useColorScheme();
+
+    const isActive = (path: string) => pathname.includes(path);
 
     return (
         <Tabs>
             <TabSlot />
-            <TabList style={styles.tabBar}>
+            <TabList style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabButton}>
-                    <Icon
-                        icon="BriefcaseBusiness"
-                        className={`self-center stroke-2
-                            ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-500 dark:color-gray-300"}`}
-                    />
-                    <Text className={`text-xs
-                        ${pathname.includes("/karriere") ? "color-primary  dark:color-accent" : "color-gray-500 dark:color-gray-300"
+                    <View style={styles.iconContainer}>
+                        <Icon
+                            icon="BriefcaseBusiness"
+                            className={`self-center stroke-2 w-3.5 h-3.5
+                                ${isActive("/karriere") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-400"}`}
+                        />
+                    </View>
+                    <Text className={`text-xs mt-1
+                        ${isActive("/karriere") ? "color-primary dark:color-accent font-medium" : "color-gray-500 dark:color-gray-400"
                         }`}>
                         Karriere
                     </Text>
                 </TabTrigger>
 
-                <View style={[styles.middleButtonContainer, { left: screenWidth / 2 - 35 }]}>
-                    <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
-                        <View className="mb-1 bg-primary dark:bg-accent w-24 h-24 rounded-full flex items-center justify-center shadow-lg">
-                            <QrCode className="color-white dark:color-background" size={32} />
-                        </View>
-                    </TouchableWithoutFeedback>
-                </View>
+                <TabTrigger name="qr-kode" href="/qr-kode" reset="never" style={styles.tabButton}>
+                    <View style={styles.iconContainer}>
+                        <QrCode
+                            className={`self-center
+                                ${isActive("/qr-kode") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-400"}`}
+                            size={14}
+                        />
+                    </View>
+                    <Text className={`text-xs mt-1
+                        ${isActive("/qr-kode") ? "color-primary dark:color-accent font-medium" : "color-gray-500 dark:color-gray-400"
+                        }`}>
+                        QR-kode
+                    </Text>
+                </TabTrigger>
 
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabButton}>
-                    <Icon
-                        icon="Calendar"
-                        className={`self-center stroke-2
-                            ${pathname.includes("/arrangementer") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-300"}`}
-                    />
-                    <Text className={`text-xs
-                        ${pathname.includes("/arrangementer") ? "color-primary  dark:color-accent" : "color-gray-500 dark:color-gray-300"
+                    <View style={styles.iconContainer}>
+                        <Icon
+                            icon="Calendar"
+                            className={`self-center stroke-2 w-3.5 h-3.5
+                                ${isActive("/arrangementer") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-400"}`}
+                        />
+                    </View>
+                    <Text className={`text-xs mt-1
+                        ${isActive("/arrangementer") ? "color-primary dark:color-accent font-medium" : "color-gray-500 dark:color-gray-400"
                         }`}>
                         Arrangementer
                     </Text>
                 </TabTrigger>
+
+                <TabTrigger name="profil" href="/profil" reset="never" style={styles.tabButton}>
+                    <View style={styles.iconContainer}>
+                        <Icon
+                            icon="UserRound"
+                            className={`self-center stroke-2 w-3.5 h-3.5
+                                ${isActive("/profil") ? "color-primary dark:color-accent" : "color-gray-500 dark:color-gray-400"}`}
+                        />
+                    </View>
+                    <Text className={`text-xs mt-1
+                        ${isActive("/profil") ? "color-primary dark:color-accent font-medium" : "color-gray-500 dark:color-gray-400"
+                        }`}>
+                        Profil
+                    </Text>
+                </TabTrigger>
             </TabList>
+            <BlurView
+                intensity={25}
+                tint={isDarkColorScheme ? "dark" : "light"}
+                style={[
+                    styles.blurContainer,
+                    {
+                        borderTopWidth: StyleSheet.hairlineWidth,
+                        borderTopColor: isDarkColorScheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    }
+                ]}
+                pointerEvents="none"
+            />
         </Tabs>
     );
 }
 
 const styles = StyleSheet.create({
-    tabBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingBottom: 20,
-        paddingTop: 5,
-        height: 80,
-        paddingHorizontal: 40,
-    },
-    middleButtonContainer: {
+    blurContainer: {
         position: 'absolute',
-        bottom: 30,
-        width: 70,
-        height: 70,
-        alignItems: 'center',
-        justifyContent: 'center',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        overflow: 'hidden',
     },
-    middleButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 50,
+    tabBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
         alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
+        paddingTop: 8,
+        paddingHorizontal: 16,
+        minHeight: 60,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
     },
     tabButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 50,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+    },
+    iconContainer: {
+        width: 14,
+        height: 14,
         alignItems: 'center',
         justifyContent: 'center',
     },

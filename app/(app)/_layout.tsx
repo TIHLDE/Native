@@ -1,25 +1,9 @@
 import { Stack } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
-import { ThemeToggle } from '@/components/themeToggle';
 
 export default function AppLayout() {
     return (
         <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-                name="profil"
-                options={{
-                    title: "Profil",
-                    headerShown: true,
-                    headerBackTitle: "Tilbake",
-                    headerTitleAlign: "center",
-                    headerRight: () => (
-                        <TouchableOpacity>
-                            <ThemeToggle />
-                        </TouchableOpacity>
-                    ),
-                }}
-            />
             <Stack.Screen
                 name="(modals)"
                 options={{
