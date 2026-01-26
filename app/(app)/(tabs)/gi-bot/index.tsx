@@ -686,12 +686,18 @@ export default function GiBot() {
                             animationType="slide"
                             onRequestClose={() => setShowUserDropdown(false)}
                         >
-                            <View className="flex-1 bg-black/50 justify-end">
+                            <View className="flex-1 justify-end">
+                                <Pressable 
+                                    className="absolute inset-0 bg-black/50"
+                                    onPress={() => setShowUserDropdown(false)}
+                                />
                                 <View 
                                     className="bg-background rounded-t-3xl"
                                     style={{ 
                                         maxHeight: "75%",
-                                        paddingBottom: insets.bottom 
+                                        paddingBottom: insets.bottom,
+                                        zIndex: 1,
+                                        minHeight: 200,
                                     }}
                                 >
                                     <View className="flex flex-row items-center justify-between p-4 border-b border-muted-foreground">
@@ -700,7 +706,11 @@ export default function GiBot() {
                                             <Text className="text-primary text-lg">Ferdig</Text>
                                         </Pressable>
                                     </View>
-                                    <ScrollView className="flex-1">
+                                    <ScrollView 
+                                        style={{ flex: 1 }}
+                                        contentContainerStyle={{ flexGrow: 1 }}
+                                        nestedScrollEnabled={true}
+                                    >
                                         {groupMembers.isPending ? (
                                             <View className="p-4">
                                                 <ActivityIndicator />
@@ -710,10 +720,21 @@ export default function GiBot() {
                                                 <Text className="text-red-500 text-center">
                                                     Kunne ikke laste medlemmer
                                                 </Text>
+                                                {groupMembers.error && (
+                                                    <Text className="text-red-500 text-center text-sm mt-2">
+                                                        {groupMembers.error.message}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        ) : !groupMembers.data || groupMembers.data.length === 0 ? (
+                                            <View className="p-4">
+                                                <Text className="text-muted-foreground text-center">
+                                                    Ingen medlemmer funnet i denne gruppen
+                                                </Text>
                                             </View>
                                         ) : (
                                             <View className="p-2">
-                                                {groupMembers.data?.map((user) => {
+                                                {groupMembers.data.map((user) => {
                                                     const isSelected = selectedUsers.find(u => u.user_id === user.user_id);
                                                     return (
                                                         <Pressable

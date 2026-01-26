@@ -93,6 +93,8 @@ export async function getGroupMembers(groupSlug: string): Promise<User[]> {
         }
     });
 
+    let data: any;
+    
     if (!response.ok) {
         // If members endpoint doesn't exist, try fines/users endpoint
         const fallbackUrl = `${BASE_URL}/groups/${groupSlug}/fines/users/`;
@@ -109,26 +111,61 @@ export async function getGroupMembers(groupSlug: string): Promise<User[]> {
             throw new Error(errorData.detail);
         }
 
-        // Extract users from fines/users response (structure may vary)
-        const data = await fallbackResponse.json();
-        // Handle different possible response structures
-        if (Array.isArray(data)) {
-            return data.map((item: any) => item.user || item).filter(Boolean);
-        }
-        if (data.results && Array.isArray(data.results)) {
-            return data.results.map((item: any) => item.user || item).filter(Boolean);
-        }
-        return [];
+        data = await fallbackResponse.json();
+    } else {
+        data = await response.json();
     }
 
-    const data = await response.json();
+    // Debug logging to see what the API actually returns
+    console.log(`[getGroupMembers] Response for ${groupSlug}:`, {
+        isArray: Array.isArray(data),
+        hasResults: !!data.results,
+        dataType: typeof data,
+        keys: data && typeof data === 'object' ? Object.keys(data) : null,
+        firstItem: Array.isArray(data) && data.length > 0 ? data[0] : (data.results && data.results.length > 0 ? data.results[0] : null),
+        rawData: JSON.stringify(data, null, 2).substring(0, 500), // First 500 chars for debugging
+    });
+
     // Handle different possible response structures
+    let users: any[] = [];
+    
     if (Array.isArray(data)) {
-        return data.map((item: any) => item.user || item).filter(Boolean);
+        // Direct array of users or membership objects
+        users = data;
+    } else if (data.results && Array.isArray(data.results)) {
+        // Paginated response with results array
+        users = data.results;
+    } else if (data && typeof data === 'object') {
+        // Single object or other structure - try to extract
+        console.warn(`[getGroupMembers] Unexpected response structure for ${groupSlug}:`, data);
+        users = [];
     }
-    if (data.results && Array.isArray(data.results)) {
-        return data.results.map((item: any) => item.user || item).filter(Boolean);
-    }
-    return [];
+
+    // Extract users from the array - handle both direct user objects and nested structures
+    const extractedUsers: User[] = users
+        .map((item: any) => {
+            // If item is already a User (has user_id, first_name, etc.), return it
+            if (item && typeof item === 'object' && item.user_id && item.first_name) {
+                return item as User;
+            }
+            // If item has a nested 'user' property, extract it
+            if (item && typeof item === 'object' && item.user) {
+                return item.user as User;
+            }
+            // If item has a nested 'member' property, extract it
+            if (item && typeof item === 'object' && item.member) {
+                return item.member as User;
+            }
+            // Otherwise, try to use item as-is if it looks like a user
+            if (item && typeof item === 'object' && (item.user_id || item.email)) {
+                return item as User;
+            }
+            return null;
+        })
+        .filter((user): user is User => user !== null && user !== undefined);
+
+    console.log(`[getGroupMembers] Extracted ${extractedUsers.length} users for ${groupSlug}`);
+    
+    return extractedUsers;
 }
 
