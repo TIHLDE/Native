@@ -125,20 +125,16 @@ export default function GiBot() {
             return false;
         }
         
-        // User can give fines if they are the fines_admin OR have write permissions
-        const isFinesAdmin = group.fines_admin?.user_id === currentUser.user_id;
-        const hasWritePermission = group.permissions?.write === true;
+        // User can give fines if they are a member of the group
+        const isMember = group.viewer_is_member === true;
         
         console.log(`[canGiveFines] Group ${group.slug}:`, {
-            fines_admin: group.fines_admin,
+            viewer_is_member: group.viewer_is_member,
             user_id: currentUser.user_id,
-            isFinesAdmin,
-            permissions: group.permissions,
-            hasWritePermission,
-            result: isFinesAdmin || hasWritePermission,
+            result: isMember,
         });
         
-        return isFinesAdmin || hasWritePermission;
+        return isMember;
     };
 
     // Get full group data for groups where user can actually give fines
@@ -368,7 +364,7 @@ export default function GiBot() {
                 <ScrollView>
                     <View className="flex-1 justify-center items-center p-4" style={{ paddingTop: insets.top + 100 }}>
                         <Text className="text-lg text-center mb-4">
-                            Du må være medlem av en gruppe med bøter aktivert og ha tilgang til å gi bot for å kunne gi bot.
+                            Du må være medlem av en gruppe med bøter aktivert for å kunne gi bot.
                         </Text>
                         {groupsWithFinesActivated.length > 0 && (
                             <View className="mt-4">
@@ -432,15 +428,16 @@ export default function GiBot() {
                                 animationType="fade"
                                 onRequestClose={() => setShowGroupDropdown(false)}
                             >
-                                <Pressable 
-                                    className="flex-1 bg-black/50 justify-center items-center p-4"
-                                    onPress={() => setShowGroupDropdown(false)}
-                                >
+                                <View className="flex-1 justify-center items-center p-4">
                                     <Pressable 
-                                        onPress={(e) => e.stopPropagation()}
+                                        className="absolute inset-0 bg-black/50"
+                                        onPress={() => setShowGroupDropdown(false)}
+                                    />
+                                    <View 
                                         className="bg-background rounded-2xl w-full max-w-md"
                                         style={{ 
                                             maxHeight: "75%",
+                                            zIndex: 1,
                                         }}
                                     >
                                         <View className="flex flex-row items-center justify-between p-4 border-b border-muted-foreground">
@@ -449,7 +446,11 @@ export default function GiBot() {
                                                 <Text className="text-primary text-lg">Lukk</Text>
                                             </Pressable>
                                         </View>
-                                        <ScrollView className="flex-1 max-h-96">
+                                        <ScrollView 
+                                            className="flex-1"
+                                            style={{ maxHeight: 400 }}
+                                            nestedScrollEnabled={true}
+                                        >
                                             {groupsWithFinesActivated.length === 0 ? (
                                                 <View className="p-4">
                                                     <Text className="text-center text-muted-foreground">
@@ -513,8 +514,8 @@ export default function GiBot() {
                                                 </View>
                                             )}
                                         </ScrollView>
-                                    </Pressable>
-                                </Pressable>
+                                    </View>
+                                </View>
                             </Modal>
                         </View>
                     </View>
@@ -551,15 +552,16 @@ export default function GiBot() {
                             animationType="fade"
                             onRequestClose={() => setShowGroupDropdown(false)}
                         >
-                            <Pressable 
-                                className="flex-1 bg-black/50 justify-center items-center p-4"
-                                onPress={() => setShowGroupDropdown(false)}
-                            >
+                            <View className="flex-1 justify-center items-center p-4">
                                 <Pressable 
-                                    onPress={(e) => e.stopPropagation()}
+                                    className="absolute inset-0 bg-black/50"
+                                    onPress={() => setShowGroupDropdown(false)}
+                                />
+                                <View 
                                     className="bg-background rounded-2xl w-full max-w-md"
                                     style={{ 
                                         maxHeight: "75%",
+                                        zIndex: 1,
                                     }}
                                 >
                                     <View className="flex flex-row items-center justify-between p-4 border-b border-muted-foreground">
@@ -568,7 +570,11 @@ export default function GiBot() {
                                             <Text className="text-primary text-lg">Lukk</Text>
                                         </Pressable>
                                     </View>
-                                    <ScrollView className="flex-1 max-h-96">
+                                    <ScrollView 
+                                        className="flex-1"
+                                        style={{ maxHeight: 400 }}
+                                        nestedScrollEnabled={true}
+                                    >
                                         {groupsWithFinesActivated.length === 0 ? (
                                             <View className="p-4">
                                                 <Text className="text-center text-muted-foreground">
@@ -632,8 +638,8 @@ export default function GiBot() {
                                             </View>
                                         )}
                                     </ScrollView>
-                                </Pressable>
-                            </Pressable>
+                                </View>
+                            </View>
                         </Modal>
 
                         {/* Show error messages for groups that failed */}
