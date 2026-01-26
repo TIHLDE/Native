@@ -4,7 +4,7 @@ import { DarkTheme, DefaultTheme, Theme, ThemeProvider } from '@react-navigation
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { Platform, TouchableOpacity } from 'react-native';
+import { Platform } from 'react-native';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { AuthProvider } from '@/context/auth';
@@ -14,8 +14,6 @@ import { PortalHost } from '@rn-primitives/portal';
 import { getTheme } from '@/lib/storage/themeStore';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { ThemeToggle } from '@/components/themeToggle';
-
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
     colors: NAV_THEME.light,
@@ -67,28 +65,7 @@ export default function RootLayout() {
                             <Stack>
                                 <Stack.Screen name="index" options={{ headerShown: false }} />
                                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                                <Stack.Screen
-                                    name="profil"
-                                    options={{
-                                        title: "Profil",
-                                        headerShown: true,
-                                        headerBackTitle: "Tilbake",
-                                        headerTitleAlign: "center",
-                                        headerRight: () => (
-                                            <TouchableOpacity>
-                                                <ThemeToggle />
-                                            </TouchableOpacity>
-                                        ),
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name="qrmodal"
-                                    options={{
-                                        presentation: "modal",
-                                        headerShown: false,
-                                    }}
-                                />
+                                <Stack.Screen name="(app)" options={{ headerShown: false }} />
                             </Stack>
                             <Toast />
                             <PortalHost />

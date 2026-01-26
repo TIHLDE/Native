@@ -45,7 +45,7 @@ export default function Login() {
                 auhtenticated: true,
                 isLoading: false,
             });
-            router.replace("/(tabs)/arrangementer");
+            router.replace("/arrangementer");
         },
         onError: (error) => {
             Toast.show({

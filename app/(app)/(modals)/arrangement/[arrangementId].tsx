@@ -34,14 +34,10 @@ import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import UserCard from "@/components/ui/userCard";
 import ImageMissing from "@/components/ui/imageMissing";
 import useRefresh from "@/lib/useRefresh";
-
-// Importer funksjoner fra date-fns med norsk locale
 import { isBefore, isAfter } from "date-fns";
-import { usePathname } from "expo-router";
 
 export default function ArrangementSide() {
     const params = useLocalSearchParams();
-    const path = usePathname();
     const queryClient = useQueryClient();
     const id = params.arrangementId;
     const router = useRouter();
@@ -189,9 +185,8 @@ export default function ArrangementSide() {
                         </Card>
                         {permissions.data?.event?.write && event.data.sign_up &&
                             <Button onPress={() => router.push({
-                                //@ts-ignore
-                                pathname: `${path.split("/")[1]}/eventRegisterModal`,
-                                params: { eventId: id },
+                                pathname: "/(modals)/arrangement/[arrangementId]/event-register",
+                                params: { arrangementId: id as string },
                             })} className="mt-5">
                                 <Text>Registrer oppmøte </Text>
                             </Button>
@@ -390,7 +385,6 @@ function RegistrationButton({
 
     const alertMessage = getAlertMessage();
 
-    // Countdown: Bruker date-fns for å sammenligne start- og betalingsdato
     const countdownIsForPayment = event.paid_information && !registration?.has_paid_order && registration;
     const countdownTime =
         (isAfter(new Date(event.start_registration_at), new Date()) && new Date(event.start_registration_at)) ||
@@ -542,7 +536,6 @@ function CountTextWrapper({
     startCount: Date;
     onCountdownFinished?: () => void;
 }) {
-    // Vi regner ut gjenstående tid i millisekunder
     const [remaining, setRemaining] = useState<number>(startCount.getTime());
 
     useInterval(() => {
@@ -555,7 +548,6 @@ function CountTextWrapper({
         }
     }, [remaining, onCountdownFinished]);
 
-    // Mer enn 48 timer igjen
     if (remaining > 1000 * 60 * 60 * 24 * 2) {
         const days = Math.ceil(remaining / (1000 * 60 * 60 * 24));
         return (
@@ -567,7 +559,6 @@ function CountTextWrapper({
         );
     }
 
-    // Mellom 48 og 24 timer igjen
     if (remaining > 1000 * 60 * 60 * 24) {
         const hours = Math.ceil(remaining / (1000 * 60 * 60));
         return (

@@ -47,12 +47,13 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
     const [userToRegister, setUserToRegister] = useState<User | null>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const queryClient = useQueryClient();
-    const eventId = Number(useLocalSearchParams().eventId);
+    const params = useLocalSearchParams<{ arrangementId: string }>();
+    const eventId = Number(params.arrangementId);
 
     const updateRegistrationMutation = useMutation({
         mutationFn: async ({ newValue, userId }: { newValue: boolean, userId: string }) => {
             await updateEventParticipation(eventId, userId, newValue);
-            queryClient.invalidateQueries({ queryKey: ["event", "participants"] });
+            queryClient.invalidateQueries({ queryKey: ["event", eventId, "participants"] });
             return true;
         },
         onSuccess: () => {
@@ -164,8 +165,8 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
 }
 
 function ManualRegistration() {
-    const params = useLocalSearchParams();
-    const id = Number(params.eventId);
+    const params = useLocalSearchParams<{ arrangementId: string }>();
+    const id = Number(params.arrangementId);
 
     const {
         data,
@@ -175,7 +176,7 @@ function ManualRegistration() {
         isFetchingNextPage,
         isError,
     } = useInfiniteQuery({
-        queryKey: ["event", "participants"],
+        queryKey: ["event", id, "participants"],
         queryFn: async ({ pageParam }) => await eventParticipants(id, pageParam),
         initialPageParam: 1,
         getNextPageParam: (lastPage, allPages, lastPageParam) => {
@@ -243,7 +244,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
     const updateRegistrationMutation = useMutation({
         mutationFn: async (newValue: boolean) => {
             await updateEventParticipation(eventId, registration.user_info.user_id, newValue);
-            queryClient.invalidateQueries({ queryKey: ["event", "participants"] });
+            queryClient.invalidateQueries({ queryKey: ["event", eventId, "participants"] });
             return true;
         },
         onError: (error) => {
@@ -266,7 +267,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
             return;
         }
         await updateRegistrationMutation.mutateAsync(!checked);
-        setChecked(!checked);  
+        setChecked(!checked);
     };
 
     return (

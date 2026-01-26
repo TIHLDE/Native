@@ -188,7 +188,7 @@ function DisplayUserEvents({ userEvents, previous }: {
             organizer={event.organizer ?? { name: "Ukjent", slug: null }}
             onPress={() => {
                 router.push({
-                    pathname: `/profil/eventmodal`,
+                    pathname: "/(modals)/arrangement/[arrangementId]",
                     params: { arrangementId: event.id },
                 });
             }}

@@ -30,7 +30,7 @@ export default function TabsLayout() {
                 </TabTrigger>
 
                 <View style={[styles.middleButtonContainer, { left: screenWidth / 2 - 35 }]}>
-                    <TouchableWithoutFeedback onPress={() => router.push('/qrmodal')}>
+                    <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
                         <View className="mb-1 bg-primary dark:bg-accent w-24 h-24 rounded-full flex items-center justify-center shadow-lg">
                             <QrCode className="color-white dark:color-background" size={32} />
                         </View>

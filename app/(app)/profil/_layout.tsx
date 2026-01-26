@@ -11,8 +11,6 @@ export default function profilLayout() {
                     title: "Profil"
                 }}
             />
-            <Stack.Screen name="eventmodal" options={{ presentation: "card", headerShown: false }} />
-            <Stack.Screen name="eventRegisterModal" options={{ presentation: "card", title: "Registrer oppmøte", headerShown: false }} />
         </Stack>
     )
 }

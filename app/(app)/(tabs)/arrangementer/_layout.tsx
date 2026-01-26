@@ -24,7 +24,6 @@ export default function ArrangementerLayout() {
                     ),
                 }}
             />
-            <Stack.Screen name="eventRegisterModal" options={{ presentation: "card", title: "Registrer oppmøte" }} />
         </Stack>
     );
 }
