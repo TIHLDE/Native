@@ -2,6 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
+import { useColorScheme } from '@/lib/useColorScheme';
 
 const modalScreenOptions = {
     presentation: "card" as const,
@@ -11,6 +12,8 @@ const modalScreenOptions = {
 
 export default function ModalsLayout() {
     const router = useRouter();
+    const { isDarkColorScheme } = useColorScheme();
+    const backColor = isDarkColorScheme ? "#ffffff" : "#000000";
 
     return (
         <Stack>
@@ -49,8 +52,8 @@ export default function ModalsLayout() {
                             onPress={() => router.back()}
                             className="flex-row items-center active:opacity-70 mr-2"
                         >
-                            <ChevronLeft size={24} className="text-primary dark:text-accent" />
-                            <Text className="text-base text-primary dark:text-accent">Tilbake</Text>
+                            <ChevronLeft size={24} color={backColor} />
+                            <Text className="text-base text-foreground">Tilbake</Text>
                         </Pressable>
                     ),
                 }}
