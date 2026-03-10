@@ -31,10 +31,8 @@ export default function TabsLayout() {
 
                 {/* Karriere tab */}
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl px-4 py-2 items-center justify-center ${
-                        isKarriere
-                            ? "bg-primary/12 dark:bg-accent/15"
-                            : ""
+                    <View className={`rounded-full p-2 ${
+                        isKarriere ? "bg-primary/15 dark:bg-accent/20" : ""
                     }`}>
                         <Icon
                             icon="BriefcaseBusiness"
@@ -44,14 +42,14 @@ export default function TabsLayout() {
                                     : "color-gray-400 dark:color-gray-500"
                             }`}
                         />
-                        <Text className={`text-[10px] mt-1 font-semibold ${
-                            isKarriere
-                                ? "color-primary dark:color-accent"
-                                : "color-gray-400 dark:color-gray-500"
-                        }`}>
-                            Karriere
-                        </Text>
                     </View>
+                    <Text className={`text-[10px] mt-0.5 font-semibold ${
+                        isKarriere
+                            ? "color-primary dark:color-accent"
+                            : "color-gray-400 dark:color-gray-500"
+                    }`}>
+                        Karriere
+                    </Text>
                 </TabTrigger>
 
                 {/* QR center button */}
@@ -68,10 +66,8 @@ export default function TabsLayout() {
 
                 {/* Arrangementer tab */}
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl px-4 py-2 items-center justify-center ${
-                        isArrangementer
-                            ? "bg-primary/12 dark:bg-accent/15"
-                            : ""
+                    <View className={`rounded-full p-2 ${
+                        isArrangementer ? "bg-primary/15 dark:bg-accent/20" : ""
                     }`}>
                         <Icon
                             icon="Calendar"
@@ -81,14 +77,14 @@ export default function TabsLayout() {
                                     : "color-gray-400 dark:color-gray-500"
                             }`}
                         />
-                        <Text className={`text-[10px] mt-1 font-semibold ${
-                            isArrangementer
-                                ? "color-primary dark:color-accent"
-                                : "color-gray-400 dark:color-gray-500"
-                        }`}>
-                            Arrangementer
-                        </Text>
                     </View>
+                    <Text className={`text-[10px] mt-0.5 font-semibold ${
+                        isArrangementer
+                            ? "color-primary dark:color-accent"
+                            : "color-gray-400 dark:color-gray-500"
+                    }`}>
+                        Arrangementer
+                    </Text>
                 </TabTrigger>
             </TabList>
         </Tabs>
