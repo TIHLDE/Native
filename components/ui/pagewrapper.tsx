@@ -9,7 +9,7 @@ export default function PageWrapper({ children, className }: PageWrapperProps) {
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView className={className ?? ""}>
+            <SafeAreaView className={`flex-1 ${className ?? ""}`}>
                 {children}
             </SafeAreaView>
         </SafeAreaProvider>
