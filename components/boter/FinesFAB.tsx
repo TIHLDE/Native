@@ -1,8 +1,7 @@
 import React from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Gavel } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 export default function FinesHeaderButton() {
@@ -10,10 +9,15 @@ export default function FinesHeaderButton() {
     const { isDarkColorScheme } = useColorScheme();
 
     return (
-        <TouchableWithoutFeedback onPressIn={() => router.push("/(modals)/boter")}>
-            <View className="w-10 h-10 items-center justify-center">
-                <Gavel size={22} strokeWidth={2} color={isDarkColorScheme ? "#ffffff" : "#000000"} />
-            </View>
-        </TouchableWithoutFeedback>
+        <Pressable
+            onPressIn={() => router.push("/(modals)/boter")}
+            style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}
+        >
+            {({ pressed }) => (
+                <View style={{ opacity: pressed ? 0.7 : 1 }}>
+                    <Gavel size={22} strokeWidth={2} color={isDarkColorScheme ? "#ffffff" : "#000000"} />
+                </View>
+            )}
+        </Pressable>
     );
 }
