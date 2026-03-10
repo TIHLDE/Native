@@ -1,4 +1,7 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import { Pressable, View } from 'react-native';
+import { ChevronLeft } from 'lucide-react-native';
+import { Text } from '@/components/ui/text';
 
 const modalScreenOptions = {
     presentation: "card" as const,
@@ -7,6 +10,8 @@ const modalScreenOptions = {
 };
 
 export default function ModalsLayout() {
+    const router = useRouter();
+
     return (
         <Stack>
             <Stack.Screen
@@ -39,6 +44,15 @@ export default function ModalsLayout() {
                     ...modalScreenOptions,
                     title: "Velg gruppe",
                     headerShown: true,
+                    headerLeft: () => (
+                        <Pressable
+                            onPress={() => router.back()}
+                            className="flex-row items-center active:opacity-70 mr-2"
+                        >
+                            <ChevronLeft size={24} className="text-primary dark:text-accent" />
+                            <Text className="text-base text-primary dark:text-accent">Tilbake</Text>
+                        </Pressable>
+                    ),
                 }}
             />
             <Stack.Screen

@@ -60,14 +60,17 @@ export default function ConfirmFine() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
+    const goBackToStart = () => {
+        router.dismissAll();
+        router.back();
+    };
+
     useEffect(() => {
         if (isSuccess) {
-            const timeout = setTimeout(() => {
-                router.navigate("/(modals)/boter");
-            }, 5000);
+            const timeout = setTimeout(goBackToStart, 5000);
             return () => clearTimeout(timeout);
         }
-    }, [isSuccess, router]);
+    }, [isSuccess]);
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -150,14 +153,14 @@ export default function ConfirmFine() {
                         {selectedUsers.length !== 1 ? "e" : ""}.
                     </Text>
                     <Pressable
-                        onPress={() => router.navigate("/(modals)/boter")}
+                        onPress={goBackToStart}
                         className="h-14 rounded-2xl bg-primary dark:bg-[#1C5ECA] items-center justify-center px-8 active:opacity-80"
                     >
                         <Text
                             className="text-white text-base font-semibold"
                             style={{ fontFamily: "Inter" }}
                         >
-                            Tilbake til grupper
+                            Tilbake
                         </Text>
                     </Pressable>
                 </View>
