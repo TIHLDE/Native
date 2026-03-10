@@ -1,21 +1,31 @@
 import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Platform } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import Icon from "@/lib/icons/Icon";
 import { QrCode } from '@/lib/icons/QrCode';
 import { Text } from '@/components/ui/text';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { BlurView } from 'expo-blur';
+import { useColorScheme } from '@/lib/useColorScheme';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function TabsLayout() {
     const pathname = usePathname();
     const router = useRouter();
+    const { isDarkColorScheme } = useColorScheme();
 
     return (
         <Tabs>
             <TabSlot />
             <TabList style={styles.tabBar}>
+                <BlurView
+                    intensity={80}
+                    tint={isDarkColorScheme ? 'dark' : 'light'}
+                    style={StyleSheet.absoluteFill}
+                />
+                <View style={styles.topBorder} className="bg-border/50" />
+
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabButton}>
                     <Icon
                         icon="BriefcaseBusiness"
@@ -56,6 +66,10 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
     tabBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -63,6 +77,15 @@ const styles = StyleSheet.create({
         paddingTop: 5,
         height: 80,
         paddingHorizontal: 40,
+        backgroundColor: 'transparent',
+        overflow: 'hidden',
+    },
+    topBorder: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: StyleSheet.hairlineWidth,
     },
     middleButtonContainer: {
         position: 'absolute',
@@ -71,18 +94,6 @@ const styles = StyleSheet.create({
         height: 70,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    middleButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
     },
     tabButton: {
         width: 80,
