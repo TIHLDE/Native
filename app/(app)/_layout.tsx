@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
 import { ThemeToggle } from '@/components/themeToggle';
 
 export default function AppLayout() {
@@ -13,11 +12,7 @@ export default function AppLayout() {
                     headerShown: true,
                     headerBackTitle: "Tilbake",
                     headerTitleAlign: "center",
-                    headerRight: () => (
-                        <TouchableOpacity>
-                            <ThemeToggle />
-                        </TouchableOpacity>
-                    ),
+                    headerRight: () => <ThemeToggle />,
                 }}
             />
             <Stack.Screen

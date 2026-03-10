@@ -15,18 +15,16 @@ export function ThemeToggle({ className }: { className?: string }) {
         setAndroidNavigationBar(newTheme);
     }
     return (
-        <Pressable onPressIn={toggleColorScheme}>
+        <Pressable
+            onPressIn={toggleColorScheme}
+            style={{width: 40, height: 40, justifyContent: 'center', alignItems: 'center'}}
+        >
             {({ pressed }) => (
-                <View
-                    className={cn(
-                        'flex-1 aspect-square pt-0.5 justify-center web:px-5',
-                        pressed && 'opacity-70'
-                    )}
-                >
+                <View style={{opacity: pressed ? 0.7 : 1}}>
                     {isDarkColorScheme ? (
-                        <Sun className='text-foreground self-center' size={24} strokeWidth={2} />
+                        <Sun className='text-foreground' size={24} strokeWidth={2} />
                     ) : (
-                        <MoonStar className='self-center text-foreground' size={23} strokeWidth={2} />
+                        <MoonStar className='text-foreground' size={23} strokeWidth={2} />
                     )}
                 </View>
             )}

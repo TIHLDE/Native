@@ -1,4 +1,4 @@
-import me, { myEvents, myPreviousEvents } from "@/actions/users/me";
+import me, { myEvents } from "@/actions/users/me";
 import { Button } from "@/components/ui/button";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
@@ -6,10 +6,9 @@ import { useAuth } from "@/context/auth";
 import { deleteToken } from "@/lib/storage/tokenStore";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Image, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { Event } from "@/actions/types";
-import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,10 +21,13 @@ import EventCard, {
     EventCardSkeleton,
 } from "@/components/arrangement/eventCard";
 import useRefresh from "@/lib/useRefresh";
+import { Mail, GraduationCap, LogOut, TriangleAlert } from "lucide-react-native";
+import { useColorScheme } from "@/lib/useColorScheme";
 
 export default function Profil() {
     const { setAuthState } = useAuth();
     const router = useRouter();
+    const { isDarkColorScheme } = useColorScheme();
 
     const user = useQuery({
         queryKey: ["users", "me"],
@@ -37,12 +39,8 @@ export default function Profil() {
         queryFn: myEvents,
     });
 
-    const previousEvents = useQuery({
-        queryKey: ["users", "me", "previous-events"],
-        queryFn: myPreviousEvents,
-    });
-
     const refreshControl = useRefresh(["users", "me"]);
+
 
     const onLogout = async () => {
         const isLoggedOut = await deleteToken();
@@ -64,11 +62,15 @@ export default function Profil() {
         router.replace("/(auth)/login");
     };
 
+    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+
     if (user.isPending) {
         return (
-            <PageWrapper>
-                <ScrollView refreshControl={refreshControl}>
-                    <Text className="text-lg">Laster profil...</Text>
+            <PageWrapper className="flex-1 bg-background">
+                <ScrollView refreshControl={refreshControl} contentContainerStyle={{flexGrow: 1}}>
+                    <View className="flex-1 items-center justify-center">
+                        <Text className="text-base text-muted-foreground">Laster profil...</Text>
+                    </View>
                 </ScrollView>
             </PageWrapper>
         );
@@ -76,83 +78,133 @@ export default function Profil() {
 
     if (user.isError) {
         return (
-            <PageWrapper>
-                <ScrollView refreshControl={refreshControl}>
-                    <Text className="text-lg text-red-500">Feil: {user.error.message}</Text>
+            <PageWrapper className="flex-1 bg-background">
+                <ScrollView refreshControl={refreshControl} contentContainerStyle={{flexGrow: 1}}>
+                    <View className="flex-1 items-center justify-center px-6">
+                        <Text className="text-base text-destructive">{user.error.message}</Text>
+                    </View>
                 </ScrollView>
             </PageWrapper>
         );
     }
 
+    const initials = `${user.data.first_name[0]}${user.data.last_name[0]}`;
+
     return (
-        <PageWrapper>
-            <ScrollView refreshControl={refreshControl}>
-                <View className="flex flex-col gap-4 p-4">
-                    {user.data.image && (
+        <PageWrapper className="flex-1 bg-background">
+            <ScrollView
+                refreshControl={refreshControl}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{paddingBottom: 40}}
+            >
+                {/* Profile hero */}
+                <View className="items-center pt-8 pb-6">
+                    {user.data.image ? (
                         <Image
-                            className="w-24 h-24 rounded-full m-auto"
+                            className="w-28 h-28 rounded-full"
                             source={{ uri: user.data.image }}
                         />
+                    ) : (
+                        <View className="w-28 h-28 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
+                            <Text className="text-3xl font-bold text-primary dark:text-accent">
+                                {initials}
+                            </Text>
+                        </View>
                     )}
-                    <View className="mt-2 flex flex-col justify-center items-center">
-                        <Text className="text-2xl font-semibold">
-                            {user.data.first_name} {user.data.last_name}
-                        </Text>
-                        <Text className="text-lg text-muted-foreground">
-                            @{user.data.user_id}
-                        </Text>
-                        <Text className="text-lg">{user.data.study.group.name}</Text>
-                        <Text className="text-lg">{user.data.email}</Text>
+
+                    <Text className="text-2xl font-bold mt-4 text-foreground">
+                        {user.data.first_name} {user.data.last_name}
+                    </Text>
+                    <Text className="text-base text-muted-foreground mt-0.5">
+                        @{user.data.user_id}
+                    </Text>
+                </View>
+
+                {/* Info section */}
+                <View className="px-6 mb-6">
+                    <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden">
+                        {/* Study */}
+                        <View className="flex-row items-center px-4 py-3.5">
+                            <GraduationCap size={18} color={mutedColor} />
+                            <Text className="text-base text-foreground ml-3">
+                                {user.data.study.group.name}
+                            </Text>
+                        </View>
+
+                        <View className="h-px bg-border dark:bg-muted ml-12" />
+
+                        {/* Email */}
+                        <View className="flex-row items-center px-4 py-3.5">
+                            <Mail size={18} color={mutedColor} />
+                            <Text className="text-base text-foreground ml-3">
+                                {user.data.email}
+                            </Text>
+                        </View>
                     </View>
+                </View>
+
+                {/* Events */}
+                <View className="px-6 mb-6">
+                    <Text className="text-lg font-semibold text-foreground mb-3">
+                        Påmeldte arrangementer
+                    </Text>
+                    <DisplayUserEvents userEvents={userEvents} router={router} />
+                </View>
+
+                {/* Logout */}
+                <View className="px-6 mt-2">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button className="flex-1 min-h-full mx-8" variant="destructive">
-                                <Text>Logg ut</Text>
-                            </Button>
+                            <Pressable className="flex-row items-center justify-center h-14 rounded-2xl bg-destructive/10 dark:bg-destructive/20 active:opacity-70">
+                                <LogOut size={18} color={isDarkColorScheme ? '#f87171' : '#dc2626'} />
+                                <Text className="text-base font-semibold text-destructive ml-2">
+                                    Logg ut
+                                </Text>
+                            </Pressable>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="p-8">
-                            <AlertDialogTitle>
-                                Er du sikker på at du vil logge ut?
-                            </AlertDialogTitle>
-                            <AlertDialogAction asChild>
-                                <Button variant="destructive" onPressIn={onLogout}>
-                                    <Text>Logg ut</Text>
-                                </Button>
-                            </AlertDialogAction>
-                            <AlertDialogCancel>
-                                <Text>Avbryt</Text>
-                            </AlertDialogCancel>
+                        <AlertDialogContent className="rounded-3xl p-6 mx-6 max-w-sm">
+                            <View className="items-center mb-2">
+                                <View className="w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 items-center justify-center mb-4">
+                                    <TriangleAlert size={26} color={isDarkColorScheme ? '#f87171' : '#dc2626'} />
+                                </View>
+                                <AlertDialogTitle className="text-center text-xl">
+                                    Logg ut
+                                </AlertDialogTitle>
+                                <Text className="text-sm text-muted-foreground text-center mt-1">
+                                    Er du sikker på at du vil logge ut av TIHLDE?
+                                </Text>
+                            </View>
+                            <View className="gap-y-2 mt-2">
+                                <AlertDialogAction asChild>
+                                    <Pressable
+                                        onPress={onLogout}
+                                        className="h-12 rounded-2xl bg-destructive items-center justify-center active:opacity-80"
+                                    >
+                                        <Text className="text-white text-base font-semibold" style={{fontFamily: "Inter"}}>
+                                            Logg ut
+                                        </Text>
+                                    </Pressable>
+                                </AlertDialogAction>
+                                <AlertDialogCancel asChild>
+                                    <Pressable className="h-12 rounded-2xl bg-gray-100 dark:bg-secondary/30 items-center justify-center active:bg-gray-200 dark:active:bg-secondary/50">
+                                        <Text className="text-base font-medium text-foreground" style={{fontFamily: "Inter"}}>
+                                            Avbryt
+                                        </Text>
+                                    </Pressable>
+                                </AlertDialogCancel>
+                            </View>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <View className="my-2 border-t border-muted-foreground mx-8" />
-                    {!userEvents.isPending && !previousEvents.isPending && (
-                        <AnimatedPagerView
-                            titles={["Påmeldt", "Tidligere"]}
-
-                        >
-                            <View key={0} className="max-h-[40vh]">
-                                <ScrollView bounces={false} nestedScrollEnabled>
-                                    <DisplayUserEvents userEvents={userEvents} />
-                                </ScrollView>
-                            </View>
-                            <View key={1} className="max-h-[40vh]">
-                                <ScrollView bounces={false} nestedScrollEnabled>
-                                    <DisplayUserEvents userEvents={previousEvents} previous />
-                                </ScrollView>
-                            </View>
-                        </AnimatedPagerView>
-                    )}
                 </View>
             </ScrollView>
         </PageWrapper>
     );
 }
 
-function DisplayUserEvents({ userEvents, previous }: {
+function DisplayUserEvents({ userEvents, router }: {
     userEvents: UseQueryResult<{ results: Event[] }, Error>;
-    previous?: boolean;
+    router: ReturnType<typeof useRouter>;
 }) {
-    const router = useRouter();
 
     if (userEvents.isPending) {
         return (
@@ -165,16 +217,16 @@ function DisplayUserEvents({ userEvents, previous }: {
     }
 
     if (userEvents.isError) {
-        return <Text>Error: {userEvents.error.message}</Text>;
+        return <Text className="text-destructive text-center py-4">{userEvents.error.message}</Text>;
     }
 
     if (userEvents.data.results.length === 0) {
         return (
-            <Text className="text-center h-fit">
-                {previous
-                    ? "Du har ikke deltatt på noen arrangementer"
-                    : "Du er ikke påmeldt noen arrangementer."}
-            </Text>
+            <View className="py-8 items-center">
+                <Text className="text-muted-foreground text-center">
+                    Du er ikke påmeldt noen arrangementer
+                </Text>
+            </View>
         );
     }
 
