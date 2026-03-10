@@ -10,7 +10,7 @@ export default function FinesHeaderButton() {
     return (
         <TouchableWithoutFeedback onPressIn={() => router.push("/(modals)/boter")}>
             <View className="w-10 h-10 items-center justify-center">
-                <Gavel size={22} className="stroke-2 text-foreground" />
+                <Gavel size={22} className="stroke-2 dark:text-white" />
             </View>
         </TouchableWithoutFeedback>
     );
