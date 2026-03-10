@@ -2,7 +2,7 @@ import { getToken } from "@/lib/storage/tokenStore";
 import { BASE_URL } from "../constant";
 import { LeptonError, Registration, User } from "../types";
 
-export async function eventParticipants(eventId: number, pageParam: number): Promise<{ results: Registration[], next: string | null }> {
+export async function eventParticipants(eventId: number, pageParam: number, search?: string): Promise<{ results: Registration[], next: string | null }> {
     const resultsPerPage = 25;
     const token = await getToken();
 
@@ -10,6 +10,8 @@ export async function eventParticipants(eventId: number, pageParam: number): Pro
         page: pageParam.toString(),
         None: resultsPerPage.toString(),
     });
+
+    if (search) queryParams.set('search', search);
 
     const url = `${BASE_URL}/events/${eventId}/registrations/?${queryParams}`;
 

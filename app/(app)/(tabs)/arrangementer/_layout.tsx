@@ -15,12 +15,10 @@ export default function ArrangementerLayout() {
                     headerTitleAlign: "center",
                     headerRight: () => (
                         <TouchableWithoutFeedback onPressIn={() => router.push("/profil")}>
-                            <View>
-                                <Icon icon="UserRound" className="self-center stroke-2 dark:text-white" />
+                            <View className="w-10 h-10 items-center justify-center">
+                                <Icon icon="UserRound" className="stroke-2 dark:text-white" />
                             </View>
                         </TouchableWithoutFeedback>
-
-
                     ),
                 }}
             />
