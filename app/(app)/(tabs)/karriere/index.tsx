@@ -39,7 +39,7 @@ export default function Karriere() {
             <ScrollView
                 refreshControl={refreshControl}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 40 }}
+                contentContainerStyle={{ paddingBottom: 100 }}
             >
                 {/* Header section */}
                 {!jobposts.isPending && (

@@ -139,7 +139,7 @@ export default function Arrangementer() {
                 <FlatList
                     data={allEvents}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 40 }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                     keyboardDismissMode="on-drag"
                     ListHeaderComponent={
                         <View>

@@ -140,7 +140,7 @@ export default function Karriereside() {
                 <ScrollView
                     refreshControl={refreshControl}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 40 }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 >
                     {/* Hero image */}
                     {jobpost.data.image && (
