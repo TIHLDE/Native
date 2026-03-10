@@ -15,6 +15,7 @@ import useRefresh from "@/lib/useRefresh";
 import { Mail, GraduationCap, LogOut, TriangleAlert } from "lucide-react-native";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { SectionHeader } from "@/components/ui/section-header";
+import FinesFAB from "@/components/boter/FinesFAB";
 import { useRef } from "react";
 import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
@@ -204,6 +205,7 @@ export default function Profil() {
                         </BottomSheetView>
                     </InteropBottomSheetModal>
                 </ScrollView>
+                <FinesFAB />
             </PageWrapper>
         </GestureHandlerRootView>
     );

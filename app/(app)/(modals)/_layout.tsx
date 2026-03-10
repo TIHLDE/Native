@@ -33,6 +33,38 @@ export default function ModalsLayout() {
                     headerShown: true,
                 }}
             />
+            <Stack.Screen
+                name="boter/index"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Velg gruppe",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
+                name="boter/[groupSlug]/index"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Velg lov",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
+                name="boter/[groupSlug]/brukere"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Velg brukere",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
+                name="boter/[groupSlug]/bekreft"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Gi bot",
+                    headerShown: true,
+                }}
+            />
         </Stack>
     );
 }
