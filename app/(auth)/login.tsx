@@ -1,14 +1,13 @@
 import login, {LoginInput} from "@/actions/auth/login";
 import {ApiError, LoginData} from "@/actions/types";
 import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
 import {Text} from "@/components/ui/text";
 import {useAuth} from "@/context/auth";
 import TihldeLogo from "@/lib/icons/TihldeLogo";
 import {useMutation} from "@tanstack/react-query";
 import {useRouter} from "expo-router";
-import {useState} from "react";
-import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
+import {useRef, useState} from "react";
+import {SafeAreaProvider} from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -18,14 +17,20 @@ import {
     ScrollView,
     TouchableWithoutFeedback,
     Keyboard,
-    Linking
+    TextInput,
+    ActivityIndicator,
+    Pressable,
 } from "react-native";
 import PageWrapper from "@/components/ui/pagewrapper";
+import {FloatingLabelInput} from "@/components/ui/floating-label-input";
+import {cn} from "@/lib/utils";
+import {User, Lock} from "lucide-react-native";
 
 
 export default function Login() {
     const {setAuthState} = useAuth();
     const router = useRouter();
+    const passwordRef = useRef<TextInput>(null);
 
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -58,6 +63,9 @@ export default function Login() {
 
     const onPress = () => mutate({email, password});
 
+    const isPending = status === "pending";
+    const isDisabled = !email || !password || isPending;
+
     const _handlePressButtonForgotPasswordAsync = async () => {
         await WebBrowser.openBrowserAsync('https://tihlde.org/glemt-passord');
     };
@@ -73,75 +81,108 @@ export default function Login() {
                 style={{flex: 1}}
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <PageWrapper className="px-2">
+                    <PageWrapper className="flex-1 bg-background">
                         <ScrollView
-                            contentContainerStyle={{flexGrow: 1, justifyContent: "flex-start", gap: 15}}
+                            contentContainerStyle={{flexGrow: 1}}
                             keyboardShouldPersistTaps="handled"
-                            className={"px-10"}
+                            showsVerticalScrollIndicator={false}
+                            className="flex-1"
                         >
-                            <View className="gap-y-0 items-center w-full mt-32 mb-16">
-                                <TihldeLogo size="large" className="color-white"/>
+                            {/* Logo */}
+                            <View className="items-center mt-24 mb-10">
+                                <TihldeLogo size="large" />
                             </View>
 
-                            <View className={"gap-y-0 mb-2"}>
-                                <Text className="text-2xl mb-2 font-semibold">
-                                    Logg inn
-                                </Text>
-                                <Text>
-                                    Logg inn med ditt TIHLDE-brukernavn og passord
-                                </Text>
-                            </View>
+                            {/* Content */}
+                            <View className="px-6">
+                                {/* Header */}
+                                <View className="mb-8">
+                                    <Text className="text-3xl font-bold tracking-tight text-foreground">
+                                        Velkommen
+                                    </Text>
+                                    <Text className="text-base text-muted-foreground mt-1.5">
+                                        Logg inn med din TIHLDE-konto
+                                    </Text>
+                                </View>
 
-                            <View className="gap-y-2 mb-10">
-                                <Input
-                                    placeholder={"Brukernavn"}
-                                    className="w-full bg-card border-gray-400 focus:border-black web:transition web:duration dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0 border-b-1"
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    autoCapitalize="none"
-                                    keyboardType="email-address"
-                                />
-                            </View>
+                                {/* Input fields */}
+                                <View className="gap-y-4 mb-6">
+                                    <FloatingLabelInput
+                                        label="Brukernavn"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        icon={<User />}
+                                        autoCapitalize="none"
+                                        autoCorrect={false}
+                                        keyboardType="email-address"
+                                        returnKeyType="next"
+                                        onSubmitEditing={() => passwordRef.current?.focus()}
+                                        blurOnSubmit={false}
+                                    />
 
-                            <View className="gap-y-2  mb-2">
-                                <Input
-                                    placeholder={"Passord"}
-                                    className="w-full bg-card border-gray-400 focus:border-black web:transition web:duration-200 dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0"
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    secureTextEntry
-                                    returnKeyType="done"
-                                />
-                            </View>
+                                    <FloatingLabelInput
+                                        ref={passwordRef}
+                                        label="Passord"
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        icon={<Lock />}
+                                        secureTextEntry
+                                        returnKeyType="done"
+                                        onSubmitEditing={() => {
+                                            if (!isDisabled) onPress();
+                                        }}
+                                    />
+                                </View>
 
-                            <View className=" mb-1">
-                                <Button
+                                {/* Forgot password — right aligned, subtle */}
+                                <View className="items-end mb-8">
+                                    <Pressable
+                                        onPress={_handlePressButtonForgotPasswordAsync}
+                                        hitSlop={8}
+                                    >
+                                        <Text className="text-sm text-primary dark:text-accent">
+                                            Glemt passord?
+                                        </Text>
+                                    </Pressable>
+                                </View>
+
+                                {/* Login button */}
+                                <Pressable
                                     onPress={onPress}
-                                    disabled={!email || !password || status === "pending"}
-                                    className="w-full mt-4 "
-                                    size={"lg"}
+                                    disabled={isDisabled}
+                                    className={cn(
+                                        "h-14 rounded-2xl items-center justify-center",
+                                        isDisabled
+                                            ? "bg-primary/40 dark:bg-primary/30"
+                                            : "bg-primary dark:bg-[#1C5ECA] active:opacity-80"
+                                    )}
                                 >
+                                    {isPending ? (
+                                        <ActivityIndicator color="white" />
+                                    ) : (
+                                        <Text
+                                            className="text-white text-base font-semibold"
+                                            style={{fontFamily: "Inter"}}
+                                        >
+                                            Logg inn
+                                        </Text>
+                                    )}
+                                </Pressable>
 
-                                    <Text>
-                                        {status === "pending"
-                                            ? "Logger inn..."
-                                            : "Logg inn"
-                                        }
+                                {/* Create account */}
+                                <View className="flex-row items-center justify-center mt-8">
+                                    <Text className="text-sm text-muted-foreground">
+                                        Har du ikke en konto?{" "}
                                     </Text>
-                                </Button>
-                            </View>
-
-                            <View className="flex flex-row justify-between ">
-                                <Button variant={"link"} className={""} onPress={_handlePressButtonForgotPasswordAsync} >
-                                    <Text className="dark:text-accent">
-                                        Glemt passord?
-                                    </Text>
-                                </Button>
-                                <Button variant={"link"} className={""} onPress={_handlePressButtonCreateUserAsync} >
-                                    <Text className="dark:text-accent">
-                                        Opprett bruker
-                                    </Text>
-                                </Button>
+                                    <Pressable
+                                        onPress={_handlePressButtonCreateUserAsync}
+                                        hitSlop={8}
+                                    >
+                                        <Text className="text-sm font-semibold text-primary dark:text-accent">
+                                            Opprett bruker
+                                        </Text>
+                                    </Pressable>
+                                </View>
                             </View>
                         </ScrollView>
                     </PageWrapper>
@@ -149,4 +190,4 @@ export default function Login() {
             </KeyboardAvoidingView>
         </SafeAreaProvider>
     );
-};
+}
