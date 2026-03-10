@@ -1,31 +1,18 @@
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, Image, ActivityIndicator } from "react-native";
+import { View, Image, ActivityIndicator, Pressable } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
-import { Card } from "@/components/ui/card";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { BASE_URL } from "@/actions/constant";
-import { Button } from "@/components/ui/button";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
-import Alert from "@/components/ui/alert";
 import { useEffect, useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import * as WebBrowser from "expo-web-browser";
 import me, { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import Icon from "@/lib/icons/Icon";
 import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
 import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
@@ -34,7 +21,113 @@ import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import UserCard from "@/components/ui/userCard";
 import ImageMissing from "@/components/ui/imageMissing";
 import useRefresh from "@/lib/useRefresh";
+import { SectionHeader } from "@/components/ui/section-header";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { isBefore, isAfter } from "date-fns";
+import {
+    CalendarDays,
+    Clock,
+    MapPin,
+    Users,
+    UserRound,
+    CreditCard,
+    CalendarOff,
+    ClipboardList,
+    CircleCheck,
+    LogOut,
+    ChevronLeft,
+    TriangleAlert,
+    Info,
+    OctagonX,
+} from "lucide-react-native";
+
+function DetailRow({
+    icon,
+    label,
+    value,
+    isLast = false,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    isLast?: boolean;
+}) {
+    return (
+        <>
+            <View className="flex-row items-center px-4 py-3.5">
+                {icon}
+                <View className="ml-3 flex-1">
+                    <Text className="text-xs text-muted-foreground mb-0.5" style={{ fontFamily: "Inter" }}>
+                        {label}
+                    </Text>
+                    <Text className="text-base text-foreground" numberOfLines={1}>
+                        {value}
+                    </Text>
+                </View>
+            </View>
+            {!isLast && <View className="h-px bg-border dark:bg-muted ml-12" />}
+        </>
+    );
+}
+
+function DetailSkeleton() {
+    return (
+        <PageWrapper className="flex-1 bg-background">
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Image skeleton */}
+                <View className="w-full aspect-[16/9] bg-muted dark:bg-secondary/40 animate-pulse" />
+
+                <View className="px-6 pt-5">
+                    {/* Title skeleton */}
+                    <View className="h-7 w-3/4 bg-muted dark:bg-secondary/40 rounded-md animate-pulse mb-2" />
+                    <View className="h-4 w-1/3 bg-muted dark:bg-secondary/40 rounded-md animate-pulse mb-6" />
+
+                    {/* Details card skeleton */}
+                    <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-6">
+                        {[1, 2, 3, 4].map((i) => (
+                            <View key={i}>
+                                <View className="flex-row items-center px-4 py-3.5">
+                                    <View className="w-[18px] h-[18px] bg-muted dark:bg-secondary/50 rounded animate-pulse" />
+                                    <View className="ml-3">
+                                        <View className="h-3 w-16 bg-muted dark:bg-secondary/50 rounded animate-pulse mb-1.5" />
+                                        <View className="h-4 w-32 bg-muted dark:bg-secondary/50 rounded animate-pulse" />
+                                    </View>
+                                </View>
+                                {i < 4 && <View className="h-px bg-border dark:bg-muted ml-12" />}
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Registration card skeleton */}
+                    <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-6">
+                        {[1, 2, 3].map((i) => (
+                            <View key={i}>
+                                <View className="flex-row items-center px-4 py-3.5">
+                                    <View className="w-[18px] h-[18px] bg-muted dark:bg-secondary/50 rounded animate-pulse" />
+                                    <View className="ml-3">
+                                        <View className="h-3 w-16 bg-muted dark:bg-secondary/50 rounded animate-pulse mb-1.5" />
+                                        <View className="h-4 w-24 bg-muted dark:bg-secondary/50 rounded animate-pulse" />
+                                    </View>
+                                </View>
+                                {i < 3 && <View className="h-px bg-border dark:bg-muted ml-12" />}
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Button skeleton */}
+                    <View className="h-14 bg-muted dark:bg-secondary/40 rounded-2xl animate-pulse mb-6" />
+
+                    {/* Content skeleton */}
+                    <View className="gap-2">
+                        <View className="h-4 w-full bg-muted dark:bg-secondary/40 rounded animate-pulse" />
+                        <View className="h-4 w-5/6 bg-muted dark:bg-secondary/40 rounded animate-pulse" />
+                        <View className="h-4 w-4/6 bg-muted dark:bg-secondary/40 rounded animate-pulse" />
+                    </View>
+                </View>
+            </ScrollView>
+        </PageWrapper>
+    );
+}
 
 export default function ArrangementSide() {
     const params = useLocalSearchParams();
@@ -43,6 +136,9 @@ export default function ArrangementSide() {
     const router = useRouter();
     const permissions = usePermissions();
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const unregisterSheetRef = useRef<BottomSheetModal>(null);
+    const { isDarkColorScheme } = useColorScheme();
+    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
 
     const event = useQuery({
         queryKey: ["event", id],
@@ -51,16 +147,13 @@ export default function ArrangementSide() {
         },
     });
 
-    const { data: registration } = useQuery({
+    const { data: registration, isPending: registrationPending } = useQuery({
         queryKey: ["event", id, "registration"],
         queryFn: async () => iAmRegisteredToEvent(Number(id)),
     });
 
     const registrationMutation = useMutation({
         mutationFn: async (eventId: number) => {
-            if (registration) {
-                return unregisterFromEvent(eventId);
-            }
             return registerToEvent(eventId);
         },
         onSuccess: async () => {
@@ -89,167 +182,197 @@ export default function ArrangementSide() {
         return (
             <>
                 <Stack.Screen options={{ title: "" }} />
-                <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                    <Text className="text-lg">Laster arrangement...</Text>
-                </View>
+                <DetailSkeleton />
             </>
         );
     }
 
     if (event.error || permissions.isError) {
         return (
-            <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg text-red-500">Feil: {event.error?.message}</Text>
-            </View>
+            <PageWrapper className="flex-1 bg-background">
+                <Stack.Screen options={{ title: "" }} />
+                <View className="flex-1 items-center justify-center px-6">
+                    <Text className="text-base text-destructive">{event.error?.message}</Text>
+                </View>
+            </PageWrapper>
         );
     }
 
-    if (!event) {
+    if (!event.data) {
         return (
-            <View className="ml-auto mr-auto p-20 shadow-lg rounded-lg mt-10">
-                <Text className="text-lg">Ingen data funnet.</Text>
-            </View>
+            <PageWrapper className="flex-1 bg-background">
+                <Stack.Screen options={{ title: "" }} />
+                <View className="flex-1 items-center justify-center px-6">
+                    <Text className="text-base text-muted-foreground">Ingen data funnet.</Text>
+                </View>
+            </PageWrapper>
         );
     }
+
+    const formatDate = (dateStr: string) =>
+        new Date(dateStr).toLocaleDateString("no-NO", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+
+    const formatTime = (dateStr: string) =>
+        new Date(dateStr).toLocaleTimeString("no-NO", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <Stack.Screen options={{ title: '' }} />
-            <PageWrapper>
-                <ScrollView refreshControl={refreshControl}>
-                    <View>
-                        {event.data.image
-                            ? <Image
+            <Stack.Screen options={{
+                title: event.data.organizer?.name || '',
+                headerLeft: () => (
+                    <Pressable onPress={() => router.back()} className="flex-row items-center -ml-2">
+                        <ChevronLeft size={28} color={isDarkColorScheme ? '#ffffff' : '#000000'} />
+                        <Text className="text-[17px] text-foreground -ml-1">Tilbake</Text>
+                    </Pressable>
+                ),
+            }} />
+            <PageWrapper className="flex-1 bg-background">
+                <ScrollView
+                    refreshControl={refreshControl}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                >
+                    {/* Hero image */}
+                    <View className="w-full aspect-[16/9] overflow-hidden">
+                        {event.data.image ? (
+                            <Image
                                 source={{ uri: event.data.image }}
-                                className="w-full h-48"
+                                className="w-full h-full"
                                 resizeMode="cover"
                             />
-                            :
-                            <View className="w-full h-48 bg-primary-foreground flex items-center justify-center">
-                                <ImageMissing />
-                            </View>
-                        }
+                        ) : (
+                            <ImageMissing />
+                        )}
                     </View>
-                    <View className="flex flex-col text-3xl px-2 py-5">
-                        <Text className="text-4xl font-semibold pl-2">{event.data.title}</Text>
-                        <Card className="mx-auto w-[100%] border-2 border-gray-200 dark:border-gray-900 bg-card rounded-lg mt-5 px-3 py-2">
-                            <Text className="text-2xl mb-6  font-bold">Detaljer</Text>
-                            <View className="flex flex-row justify-start items-start">
-                                <View className="ml-2 mr-10">
-                                    <Text className="text-md text-muted-foreground mb-2">Fra:</Text>
-                                    <Text className="text-md text-muted-foreground mb-2">Til:</Text>
-                                    <Text className="text-md text-muted-foreground mb-2">Sted:</Text>
-                                    <Text className="text-md text-muted-foreground mb-2">Arrangør:</Text>
-                                    <Text className="text-md text-muted-foreground mb-2">Kontaktperson:</Text>
-                                    {event.data.paid_information?.price && (
-                                        <Text className="text-md ">Pris:</Text>
-                                    )}
-                                </View>
-                                <View>
-                                    <Text className="text-md mb-2">
-                                        {new Date(event.data.start_date).toLocaleDateString("no-NO", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                        })}{" "}
-                                        kl.{" "}
-                                        {new Date(event.data.start_date).toLocaleTimeString("no-NO", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </Text>
-                                    <Text className="text-md mb-2">
-                                        {new Date(event.data.end_date).toLocaleDateString("no-NO", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                        })}{" "}
-                                        kl.{" "}
-                                        {new Date(event.data.end_date).toLocaleTimeString("no-NO", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </Text>
-                                    <Text className="text-md mb-2">{event.data.location || "Ikke oppgitt"}</Text>
-                                    <Text className="text-md mb-2">{event.data.organizer?.name || "Ikke oppgitt"}</Text>
-                                    <Text className="text-md mb-2">
-                                        {event.data.contact_person
-                                            ? `${event.data.contact_person.first_name} ${event.data.contact_person.last_name}`
-                                            : "Ikke oppgitt"}
-                                    </Text>
-                                    {event.data.paid_information?.price && (
-                                        <Text className="text-md">{event.data.paid_information.price}</Text>
-                                    )}
-                                </View>
-                            </View>
-                        </Card>
-                        {permissions.data?.event?.write && event.data.sign_up &&
-                            <Button onPress={() => router.push({
-                                pathname: "/(modals)/arrangement/[arrangementId]/event-register",
-                                params: { arrangementId: id as string },
-                            })} className="mt-5">
-                                <Text>Registrer oppmøte </Text>
-                            </Button>
-                        }
-                        {
-                            event.data.sign_up && <>
-                                <Card className="mx-auto w-[100%] border-2 border-gray-200 dark:border-gray-900 bg-card rounded-lg mt-5 px-3 py-2">
-                                    <Text className="text-2xl mb-6 font-bold">Påmelding</Text>
-                                    <View className="flex flex-row justify-start items-start">
-                                        <View className="mr-10">
-                                            <Text className="text-md text-muted-foreground mb-2">Påmeldte:</Text>
-                                            <Text className="text-md text-muted-foreground mb-2">Venteliste:</Text>
-                                            <Text className="text-md text-muted-foreground mb-2">Avmeldingsfrist:</Text>
-                                        </View>
-                                        <View>
-                                            <Text className="text-md mb-2">
-                                                {event.data.list_count}/{event.data.limit === 0 ? "∞" : event.data.limit}
-                                            </Text>
-                                            <Text className="text-md mb-2">
-                                                {event.data.waiting_list_count}
-                                            </Text>
-                                            <Text className="text-md mb-2">
-                                                {new Date(event.data.sign_off_deadline).toLocaleDateString("no-NO", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                })}{" "}
-                                                kl.{" "}
-                                                {new Date(event.data.sign_off_deadline).toLocaleTimeString("no-NO", {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                })}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                    <View className="absolute right-0 top-0">
-                                        <Button variant="ghost" onPress={() => {
-                                            bottomSheetModalRef.current?.present();
 
-                                        }}>
-                                            <Icon icon="UserRound" className="color-primary stroke-2" />
-                                        </Button>
-                                    </View>
-                                </Card>
+                    <View className="px-6">
+                        {/* Title section */}
+                        <View className="pt-5 pb-1 mb-4">
+                            <Text className="text-2xl font-bold text-foreground mb-1">
+                                {event.data.title}
+                            </Text>
+                            <Text className="text-base text-muted-foreground">
+                                {event.data.organizer?.name || "Ukjent arrangør"}
+                            </Text>
+                        </View>
+
+                        {/* Details card */}
+                        <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-6">
+                            <DetailRow
+                                icon={<CalendarDays size={18} color={mutedColor} />}
+                                label="Dato"
+                                value={formatDate(event.data.start_date)}
+                            />
+                            <DetailRow
+                                icon={<Clock size={18} color={mutedColor} />}
+                                label="Tid"
+                                value={`${formatTime(event.data.start_date)} – ${formatTime(event.data.end_date)}`}
+                            />
+                            <DetailRow
+                                icon={<MapPin size={18} color={mutedColor} />}
+                                label="Sted"
+                                value={event.data.location || "Ikke oppgitt"}
+                            />
+                            <DetailRow
+                                icon={<UserRound size={18} color={mutedColor} />}
+                                label="Kontaktperson"
+                                value={
+                                    event.data.contact_person
+                                        ? `${event.data.contact_person.first_name} ${event.data.contact_person.last_name}`
+                                        : "Ikke oppgitt"
+                                }
+                            />
+                            {event.data.paid_information?.price && (
+                                <DetailRow
+                                    icon={<CreditCard size={18} color={mutedColor} />}
+                                    label="Pris"
+                                    value={event.data.paid_information.price}
+                                    isLast
+                                />
+                            )}
+                        </View>
+
+                        {/* Admin: register attendance button */}
+                        {permissions.data?.event?.write && event.data.sign_up && (
+                            <Pressable
+                                onPress={() => router.push({
+                                    pathname: "/(modals)/arrangement/[arrangementId]/event-register",
+                                    params: { arrangementId: id as string },
+                                })}
+                                className="h-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex-row items-center justify-center mb-6 active:opacity-70"
+                            >
+                                <ClipboardList size={18} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                                <Text className="text-base font-semibold text-primary dark:text-accent ml-2" style={{ fontFamily: "Inter" }}>
+                                    Registrer oppmøte
+                                </Text>
+                            </Pressable>
+                        )}
+
+                        {/* Registration section */}
+                        {event.data.sign_up && (
+                            <>
+                                <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-4">
+                                    <DetailRow
+                                        icon={<Users size={18} color={mutedColor} />}
+                                        label="Påmeldte"
+                                        value={`${event.data.list_count}/${event.data.limit === 0 ? "∞" : event.data.limit}`}
+                                    />
+                                    <DetailRow
+                                        icon={<Users size={18} color={mutedColor} />}
+                                        label="Venteliste"
+                                        value={String(event.data.waiting_list_count)}
+                                    />
+                                    <DetailRow
+                                        icon={<CalendarOff size={18} color={mutedColor} />}
+                                        label="Avmeldingsfrist"
+                                        value={`${formatDate(event.data.sign_off_deadline)} kl. ${formatTime(event.data.sign_off_deadline)}`}
+                                        isLast
+                                    />
+                                </View>
+
                                 <RegistrationButton
                                     event={event.data}
                                     registration={registration}
+                                    registrationPending={registrationPending}
                                     mutationPending={registrationMutation.isPending}
                                     onClick={() => registrationMutation.mutate(Number(id))}
+                                    unregisterSheetRef={unregisterSheetRef}
                                 />
+
+                                {/* View participants button */}
+                                <Pressable
+                                    onPress={() => bottomSheetModalRef.current?.present()}
+                                    className="flex-row items-center justify-center py-3 mb-2 active:opacity-70"
+                                >
+                                    <Icon icon="UserRound" className="color-primary dark:color-accent stroke-2" />
+                                    <Text className="text-sm font-semibold text-primary dark:text-accent ml-1.5" style={{ fontFamily: "Inter" }}>
+                                        Se deltagerliste
+                                    </Text>
+                                </Pressable>
                             </>
-                        }
-                        <View className="p-5">
-                            <Text className="text-2xl font-bold mb-4">{event.data.title}</Text>
-                            <MarkdownView content={event.data.description ?? "Ingen beskrivelse tilgjengelig"} />
-                        </View>
+                        )}
+
+                        {/* Description */}
+                        {event.data.description && (
+                            <View className="mt-6 mb-4">
+                                <SectionHeader title="Om arrangementet" className="mb-4" />
+                                <MarkdownView content={event.data.description} />
+                            </View>
+                        )}
                     </View>
+
                     <InteropBottomSheetModal ref={bottomSheetModalRef}
                         backgroundStyleClassName="bg-primary-foreground rounded-3xl"
                         snapPoints={["75%"]}
                         index={0}
                         enableDynamicSizing={false}
-
                         backdropComponent={(props) => (
                             <BottomSheetBackdrop
                                 opacity={0.5}
@@ -258,7 +381,25 @@ export default function ArrangementSide() {
                                 {...props}
                             />
                         )} >
-                        <EventParticipantsModal eventId={Number(id)} />
+                        <EventParticipantsModal eventId={Number(id)} totalCount={event.data.list_count} />
+                    </InteropBottomSheetModal>
+
+                    <InteropBottomSheetModal ref={unregisterSheetRef}
+                        backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                        enableDynamicSizing
+                        backdropComponent={(props) => (
+                            <BottomSheetBackdrop
+                                opacity={0.5}
+                                appearsOnIndex={0}
+                                disappearsOnIndex={-1}
+                                {...props}
+                            />
+                        )} >
+                        <UnregisterDrawer
+                            eventId={Number(id)}
+                            isPastDeadline={isBefore(new Date(event.data.sign_off_deadline), new Date())}
+                            sheetRef={unregisterSheetRef}
+                        />
                     </InteropBottomSheetModal>
                 </ScrollView>
             </PageWrapper>
@@ -266,7 +407,116 @@ export default function ArrangementSide() {
     );
 }
 
-function EventParticipantsModal({ eventId }: { eventId: number }) {
+function UnregisterDrawer({
+    eventId,
+    isPastDeadline,
+    sheetRef,
+}: {
+    eventId: number;
+    isPastDeadline: boolean;
+    sheetRef: React.RefObject<BottomSheetModal | null>;
+}) {
+    const { isDarkColorScheme } = useColorScheme();
+    const queryClient = useQueryClient();
+    const [status, setStatus] = useState<'confirm' | 'loading' | 'success'>('confirm');
+
+    const unregisterMutation = useMutation({
+        mutationFn: () => unregisterFromEvent(eventId),
+        onSuccess: async () => {
+            setStatus('success');
+            await queryClient.invalidateQueries({ queryKey: ["event"] });
+            setTimeout(() => {
+                sheetRef.current?.dismiss();
+                // Reset state after dismiss animation
+                setTimeout(() => setStatus('confirm'), 300);
+            }, 2500);
+        },
+        onError: (error) => {
+            setStatus('confirm');
+            sheetRef.current?.dismiss();
+            Toast.show({
+                text1: "Feil",
+                text2: error.message || "Kunne ikke melde deg av. Prøv igjen senere.",
+                type: "error",
+            });
+        },
+    });
+
+    const handleUnregister = () => {
+        setStatus('loading');
+        unregisterMutation.mutate();
+    };
+
+    if (status === 'loading') {
+        return (
+            <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-8">
+                <View className="items-center py-4">
+                    <ActivityIndicator size="large" />
+                    <Text className="text-base text-muted-foreground mt-4">
+                        Melder deg av...
+                    </Text>
+                </View>
+            </BottomSheetView>
+        );
+    }
+
+    if (status === 'success') {
+        return (
+            <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
+                <View className="items-center py-4">
+                    <View className="w-14 h-14 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
+                        <CircleCheck size={26} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                    </View>
+                    <Text className="text-xl font-bold text-foreground text-center">
+                        Avmeldt
+                    </Text>
+                    <Text className="text-sm text-muted-foreground text-center mt-1">
+                        Du er nå meldt av arrangementet.
+                    </Text>
+                </View>
+            </BottomSheetView>
+        );
+    }
+
+    return (
+        <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
+            <View className="items-center mb-4">
+                <View className="w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 items-center justify-center mb-4">
+                    <TriangleAlert size={26} color={isDarkColorScheme ? '#f87171' : '#dc2626'} />
+                </View>
+                <Text className="text-xl font-bold text-foreground text-center">
+                    Meld deg av?
+                </Text>
+                <Text className="text-sm text-muted-foreground text-center mt-1">
+                    {isPastDeadline
+                        ? 'Avmeldingsfristen har gått ut. Ved å melde deg av vil du få en prikk.'
+                        : 'Er du sikker på at du vil melde deg av dette arrangementet?'
+                    }
+                </Text>
+            </View>
+            <View className="gap-y-2">
+                <Pressable
+                    onPress={handleUnregister}
+                    className="h-12 rounded-2xl bg-destructive items-center justify-center active:opacity-80"
+                >
+                    <Text className="text-white text-base font-semibold" style={{ fontFamily: "Inter" }}>
+                        Meld meg av
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={() => sheetRef.current?.dismiss()}
+                    className="h-12 rounded-2xl bg-gray-100 dark:bg-secondary/30 items-center justify-center active:bg-gray-200 dark:active:bg-secondary/50"
+                >
+                    <Text className="text-base font-medium text-foreground" style={{ fontFamily: "Inter" }}>
+                        Avbryt
+                    </Text>
+                </Pressable>
+            </View>
+        </BottomSheetView>
+    );
+}
+
+function EventParticipantsModal({ eventId, totalCount }: { eventId: number; totalCount: string }) {
     const {
         data,
         fetchNextPage,
@@ -286,8 +536,12 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
 
     if (isError) {
         return (
-            <BottomSheetView className="p-5 bg-primary-foreground">
-                <Text className="text-center mt-4 text-xl text-destructive p-4">
+            <BottomSheetView className="bg-primary-foreground flex-1">
+                <View className="px-4 pt-4 pb-3">
+                    <Text className="text-lg font-bold text-center text-foreground">Deltagerliste</Text>
+                </View>
+                <View className="h-px bg-border dark:bg-muted" />
+                <Text className="text-center mt-8 text-base text-destructive px-4">
                     Kunne ikke hente deltagere. Prøv igjen senere.
                 </Text>
             </BottomSheetView>
@@ -296,26 +550,48 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
 
     if (isPending) {
         return (
-            <BottomSheetView className="p-5 bg-primary-foreground">
-                <ActivityIndicator />
+            <BottomSheetView className="bg-primary-foreground flex-1">
+                <View className="px-4 pt-4 pb-3">
+                    <Text className="text-lg font-bold text-center text-foreground">Deltagerliste</Text>
+                </View>
+                <View className="h-px bg-border dark:bg-muted" />
+                <View className="pt-8">
+                    <ActivityIndicator />
+                </View>
             </BottomSheetView>
         );
     }
 
+    const participants = data?.pages.flatMap((page) =>
+        page ? page.results.filter((registration) => registration.user_info !== null) : []
+    ) ?? [];
+
     return (
         <BottomSheetFlatList
-            className="p-5 bg-primary-foreground"
-            data={data?.pages.flatMap((page) => (page ? page.results.filter((registration) => registration.user_info !== null) : []))}
-            renderItem={({ item: registration }) => <UserCard user={registration.user_info} />}
+            className="bg-primary-foreground"
+            data={participants}
+            stickyHeaderIndices={[0]}
+            renderItem={({ item: registration }) => (
+                <>
+                    <UserCard user={registration.user_info} />
+                    <View className="h-px bg-border dark:bg-muted" />
+                </>
+            )}
+            keyExtractor={(item, index) => item.user_info?.user_id?.toString() ?? index.toString()}
             onEndReached={() => {
                 if (!hasNextPage) return;
                 fetchNextPage();
             }}
             ListHeaderComponent={
-                <>
-                    <Text className="m-auto text-3xl"> Deltagerliste </Text>
-                    <View className="border-t border-muted-foreground w-full mt-5 mb-5" />
-                </>
+                <View className="bg-primary-foreground">
+                    <View className="px-4 pt-4 pb-3">
+                        <Text className="text-lg font-bold text-center text-foreground">Deltagerliste</Text>
+                        <Text className="text-sm text-muted-foreground text-center mt-0.5">
+                            {totalCount} deltager{totalCount !== '1' ? 'e' : ''}
+                        </Text>
+                    </View>
+                    <View className="h-px bg-border dark:bg-muted" />
+                </View>
             }
             ListFooterComponent={
                 <View className="h-20">
@@ -329,13 +605,17 @@ function EventParticipantsModal({ eventId }: { eventId: number }) {
 function RegistrationButton({
     event,
     registration,
+    registrationPending,
     onClick,
     mutationPending,
+    unregisterSheetRef,
 }: {
     event: Event;
     registration?: Registration | null;
+    registrationPending?: boolean;
     onClick?: () => void;
     mutationPending?: boolean;
+    unregisterSheetRef: React.RefObject<BottomSheetModal | null>;
 }) {
     const user = useQuery({
         queryKey: ["users", "me"],
@@ -412,87 +692,106 @@ function RegistrationButton({
         setButtonText(getButtonText(event));
     }, [event, registration, user]);
 
-    const [showUnregisterDialog, setShowUnregisterDialog] = useState<boolean>();
+    if (user.isPending || registrationPending) {
+        return (
+            <View className="h-14 bg-muted dark:bg-secondary/40 rounded-2xl animate-pulse mb-2" />
+        );
+    }
 
-    if (user.isPending) return <></>;
+    const statusBannerStyles: Record<string, { bg: string; iconColor: string; textColor: string }> = {
+        success: { bg: 'bg-primary/10 dark:bg-primary/20', iconColor: '#2d5dab', textColor: 'text-primary dark:text-accent' },
+        info: { bg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: '#ea580c', textColor: 'text-orange-600 dark:text-orange-400' },
+        warning: { bg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: '#ea580c', textColor: 'text-orange-600 dark:text-orange-400' },
+        error: { bg: 'bg-destructive/10 dark:bg-destructive/20', iconColor: '#dc2626', textColor: 'text-destructive' },
+    };
+
+    const statusIcon: Record<string, React.ReactNode> = {
+        success: <CircleCheck size={18} color={statusBannerStyles.success.iconColor} />,
+        info: <Info size={18} color={statusBannerStyles.info.iconColor} />,
+        warning: <TriangleAlert size={18} color={statusBannerStyles.warning.iconColor} />,
+        error: <OctagonX size={18} color={statusBannerStyles.error.iconColor} />,
+    };
+
+    const bannerStyle = statusBannerStyles[alertType] ?? statusBannerStyles.success;
 
     return (
         <>
             {showAlert && (
-                <Alert type={alertType} className="mt-5">
-                    <Text>
-                        {showCountdown && countdownTime && countdownIsForPayment ? (
-                            <CountTextWrapper
-                                interval={1000}
-                                prefix="Du er påmeldt, men har "
-                                suffix=" på å betale for å beholde plassen."
-                                startCount={new Date(countdownTime.getTime() - Date.now())}
-                            />
-                        ) : (
-                            alertMessage
-                        )}
-                    </Text>
-                </Alert>
+                <View className={`flex-row items-center px-4 py-3.5 rounded-2xl mb-4 ${bannerStyle.bg}`}>
+                    {statusIcon[alertType]}
+                    <View className="ml-3 flex-1">
+                        <Text className={`text-sm ${bannerStyle.textColor}`}>
+                            {showCountdown && countdownTime && countdownIsForPayment ? (
+                                <CountTextWrapper
+                                    interval={1000}
+                                    prefix="Du er påmeldt, men har "
+                                    suffix=" på å betale for å beholde plassen."
+                                    startCount={new Date(countdownTime.getTime() - Date.now())}
+                                />
+                            ) : (
+                                alertMessage
+                            )}
+                        </Text>
+                    </View>
+                </View>
             )}
 
             {showCountdown && countdownTime && countdownIsForPayment && <PaymentButton eventId={event.id} />}
 
             {isAfter(new Date(event.end_date), new Date()) && (
-                <Button
-                    onPress={() => {
-                        if (isBefore(new Date(event.end_registration_at), new Date()) && registration) {
-                            setShowUnregisterDialog(true);
-                            return;
-                        }
-                        onClick?.();
-                    }}
-                    className="mt-5"
-                    variant={isDestructive ? "destructive" : "default"}
-                    disabled={isDisabled}
-                >
-                    {mutationPending ? (
-                        <ActivityIndicator />
-                    ) : (
-                        <>
-                            {showCountdown && countdownTime && !countdownIsForPayment ? (
-                                <CountTextWrapper
-                                    interval={1000}
-                                    prefix="Påmelding åpner om "
-                                    suffix=""
-                                    startCount={new Date(countdownTime.getTime() - Date.now())}
-                                    onCountdownFinished={() => {
-                                        setShowCountdown(false);
-                                        setIsDisabled(false);
-                                        setButtonText("Meld deg på arrangementet");
-                                    }}
-                                />
-                            ) : (
-                                <Text>{buttonText}</Text>
-                            )}
-                        </>
-                    )}
-                </Button>
+                isDestructive ? (
+                    /* Unregister button — matches profile logout style */
+                    <Pressable
+                        onPress={() => unregisterSheetRef.current?.present()}
+                        disabled={isDisabled || mutationPending}
+                        className={`h-14 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-70 ${
+                            isDisabled ? 'bg-destructive/5 dark:bg-destructive/10' : 'bg-destructive/10 dark:bg-destructive/20'
+                        }`}
+                    >
+                        {mutationPending ? (
+                            <ActivityIndicator />
+                        ) : (
+                            <>
+                                <LogOut size={18} color={isDisabled ? '#f8717180' : '#dc2626'} />
+                                <Text className={`text-base font-semibold ml-2 ${isDisabled ? 'text-destructive/50' : 'text-destructive'}`} style={{ fontFamily: "Inter" }}>
+                                    {buttonText}
+                                </Text>
+                            </>
+                        )}
+                    </Pressable>
+                ) : (
+                    /* Register button */
+                    <Pressable
+                        onPress={() => onClick?.()}
+                        disabled={isDisabled || mutationPending}
+                        className={`h-14 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-80 ${
+                            isDisabled ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary dark:bg-[#1C5ECA]'
+                        }`}
+                    >
+                        {mutationPending ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text className="text-white text-base font-semibold" style={{ fontFamily: "Inter" }}>
+                                {showCountdown && countdownTime && !countdownIsForPayment ? (
+                                    <CountTextWrapper
+                                        interval={1000}
+                                        prefix="Påmelding åpner om "
+                                        suffix=""
+                                        startCount={new Date(countdownTime.getTime() - Date.now())}
+                                        onCountdownFinished={() => {
+                                            setShowCountdown(false);
+                                            setIsDisabled(false);
+                                            setButtonText("Meld deg på arrangementet");
+                                        }}
+                                    />
+                                ) : (
+                                    buttonText
+                                )}
+                            </Text>
+                        )}
+                    </Pressable>
+                )
             )}
-            <AlertDialog open={showUnregisterDialog} onOpenChange={setShowUnregisterDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Er du sikker?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Ved å melde deg av dette arrangementet vil du få en prikk
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>
-                            <Text>Avbryt</Text>
-                        </AlertDialogCancel>
-                        <AlertDialogAction asChild>
-                            <Button onPress={() => onClick?.()}>
-                                <Text>Bekreft</Text>
-                            </Button>
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </>
     );
 }
@@ -506,7 +805,7 @@ function PaymentButton({ eventId }: { eventId: number }) {
     });
 
     return (
-        <Button
+        <Pressable
             onPress={() => {
                 const paymentLink = payment.data?.payment_link || "https://tihlde.org/arrangementer/" + eventId;
                 WebBrowser.openBrowserAsync(paymentLink).then(() => {
@@ -514,12 +813,22 @@ function PaymentButton({ eventId }: { eventId: number }) {
                     queryClient.refetchQueries({ queryKey: ["event"] });
                 });
             }}
-            className="mx-5 mt-5"
-            variant="default"
             disabled={payment.isPending}
+            className={`h-14 rounded-2xl flex-row items-center justify-center mb-4 active:opacity-80 ${
+                payment.isPending ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary dark:bg-[#1C5ECA]'
+            }`}
         >
-            {payment.isPending ? <ActivityIndicator /> : <Text>Betal her</Text>}
-        </Button>
+            {payment.isPending ? (
+                <ActivityIndicator color="white" />
+            ) : (
+                <>
+                    <CreditCard size={16} color="white" />
+                    <Text className="text-white text-base font-semibold ml-2" style={{ fontFamily: "Inter" }}>
+                        Betal her
+                    </Text>
+                </>
+            )}
+        </Pressable>
     );
 }
 

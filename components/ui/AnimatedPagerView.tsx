@@ -1,8 +1,7 @@
 
-import { Children, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import Animated, { useSharedValue, withSpring } from 'react-native-reanimated';
 import { Text } from './text';
 
 
@@ -13,63 +12,43 @@ interface AnimatedPagerViewProps {
     onPageChange?: (index: number) => void;
 }
 
-//TODO: lag en ny pager view som fungerer, gjerne uten react-native-pager-view
-// vurdere evt å lage en issue på react-native-pager-view men virker som at 
-// de folka er jævlig treige på å fikse ting
-
 export default function AnimatedPagerView(props: AnimatedPagerViewProps) {
-    const xpos = useSharedValue(0);
-    const outerRef = useRef<View>(null);
     const pagerViewRef = useRef<PagerView>(null);
-    const [width, setWidth] = useState(0);
-
-    const numberOfPages = Children.count(props.children);
-
-    useEffect(() => {
-        if (outerRef.current) {
-            outerRef.current.measure((x, y, w, h) => {
-                setWidth(w);
-            });
-        }
-    }, [outerRef.current]);
-
-    const handleScroll = (e) => {
-        xpos.value = (e.nativeEvent.offset + e.nativeEvent.position) * (width / numberOfPages)
-    };
-
-    const scrollIndicatorWidth = 100 / numberOfPages;
+    const [activeIndex, setActiveIndex] = useState(0);
 
     return (
-        <View className={props.className} ref={outerRef} >
-            <View className="flex-row w-full justify-center">
+        <View className={props.className}>
+            {/* Tab bar */}
+            <View className="mx-4 mb-4 flex-row bg-gray-100 dark:bg-secondary/30 rounded-2xl p-1">
                 {props.titles.map((title, index) => {
+                    const isActive = activeIndex === index;
                     return (
-
-                        <Pressable className="p-2 flex-1 rounded-lg" key={index}
-                            onPress={() => requestAnimationFrame(() => pagerViewRef.current?.setPage(index))}>
-                            <Text className="text-lg w-full text-center">{title}</Text>
+                        <Pressable
+                            className={`flex-1 py-2.5 rounded-xl items-center justify-center ${isActive ? 'bg-primary dark:bg-[#1C5ECA]' : ''}`}
+                            key={index}
+                            onPress={() => requestAnimationFrame(() => pagerViewRef.current?.setPage(index))}
+                        >
+                            <Text
+                                className={`text-base font-semibold ${isActive ? 'text-white' : 'text-muted-foreground'}`}
+                                style={{ fontFamily: "Inter" }}
+                            >
+                                {title}
+                            </Text>
                         </Pressable>
-                    )
-                })
-                }
+                    );
+                })}
             </View>
-            <Animated.View className="mb-4" style={{
-                marginLeft: xpos,
-                width: scrollIndicatorWidth + "%",
-            }}>
-                <View className="h-0.5 rounded-full bg-foreground mx-8" />
-            </Animated.View>
             <PagerView style={{ flex: 1 }}
-                onPageScroll={handleScroll}
                 orientation="horizontal"
                 ref={pagerViewRef}
                 overdrag={true}
                 onPageSelected={(e) => {
+                    setActiveIndex(e.nativeEvent.position);
                     props.onPageChange?.(e.nativeEvent.position);
                 }}
             >
                 {props.children}
             </PagerView>
         </View>
-    )
+    );
 }
