@@ -4,7 +4,7 @@ import { ThemeToggle } from '@/components/themeToggle';
 export default function AppLayout() {
     return (
         <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false, headerBackTitle: "Tilbake" }} />
             <Stack.Screen
                 name="profil"
                 options={{
