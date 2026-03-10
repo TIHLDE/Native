@@ -95,7 +95,7 @@ export default function Login() {
                             <View className="gap-y-2 mb-10">
                                 <Input
                                     placeholder={"Brukernavn"}
-                                    className="w-full bg-card border-gray-400 focus:border-black transition duration dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0 border-b-1"
+                                    className="w-full bg-card border-gray-400 focus:border-black web:transition web:duration dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0 border-b-1"
                                     value={email}
                                     onChangeText={setEmail}
                                     autoCapitalize="none"
@@ -106,7 +106,7 @@ export default function Login() {
                             <View className="gap-y-2  mb-2">
                                 <Input
                                     placeholder={"Passord"}
-                                    className="w-full bg-card border-gray-400 focus:border-black transition duration-200 dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0"
+                                    className="w-full bg-card border-gray-400 focus:border-black web:transition web:duration-200 dark:focus:border-white dark:border-gray-300 rounded-none border-t-0 border-l-0 border-r-0"
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry
