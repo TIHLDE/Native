@@ -31,7 +31,7 @@ export default function TabsLayout() {
 
                 {/* Karriere tab */}
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl px-3 py-1.5 items-center ${
+                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
                         isKarriere ? "bg-primary/15 dark:bg-accent/20" : ""
                     }`}>
                         <Icon
@@ -66,7 +66,7 @@ export default function TabsLayout() {
 
                 {/* Arrangementer tab */}
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl px-3 py-1.5 items-center ${
+                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
                         isArrangementer ? "bg-primary/15 dark:bg-accent/20" : ""
                     }`}>
                         <Icon
@@ -82,7 +82,7 @@ export default function TabsLayout() {
                                 ? "color-primary dark:color-accent"
                                 : "color-gray-400 dark:color-gray-500"
                         }`}>
-                            Arrangementer
+                            Events
                         </Text>
                     </View>
                 </TabTrigger>
