@@ -23,7 +23,7 @@ export default function TabsLayout() {
     return (
         <Tabs>
             <TabSlot />
-            <View style={[styles.tabBarOuter, { paddingBottom: insets.bottom }]}>
+            <TabList style={[styles.tabBarOuter, { paddingBottom: insets.bottom }]}>
                 <BlurView
                     intensity={90}
                     tint={isDarkColorScheme ? 'dark' : 'light'}
@@ -31,39 +31,37 @@ export default function TabsLayout() {
                 />
                 <View style={styles.topBorder} className="bg-border/30 dark:bg-white/10" />
 
-                <TabList style={styles.tabList}>
-                    <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
-                        <Icon
-                            icon="BriefcaseBusiness"
-                            className={`self-center stroke-[1.8] ${tabColor(pathname.includes("/karriere"))}`}
-                        />
-                        <Text className={`text-[10px] mt-0.5 font-medium ${tabColor(pathname.includes("/karriere"))}`}>
-                            Karriere
-                        </Text>
-                    </TabTrigger>
+                <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
+                    <Icon
+                        icon="BriefcaseBusiness"
+                        className={`self-center stroke-[1.8] ${tabColor(pathname.includes("/karriere"))}`}
+                    />
+                    <Text className={`text-[10px] mt-0.5 font-medium ${tabColor(pathname.includes("/karriere"))}`}>
+                        Karriere
+                    </Text>
+                </TabTrigger>
 
-                    <View style={styles.qrContainer}>
-                        <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
-                            <View
-                                className="bg-primary dark:bg-accent rounded-full items-center justify-center"
-                                style={styles.qrButton}
-                            >
-                                <QrCode className="color-white dark:color-background" size={22} />
-                            </View>
-                        </TouchableWithoutFeedback>
-                    </View>
+                <View style={styles.qrContainer}>
+                    <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
+                        <View
+                            className="bg-primary dark:bg-accent rounded-full items-center justify-center"
+                            style={styles.qrButton}
+                        >
+                            <QrCode className="color-white dark:color-background" size={22} />
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
 
-                    <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
-                        <Icon
-                            icon="Calendar"
-                            className={`self-center stroke-[1.8] ${tabColor(pathname.includes("/arrangementer"))}`}
-                        />
-                        <Text className={`text-[10px] mt-0.5 font-medium ${tabColor(pathname.includes("/arrangementer"))}`}>
-                            Arrangementer
-                        </Text>
-                    </TabTrigger>
-                </TabList>
-            </View>
+                <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
+                    <Icon
+                        icon="Calendar"
+                        className={`self-center stroke-[1.8] ${tabColor(pathname.includes("/arrangementer"))}`}
+                    />
+                    <Text className={`text-[10px] mt-0.5 font-medium ${tabColor(pathname.includes("/arrangementer"))}`}>
+                        Arrangementer
+                    </Text>
+                </TabTrigger>
+            </TabList>
         </Tabs>
     );
 }
@@ -74,6 +72,11 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 8,
+        paddingBottom: 6,
         overflow: 'hidden',
     },
     topBorder: {
@@ -82,14 +85,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: StyleSheet.hairlineWidth,
-    },
-    tabList: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 8,
-        paddingBottom: 6,
-        gap: 0,
     },
     tabItem: {
         flex: 1,
