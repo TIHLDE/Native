@@ -31,7 +31,7 @@ export default function TabsLayout() {
 
                 {/* Karriere tab */}
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-full px-4 py-1.5 flex-row items-center gap-1.5 ${
+                    <View className={`rounded-2xl px-3 py-1.5 items-center ${
                         isKarriere ? "bg-primary/15 dark:bg-accent/20" : ""
                     }`}>
                         <Icon
@@ -42,7 +42,7 @@ export default function TabsLayout() {
                                     : "color-gray-400 dark:color-gray-500"
                             }`}
                         />
-                        <Text className={`text-xs font-semibold ${
+                        <Text className={`text-[10px] mt-0.5 font-semibold ${
                             isKarriere
                                 ? "color-primary dark:color-accent"
                                 : "color-gray-400 dark:color-gray-500"
@@ -66,7 +66,7 @@ export default function TabsLayout() {
 
                 {/* Arrangementer tab */}
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-full px-4 py-1.5 flex-row items-center gap-1.5 ${
+                    <View className={`rounded-2xl px-3 py-1.5 items-center ${
                         isArrangementer ? "bg-primary/15 dark:bg-accent/20" : ""
                     }`}>
                         <Icon
@@ -77,7 +77,7 @@ export default function TabsLayout() {
                                     : "color-gray-400 dark:color-gray-500"
                             }`}
                         />
-                        <Text className={`text-xs font-semibold ${
+                        <Text className={`text-[10px] mt-0.5 font-semibold ${
                             isArrangementer
                                 ? "color-primary dark:color-accent"
                                 : "color-gray-400 dark:color-gray-500"
