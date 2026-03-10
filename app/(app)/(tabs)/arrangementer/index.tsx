@@ -15,7 +15,6 @@ import { Switch } from "@/components/ui/switch";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
-import FinesFAB from "@/components/boter/FinesFAB";
 
 type Event = {
     organizer: { slug: string | null; name: string; };
@@ -376,7 +375,6 @@ export default function Arrangementer() {
                     </BottomSheetView>
                 </InteropBottomSheetModal>
 
-                <FinesFAB />
             </PageWrapper>
         </GestureHandlerRootView>
     );

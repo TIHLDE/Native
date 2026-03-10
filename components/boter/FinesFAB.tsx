@@ -1,24 +1,17 @@
 import React from "react";
-import { Pressable } from "react-native";
-import { Plus } from "lucide-react-native";
+import { View } from "react-native";
+import { Gavel } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 
-export default function FinesFAB() {
+export default function FinesHeaderButton() {
     const router = useRouter();
 
     return (
-        <Pressable
-            onPress={() => router.push("/(modals)/boter")}
-            className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-primary dark:bg-[#1C5ECA] items-center justify-center active:opacity-80"
-            style={{
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 5,
-            }}
-        >
-            <Plus size={24} color="white" />
-        </Pressable>
+        <TouchableWithoutFeedback onPressIn={() => router.push("/(modals)/boter")}>
+            <View className="w-10 h-10 items-center justify-center">
+                <Gavel size={22} className="stroke-2 text-foreground" />
+            </View>
+        </TouchableWithoutFeedback>
     );
 }

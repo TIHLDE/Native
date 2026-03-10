@@ -1,5 +1,7 @@
 import { Stack } from 'expo-router';
+import { View } from 'react-native';
 import { ThemeToggle } from '@/components/themeToggle';
+import FinesHeaderButton from '@/components/boter/FinesFAB';
 
 export default function AppLayout() {
     return (
@@ -12,7 +14,12 @@ export default function AppLayout() {
                     headerShown: true,
                     headerBackTitle: "Tilbake",
                     headerTitleAlign: "center",
-                    headerRight: () => <ThemeToggle />,
+                    headerRight: () => (
+                        <View className="flex-row items-center">
+                            <FinesHeaderButton />
+                            <ThemeToggle />
+                        </View>
+                    ),
                 }}
             />
             <Stack.Screen

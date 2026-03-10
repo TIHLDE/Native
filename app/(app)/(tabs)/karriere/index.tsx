@@ -9,7 +9,6 @@ import { Link } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { BriefcaseBusiness } from "lucide-react-native";
 import { useColorScheme } from "@/lib/useColorScheme";
-import FinesFAB from "@/components/boter/FinesFAB";
 
 export default function Karriere() {
     const { isDarkColorScheme } = useColorScheme();
@@ -92,7 +91,6 @@ export default function Karriere() {
                     )}
                 </View>
             </ScrollView>
-            <FinesFAB />
         </PageWrapper>
     );
 }
