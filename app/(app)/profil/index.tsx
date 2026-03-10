@@ -23,6 +23,7 @@ import EventCard, {
 import useRefresh from "@/lib/useRefresh";
 import { Mail, GraduationCap, LogOut, TriangleAlert } from "lucide-react-native";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { SectionHeader } from "@/components/ui/section-header";
 
 export default function Profil() {
     const { setAuthState } = useAuth();
@@ -145,9 +146,7 @@ export default function Profil() {
 
                 {/* Events */}
                 <View className="px-6 mb-6">
-                    <Text className="text-lg font-semibold text-foreground mb-3">
-                        Påmeldte arrangementer
-                    </Text>
+                    <SectionHeader title="Påmeldte arrangementer" />
                     <DisplayUserEvents userEvents={userEvents} router={router} />
                 </View>
 
