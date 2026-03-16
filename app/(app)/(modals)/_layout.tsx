@@ -23,6 +23,15 @@ export default function ModalsLayout() {
                     ...modalScreenOptions,
                     title: "QR-kode",
                     headerShown: true,
+                    headerLeft: () => (
+                        <Pressable
+                            onPress={() => router.back()}
+                            className="flex-row items-center active:opacity-70 mr-2"
+                        >
+                            <ChevronLeft size={24} color={backColor} />
+                            <Text className="text-base text-foreground">Tilbake</Text>
+                        </Pressable>
+                    ),
                 }}
             />
             <Stack.Screen
