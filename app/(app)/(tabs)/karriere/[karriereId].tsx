@@ -6,7 +6,7 @@ import { Image, Pressable, ScrollView, View } from "react-native";
 import * as WebBrowser from 'expo-web-browser';
 import MarkdownView from "@/components/ui/MarkdownView";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { BASE_URL } from "@/actions/constant";
+import { fetchJobPost } from "@/actions/events/events";
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
 import {
@@ -100,7 +100,7 @@ export default function Karriereside() {
     const jobpost = useQuery({
         queryKey: ["jobpost", id],
         queryFn: async () => {
-            return fetch(`${BASE_URL}/jobposts/${id}`).then((res) => res.json());
+            return fetchJobPost(String(id));
         },
     });
 
@@ -124,10 +124,11 @@ export default function Karriereside() {
     );
 
     const handleApply = async () => {
-        await WebBrowser.openBrowserAsync(jobpost.data.link);
+        // Photon lar lenke og frist være tomme; Lepton fylte dem alltid.
+        if (jobpost.data.link) await WebBrowser.openBrowserAsync(jobpost.data.link);
     }
 
-    const formattedDeadline = new Date(jobpost.data.deadline).toLocaleDateString("no-NO", {
+    const formattedDeadline = new Date(jobpost.data.deadline ?? "").toLocaleDateString("no-NO", {
         year: "numeric",
         month: "long",
         day: "numeric",

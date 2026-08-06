@@ -4,10 +4,10 @@ import { router, Stack } from "expo-router";
 import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { BASE_URL } from "@/actions/constant";
+import { fetchEvents as fetchEventList } from "@/actions/events/events";
+import type { Event } from "@/actions/types";
 import useRefresh from "@/lib/useRefresh";
 import useDebounce from "@/lib/useDebounce";
-import { getToken } from "@/lib/storage/tokenStore";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { CalendarDays, Search, SlidersHorizontal, X, FilterX } from "lucide-react-native";
 import { useCallback, useRef, useState } from "react";
@@ -15,16 +15,6 @@ import { Switch } from "@/components/ui/switch";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
-
-type Event = {
-    organizer: { slug: string | null; name: string; };
-    id: string;
-    title: string;
-    start_date: string;
-    end_date: string;
-    location?: string;
-    image?: string;
-};
 
 type Filters = {
     expired: boolean;
@@ -57,22 +47,20 @@ export default function Arrangementer() {
 
     const activeFilterCount = getActiveFilterCount(filters);
 
-    const fetchEvents = useCallback(async ({ pageParam }: { pageParam: number }): Promise<{ results: Event[] }> => {
+    const fetchEvents = useCallback(async ({ pageParam }: { pageParam: number }): Promise<{ results: Event[]; next: string | null }> => {
         const queryParams = new URLSearchParams({
             page: pageParam.toString(),
-            None: resultsPerPage.toString(),
+            pageSize: resultsPerPage.toString(),
         });
 
         if (debouncedSearch) queryParams.set('search', debouncedSearch);
+        // Photon skiller kommende og tidligere med `expired`, og har egne
+        // flagg for påmelding og favoritter under samme navn som før.
         if (filters.expired) queryParams.set('expired', 'true');
-        if (filters.openForSignUp) queryParams.set('open_for_sign_up', 'true');
-        if (filters.userFavorite) queryParams.set('user_favorite', 'true');
+        if (filters.openForSignUp) queryParams.set('openForSignUp', 'true');
+        if (filters.userFavorite) queryParams.set('userFavorite', 'true');
 
-        const token = await getToken();
-        const res = await fetch(`${BASE_URL}/events/?${queryParams}`, {
-            headers: token ? { "X-Csrf-Token": token } : {},
-        });
-        return res.json();
+        return fetchEventList(queryParams);
     }, [debouncedSearch, filters]);
 
     const {

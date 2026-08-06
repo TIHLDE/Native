@@ -1,18 +1,10 @@
-import { BASE_URL } from "@/actions/constant";
-import { getToken } from "@/lib/storage/tokenStore";
-import { Membership, LeptonError } from "@/actions/types";
+import { apiJson } from "@/lib/api/client";
+import { Membership } from "@/actions/types";
+import { PhotonGroup, toMembership } from "@/actions/photon";
 
 export async function fetchMemberships(): Promise<Membership[]> {
-    const token = await getToken();
-    const response = await fetch(`${BASE_URL}/users/me/memberships/`, {
-        headers: { "X-Csrf-Token": token ?? "" },
-    });
-
-    if (!response.ok) {
-        const errorData = (await response.json()) as LeptonError;
-        throw new Error(errorData.detail);
-    }
-
-    const data = await response.json();
-    return data.results;
+    // Photon svarer med gruppene direkte og medlemskapet nøstet inni, der
+    // Lepton pakket alt i { results: [...] }.
+    const groups = await apiJson<PhotonGroup[]>("/groups/mine");
+    return groups.filter((group) => group.membership).map(toMembership);
 }

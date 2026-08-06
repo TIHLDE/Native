@@ -1,4 +1,4 @@
-import { BASE_URL } from "@/actions/constant";
+import { fetchJobPosts } from "@/actions/events/events";
 import JobPostCard, { JobPostCardSkeleton } from "@/components/karriere/jobpostcard";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
@@ -16,7 +16,7 @@ export default function Karriere() {
     const jobposts = useQuery({
         queryKey: ["jobposts"],
         queryFn: async () => {
-            return fetch(`${BASE_URL}/jobposts/`).then((res) => res.json());
+            return fetchJobPosts();
         },
     });
 

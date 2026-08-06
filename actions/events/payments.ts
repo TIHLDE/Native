@@ -1,26 +1,15 @@
-import { getToken } from "@/lib/storage/tokenStore";
-import { BASE_URL } from "../constant";
-import { LeptonError, Payment } from "../types";
+import { apiJson } from "@/lib/api/client";
+import { Payment } from "../types";
 
-export async function createPayment(eventid: number) {
-    const url = `${BASE_URL}/payments/`;
-    const token = await getToken();
-
-    const response = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ event: eventid }),
-        //@ts-expect-error
-        headers: {
-            "X-Csrf-Token": token,
-            "Content-Type": "application/json",
-        }
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json() as LeptonError;
-        throw new Error(errorData.detail);
-    }
-
-    const data = await response.json() as Payment;
-    return data;
+/**
+ * Starter betaling for et arrangement.
+ *
+ * Lepton hadde en global /payments/-rute med arrangementet i kroppen. Photon
+ * legger betalingen under arrangementet, så id-en flyttes til stien.
+ */
+export async function createPayment(eventid: string) {
+    return apiJson<Payment>(
+        `/event/${encodeURIComponent(String(eventid))}/payment`,
+        { method: "POST" }
+    );
 }
