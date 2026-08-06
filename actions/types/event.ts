@@ -1,6 +1,7 @@
 
 export type Event = {
-    id: number;
+    // Photon bruker UUID der Lepton hadde løpenummer.
+    id: string;
     title: string;
     start_date: string;
     end_date: string;
@@ -29,4 +30,24 @@ export type Event = {
     end_registration_at: string;
     start_registration_at: string;
     sign_up?: boolean;
+};
+/**
+ * Stillingsannonse i den formen skjermene leser. Photons felter er camelCase
+ * og oversettes i actions/events/events.ts.
+ */
+export type JobPost = {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    body: string;
+    ingress: string;
+    job_type: string;
+    class_start: number | string;
+    class_end: number | string;
+    deadline: string | null;
+    email: string | null;
+    link: string | null;
+    image: string | null;
+    expired: boolean;
 };

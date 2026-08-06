@@ -13,7 +13,8 @@ interface EventCardProps {
     image: string | null;
     onPress: () => void;
     location?: string | null;
-    organizer: {
+    // Photon lar arrangør stå tom; Lepton fylte den alltid.
+    organizer?: {
         name: string;
         slug: string | null;
     };

@@ -47,7 +47,8 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const queryClient = useQueryClient();
     const params = useLocalSearchParams<{ arrangementId: string }>();
-    const eventId = Number(params.arrangementId);
+    // Photon bruker UUID; ruteparameteren er allerede en streng.
+    const eventId = String(params.arrangementId);
     const { isDarkColorScheme } = useColorScheme();
 
     const updateRegistrationMutation = useMutation({
@@ -226,7 +227,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
 
 function ManualRegistration() {
     const params = useLocalSearchParams<{ arrangementId: string }>();
-    const id = Number(params.arrangementId);
+    const id = String(params.arrangementId);
     const { isDarkColorScheme } = useColorScheme();
     const [searchText, setSearchText] = useState('');
     const debouncedSearch = useDebounce(searchText, 500);
@@ -328,7 +329,7 @@ function ManualRegistration() {
     );
 }
 
-function EventRegistration({ registration, eventId }: { registration: Registration, eventId: number }) {
+function EventRegistration({ registration, eventId }: { registration: Registration, eventId: string }) {
     const [checked, setChecked] = useState(registration.has_attended);
     const queryClient = useQueryClient();
 

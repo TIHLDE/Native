@@ -4,7 +4,7 @@ import { View, Image, ActivityIndicator, Pressable } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { BASE_URL } from "@/actions/constant";
+import { fetchEvent } from "@/actions/events/events";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
 import { useEffect, useRef, useState } from "react";
@@ -143,17 +143,17 @@ export default function ArrangementSide() {
     const event = useQuery({
         queryKey: ["event", id],
         queryFn: async (): Promise<Event> => {
-            return fetch(`${BASE_URL}/events/${id}`).then((res) => res.json());
+            return fetchEvent(String(id));
         },
     });
 
     const { data: registration, isPending: registrationPending } = useQuery({
         queryKey: ["event", id, "registration"],
-        queryFn: async () => iAmRegisteredToEvent(Number(id)),
+        queryFn: async () => iAmRegisteredToEvent(String(id)),
     });
 
     const registrationMutation = useMutation({
-        mutationFn: async (eventId: number) => {
+        mutationFn: async (eventId: string) => {
             return registerToEvent(eventId);
         },
         onSuccess: async () => {
@@ -342,7 +342,7 @@ export default function ArrangementSide() {
                                     registration={registration}
                                     registrationPending={registrationPending}
                                     mutationPending={registrationMutation.isPending}
-                                    onClick={() => registrationMutation.mutate(Number(id))}
+                                    onClick={() => registrationMutation.mutate(String(id))}
                                     unregisterSheetRef={unregisterSheetRef}
                                 />
 
@@ -381,7 +381,7 @@ export default function ArrangementSide() {
                                 {...props}
                             />
                         )} >
-                        <EventParticipantsModal eventId={Number(id)} totalCount={event.data.list_count} />
+                        <EventParticipantsModal eventId={String(id)} totalCount={event.data.list_count} />
                     </InteropBottomSheetModal>
 
                     <InteropBottomSheetModal ref={unregisterSheetRef}
@@ -396,7 +396,7 @@ export default function ArrangementSide() {
                             />
                         )} >
                         <UnregisterDrawer
-                            eventId={Number(id)}
+                            eventId={String(id)}
                             isPastDeadline={isBefore(new Date(event.data.sign_off_deadline), new Date())}
                             sheetRef={unregisterSheetRef}
                         />
@@ -412,7 +412,7 @@ function UnregisterDrawer({
     isPastDeadline,
     sheetRef,
 }: {
-    eventId: number;
+    eventId: string;
     isPastDeadline: boolean;
     sheetRef: React.RefObject<BottomSheetModal | null>;
 }) {
@@ -516,7 +516,7 @@ function UnregisterDrawer({
     );
 }
 
-function EventParticipantsModal({ eventId, totalCount }: { eventId: number; totalCount: string }) {
+function EventParticipantsModal({ eventId, totalCount }: { eventId: string; totalCount: string }) {
     const {
         data,
         fetchNextPage,
@@ -796,7 +796,7 @@ function RegistrationButton({
     );
 }
 
-function PaymentButton({ eventId }: { eventId: number }) {
+function PaymentButton({ eventId }: { eventId: string }) {
     const queryClient = useQueryClient();
 
     const payment = useQuery({
