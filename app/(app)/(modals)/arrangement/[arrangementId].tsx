@@ -535,7 +535,7 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
     } = useInfiniteQuery({
         queryKey: ["event", eventId, "participants", "public"],
         queryFn: async ({ pageParam }) => await publicEventParticipants(eventId, pageParam),
-        initialPageParam: 1,
+        initialPageParam: 0,
         getNextPageParam: (lastPage, allPages, lastPageParam) => {
             if (lastPage.next === null) return undefined;
             return lastPageParam + 1;
