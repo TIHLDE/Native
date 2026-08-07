@@ -224,6 +224,16 @@ export default function ArrangementSide() {
         );
     }
 
+    /**
+     * Photon lar tidspunktene stå tomme der Lepton alltid hadde dem. En tom
+     * streng blir en ugyldig dato, som både vises som «Invalid Date» og gjør
+     * enhver sammenligning usann uten å si fra.
+     */
+    const isValidDate = (dateStr: string) =>
+        Boolean(dateStr) && !Number.isNaN(new Date(dateStr).getTime());
+
+    const hasSignOffDeadline = isValidDate(event.data.sign_off_deadline);
+
     const formatDate = (dateStr: string) =>
         new Date(dateStr).toLocaleDateString("no-NO", {
             year: "numeric",
@@ -350,12 +360,17 @@ export default function ArrangementSide() {
                                             value={String(counts.waitingListCount)}
                                         />
                                     )}
-                                    <DetailRow
-                                        icon={<CalendarOff size={18} color={mutedColor} />}
-                                        label="Avmeldingsfrist"
-                                        value={`${formatDate(event.data.sign_off_deadline)} kl. ${formatTime(event.data.sign_off_deadline)}`}
-                                        isLast
-                                    />
+                                    {/* Photon lar avmeldingsfristen stå tom;
+                                        Lepton hadde den alltid. Uten sjekken
+                                        her ble raden til «Invalid Date». */}
+                                    {hasSignOffDeadline && (
+                                        <DetailRow
+                                            icon={<CalendarOff size={18} color={mutedColor} />}
+                                            label="Avmeldingsfrist"
+                                            value={`${formatDate(event.data.sign_off_deadline)} kl. ${formatTime(event.data.sign_off_deadline)}`}
+                                            isLast
+                                        />
+                                    )}
                                 </View>
 
                                 <RegistrationButton
@@ -418,7 +433,11 @@ export default function ArrangementSide() {
                         )} >
                         <UnregisterDrawer
                             eventId={String(id)}
-                            isPastDeadline={isBefore(new Date(event.data.sign_off_deadline), new Date())}
+                            // Uten frist er det aldri for sent å melde seg av.
+                            isPastDeadline={
+                                hasSignOffDeadline &&
+                                isBefore(new Date(event.data.sign_off_deadline), new Date())
+                            }
                             sheetRef={unregisterSheetRef}
                         />
                     </InteropBottomSheetModal>
