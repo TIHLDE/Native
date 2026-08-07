@@ -34,6 +34,38 @@ export async function fetchEvent(eventId: string): Promise<Event> {
     return toEvent((await response.json()) as PhotonEvent);
 }
 
+export type EventCounts = {
+    listCount: number;
+    /** Null når vi ikke har lov til å vite det. */
+    waitingListCount: number | null;
+};
+
+/**
+ * Antall påmeldte og på venteliste.
+ *
+ * Photon legger ikke tallene på selve arrangementet, slik Lepton gjorde — de
+ * kommer fra `totalCount` på påmeldingslista, som er det nettsiden bruker også.
+ * Én rad hentes bare for å få tellingen.
+ *
+ * Ventelista krever at man administrerer arrangementet, siden det er en
+ * statusfiltrering. For alle andre er tallet ukjent, ikke null.
+ */
+export async function fetchEventCounts(eventId: string): Promise<EventCounts> {
+    const path = `/event/${encodeURIComponent(eventId)}/registration?pageSize=1`;
+
+    const [registered, waitlisted] = await Promise.all([
+        apiJson<{ totalCount: number }>(path),
+        apiJson<{ totalCount: number }>(`${path}&status=waitlisted`).catch(
+            () => null,
+        ),
+    ]);
+
+    return {
+        listCount: registered.totalCount,
+        waitingListCount: waitlisted?.totalCount ?? null,
+    };
+}
+
 type PhotonJobPost = {
     id: string;
     title: string;

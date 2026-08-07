@@ -5,7 +5,7 @@ import { View, Image, ActivityIndicator, Pressable } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { fetchEvent } from "@/actions/events/events";
+import { fetchEvent, fetchEventCounts } from "@/actions/events/events";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
 import { useEffect, useRef, useState } from "react";
@@ -151,6 +151,13 @@ export default function ArrangementSide() {
     const { data: registration, isPending: registrationPending } = useQuery({
         queryKey: ["event", id, "registration"],
         queryFn: async () => iAmRegisteredToEvent(String(id)),
+    });
+
+    // Tallene ligger ikke på arrangementet i Photon; de telles på
+    // påmeldingslista. Egen spørring, så siden vises selv om den feiler.
+    const { data: counts } = useQuery({
+        queryKey: ["event", id, "counts"],
+        queryFn: async () => fetchEventCounts(String(id)),
     });
 
     const registrationMutation = useMutation({
@@ -330,13 +337,19 @@ export default function ArrangementSide() {
                                     <DetailRow
                                         icon={<Users size={18} color={mutedColor} />}
                                         label="Påmeldte"
-                                        value={`${event.data.list_count}/${event.data.limit === 0 ? "∞" : event.data.limit}`}
+                                        value={`${counts?.listCount ?? "–"}/${event.data.limit === 0 ? "∞" : event.data.limit}`}
                                     />
-                                    <DetailRow
-                                        icon={<Users size={18} color={mutedColor} />}
-                                        label="Venteliste"
-                                        value={String(event.data.waiting_list_count)}
-                                    />
+                                    {/* Ventelista er bare synlig for den som
+                                        administrerer arrangementet. Raden står
+                                        over når tallet er ukjent, framfor å
+                                        vise 0 og lyve. */}
+                                    {counts?.waitingListCount != null && (
+                                        <DetailRow
+                                            icon={<Users size={18} color={mutedColor} />}
+                                            label="Venteliste"
+                                            value={String(counts.waitingListCount)}
+                                        />
+                                    )}
                                     <DetailRow
                                         icon={<CalendarOff size={18} color={mutedColor} />}
                                         label="Avmeldingsfrist"
@@ -389,7 +402,7 @@ export default function ArrangementSide() {
                                 {...props}
                             />
                         )} >
-                        <EventParticipantsModal eventId={String(id)} totalCount={event.data.list_count} />
+                        <EventParticipantsModal eventId={String(id)} totalCount={String(counts?.listCount ?? 0)} />
                     </InteropBottomSheetModal>
 
                     <InteropBottomSheetModal ref={unregisterSheetRef}
