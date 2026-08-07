@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import EventCard, { EventCardSkeleton } from "@/components/arrangement/eventCard";
 import { Text } from "@/components/ui/text";
 import { router, Stack } from "expo-router";
@@ -96,7 +97,7 @@ export default function Arrangementer() {
         return page.results;
     }) ?? [];
 
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const handleApplyFilters = () => {
         filterSheetRef.current?.dismiss();
@@ -117,7 +118,7 @@ export default function Arrangementer() {
                             className="w-10 h-10 items-center justify-center"
                         >
                             <View>
-                                <SlidersHorizontal size={20} color={isDarkColorScheme ? '#ffffff' : '#000000'} />
+                                <SlidersHorizontal size={20} color={themeColors(isDarkColorScheme).foreground} />
                                 {activeFilterCount > 0 && (
                                     <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary items-center justify-center">
                                         <Text className="text-[10px] font-bold text-white">{activeFilterCount}</Text>
@@ -169,10 +170,10 @@ export default function Arrangementer() {
                                             onPress={() => setSearchText('')}
                                             className="flex-row items-center bg-primary/10 dark:bg-primary/20 rounded-full px-3 py-1.5"
                                         >
-                                            <Text className="text-xs font-semibold text-primary dark:text-accent mr-1.5" style={{ fontFamily: "Inter" }}>
+                                            <Text className="text-xs font-semibold text-primary mr-1.5" style={{ fontFamily: "Inter" }}>
                                                 &ldquo;{debouncedSearch}&rdquo;
                                             </Text>
-                                            <X size={12} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                                            <X size={12} color={themeColors(isDarkColorScheme).primary} />
                                         </Pressable>
                                     ) : null}
                                     {filters.expired && (
@@ -180,10 +181,10 @@ export default function Arrangementer() {
                                             onPress={() => setFilters(f => ({ ...f, expired: false }))}
                                             className="flex-row items-center bg-primary/10 dark:bg-primary/20 rounded-full px-3 py-1.5"
                                         >
-                                            <Text className="text-xs font-semibold text-primary dark:text-accent mr-1.5" style={{ fontFamily: "Inter" }}>
+                                            <Text className="text-xs font-semibold text-primary mr-1.5" style={{ fontFamily: "Inter" }}>
                                                 Tidligere
                                             </Text>
-                                            <X size={12} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                                            <X size={12} color={themeColors(isDarkColorScheme).primary} />
                                         </Pressable>
                                     )}
                                     {filters.openForSignUp && (
@@ -191,10 +192,10 @@ export default function Arrangementer() {
                                             onPress={() => setFilters(f => ({ ...f, openForSignUp: false }))}
                                             className="flex-row items-center bg-primary/10 dark:bg-primary/20 rounded-full px-3 py-1.5"
                                         >
-                                            <Text className="text-xs font-semibold text-primary dark:text-accent mr-1.5" style={{ fontFamily: "Inter" }}>
+                                            <Text className="text-xs font-semibold text-primary mr-1.5" style={{ fontFamily: "Inter" }}>
                                                 Åpen påmelding
                                             </Text>
-                                            <X size={12} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                                            <X size={12} color={themeColors(isDarkColorScheme).primary} />
                                         </Pressable>
                                     )}
                                     {filters.userFavorite && (
@@ -202,10 +203,10 @@ export default function Arrangementer() {
                                             onPress={() => setFilters(f => ({ ...f, userFavorite: false }))}
                                             className="flex-row items-center bg-primary/10 dark:bg-primary/20 rounded-full px-3 py-1.5"
                                         >
-                                            <Text className="text-xs font-semibold text-primary dark:text-accent mr-1.5" style={{ fontFamily: "Inter" }}>
+                                            <Text className="text-xs font-semibold text-primary mr-1.5" style={{ fontFamily: "Inter" }}>
                                                 Favoritter
                                             </Text>
-                                            <X size={12} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                                            <X size={12} color={themeColors(isDarkColorScheme).primary} />
                                         </Pressable>
                                     )}
                                 </View>
@@ -246,7 +247,7 @@ export default function Arrangementer() {
                                 <View className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
                                     <CalendarDays
                                         size={28}
-                                        color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'}
+                                        color={themeColors(isDarkColorScheme).primary}
                                     />
                                 </View>
                                 <Text className="text-lg font-semibold text-foreground mb-1">
@@ -289,7 +290,7 @@ export default function Arrangementer() {
                                 <Text className="text-xl font-bold text-foreground">Filter</Text>
                                 {activeFilterCount > 0 && (
                                     <View className="ml-2.5 w-6 h-6 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                                        <Text className="text-xs font-bold text-primary dark:text-accent">
+                                        <Text className="text-xs font-bold text-primary">
                                             {activeFilterCount}
                                         </Text>
                                     </View>
@@ -358,7 +359,7 @@ export default function Arrangementer() {
                         {/* Apply button */}
                         <Pressable
                             onPress={handleApplyFilters}
-                            className="h-14 rounded-2xl bg-primary dark:bg-[#1C5ECA] flex-row items-center justify-center active:opacity-80"
+                            className="h-14 rounded-2xl bg-primary flex-row items-center justify-center active:opacity-80"
                         >
                             <Search size={16} color="white" />
                             <Text className="text-white text-base font-semibold ml-2" style={{ fontFamily: "Inter" }}>

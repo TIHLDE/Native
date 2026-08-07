@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -91,7 +92,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
         return (
             <View className="flex-1 items-center justify-center px-8">
                 <View className="w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-6">
-                    <Camera size={36} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                    <Camera size={36} color={themeColors(isDarkColorScheme).primary} />
                 </View>
                 <Text className="text-xl font-bold text-foreground text-center mb-2">
                     Kameratilgang
@@ -101,7 +102,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                 </Text>
                 <Pressable
                     onPress={requestPermission}
-                    className="h-14 rounded-2xl bg-primary dark:bg-[#1C5ECA] px-8 flex-row items-center justify-center active:opacity-80"
+                    className="h-14 rounded-2xl bg-primary px-8 flex-row items-center justify-center active:opacity-80"
                 >
                     <Camera size={18} color="white" />
                     <Text className="text-white text-base font-semibold ml-2" style={{ fontFamily: "Inter" }}>
@@ -116,7 +117,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
         return (
             <View className="flex-1 items-center justify-center px-8">
                 <View className="w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-6">
-                    <Camera size={36} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                    <Camera size={36} color={themeColors(isDarkColorScheme).primary} />
                 </View>
                 <Text className="text-xl font-bold text-foreground text-center mb-2">
                     Kameratilgang kreves
@@ -188,7 +189,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                         <>
                             <View className="items-center mb-4">
                                 <View className="w-14 h-14 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
-                                    <UserCheck size={26} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                                    <UserCheck size={26} color={themeColors(isDarkColorScheme).primary} />
                                 </View>
                                 <Text className="text-xl font-bold text-foreground text-center">
                                     Registrer oppmøte
@@ -202,7 +203,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                                     onPress={() => {
                                         updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.user_id ?? "" });
                                     }}
-                                    className="h-14 rounded-2xl bg-primary dark:bg-[#1C5ECA] items-center justify-center active:opacity-80"
+                                    className="h-14 rounded-2xl bg-primary items-center justify-center active:opacity-80"
                                 >
                                     <Text className="text-white text-base font-semibold" style={{ fontFamily: "Inter" }}>
                                         Registrer
@@ -232,7 +233,7 @@ function ManualRegistration() {
     const [searchText, setSearchText] = useState('');
     const debouncedSearch = useDebounce(searchText, 500);
 
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const {
         data,
@@ -373,7 +374,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
             className="flex-row items-center py-3.5 active:opacity-70"
         >
             <View className="w-10 h-10 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center mr-3">
-                <Text className="text-sm font-bold text-primary dark:text-accent">
+                <Text className="text-sm font-bold text-primary">
                     {initials}
                 </Text>
             </View>

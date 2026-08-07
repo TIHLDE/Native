@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Image, View } from "react-native";
 import { Text } from "../ui/text";
 import { BriefcaseBusiness, MapPin, Building2 } from "lucide-react-native";
@@ -45,7 +46,7 @@ function DeadlineBadge({ deadline }: { deadline: string }) {
                     ? 'text-destructive'
                     : isUrgent
                         ? 'text-orange-600 dark:text-orange-400'
-                        : 'text-primary dark:text-accent'
+                        : 'text-primary'
             }`} style={{ fontFamily: "Inter" }}>
                 {isPast ? 'Utløpt' : `Frist ${formatted}`}
             </Text>
@@ -55,7 +56,7 @@ function DeadlineBadge({ deadline }: { deadline: string }) {
 
 export default function JobPostCard(props: JobPostProps) {
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     return (
         <View className="pb-7">

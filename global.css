@@ -2,56 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Fargene er de samme som nettsiden bruker, hentet fra
+ * `packages/ui/src/styles.css` i Photon-monorepoet. Der er de skrevet som
+ * oklch og hex; her må de stå som `H S% L%` fordi NativeWind slår dem opp med
+ * `hsl(var(--x))`. Hex-en i kommentaren er fasiten å sammenligne med.
+ *
+ * Endres en farge på nettsiden, må den endres her også — og i
+ * `lib/theme/colors.ts`, som holder de samme verdiene for det som ikke kan
+ * være en klasse (ikonfarger og andre props som tar en ren streng).
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 220 62% 41%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 62.8% 40.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --background: 0 0% 100%;              /* #ffffff */
+    --foreground: 0 0% 3.9%;              /* #0a0a0a */
+    --card: 0 0% 100%;                    /* #ffffff */
+    --card-foreground: 0 0% 3.9%;         /* #0a0a0a */
+    --popover: 0 0% 100%;                 /* #ffffff */
+    --popover-foreground: 0 0% 3.9%;      /* #0a0a0a */
+    --primary: 217.6 66.3% 32.5%;         /* #1c458a — TIHLDE-blå */
+    --primary-foreground: 0 0% 98%;       /* #fafafa */
+    --secondary: 0 0% 96.1%;              /* #f5f5f5 */
+    --secondary-foreground: 0 0% 9%;      /* #171717 */
+    --muted: 0 0% 96.1%;                  /* #f5f5f5 */
+    --muted-foreground: 0 0% 45.1%;       /* #737373 */
+    --accent: 0 0% 96.1%;                 /* #f5f5f5 */
+    --accent-foreground: 0 0% 9%;         /* #171717 */
+    --destructive: 357.1 100% 45.3%;      /* #e7000b */
+    --destructive-foreground: 0 0% 98%;   /* #fafafa */
+    --border: 0 0% 89.8%;                 /* #e5e5e5 */
+    --input: 0 0% 89.8%;                  /* #e5e5e5 */
+    --ring: 217.6 66.3% 32.5%;            /* #1c458a */
+    --radius: 0.625rem;
+
+    /* Varselfargene finnes ikke på nettsiden — den bruker egne komponenter
+       for dette — så de står som de var. */
     --alert-warning: 52.74 99% 76%;
     --alert-error: 359.72 100% 82%;
     --alert-success: 150.06 96% 45%;
     --alert-info: 210 40% 72%;
   }
 
+  /* Navy-paletten fra nettsidens mørke modus, bygget rundt #030b1a. */
   .dark:root {
-    --background: 246 17% 12%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 220 62% 41%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 230 100% 79%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --background: 219.1 79.3% 5.7%;       /* #030b1a */
+    --foreground: 210 25% 96.9%;          /* #f5f7f9 */
+    --card: 219.5 78.6% 11%;              /* #061532 */
+    --card-foreground: 210 25% 96.9%;     /* #f5f7f9 */
+    --popover: 219.4 78% 16.1%;           /* #091f49 */
+    --popover-foreground: 210 25% 96.9%;  /* #f5f7f9 */
+    --primary: 219.1 78.8% 50%;           /* #1b61e4 */
+    --primary-foreground: 0 0% 100%;      /* #ffffff */
+    --secondary: 218.6 79.5% 24.9%;       /* #0d3172 */
+    --secondary-foreground: 210 25% 96.9%;/* #f5f7f9 */
+    --muted: 218.6 79.5% 24.9%;           /* #0d3172 */
+    --muted-foreground: 218.8 67% 62%;    /* #5d8bdf */
+    --accent: 218.6 79.5% 24.9%;          /* #0d3172 */
+    --accent-foreground: 210 25% 96.9%;   /* #f5f7f9 */
+    --destructive: 358.8 100% 69.6%;      /* #ff6467 */
+    --destructive-foreground: 210 25% 96.9%; /* #f5f7f9 */
+    --border: 218.6 79.5% 24.9%;          /* #0d3172 */
+    --input: 218.6 79.5% 24.9%;           /* #0d3172 */
+    --ring: 219.1 78.8% 50%;              /* #1b61e4 */
+
     --alert-warning: 44.37 100% 47%;
-    --alert-error: 356.95 96% 57.99999999999999%;
+    --alert-error: 356.95 96% 58%;
     --alert-success: 147.72 97% 20%;
     --alert-info: 215 76% 53%;
   }

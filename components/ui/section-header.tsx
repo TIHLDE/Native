@@ -12,7 +12,7 @@ const SectionHeader = React.forwardRef<View, SectionHeaderProps>(
     ({ title, className }, ref) => {
         return (
             <View ref={ref} className={cn("flex-row items-center mb-3", className)}>
-                <View className="w-1 h-5 rounded-full bg-primary dark:bg-accent mr-2.5" />
+                <View className="w-1 h-5 rounded-full bg-primary mr-2.5" />
                 <Text className="text-lg font-semibold text-foreground">
                     {title}
                 </Text>

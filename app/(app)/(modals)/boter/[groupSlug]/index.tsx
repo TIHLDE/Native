@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
 import useRefresh from "@/lib/useRefresh";
@@ -24,7 +25,7 @@ export default function LawSelection() {
     const router = useRouter();
     const { groupSlug } = useLocalSearchParams<{ groupSlug: string }>();
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? "#9ca3af" : "#6b7280";
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const laws = useQuery({
         queryKey: ["laws", groupSlug],
@@ -59,7 +60,7 @@ export default function LawSelection() {
                         className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
                     >
                         <View className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 items-center justify-center">
-                            <Text className="text-sm font-bold text-primary dark:text-accent">
+                            <Text className="text-sm font-bold text-primary">
                                 §{law.paragraph}
                             </Text>
                         </View>
@@ -76,7 +77,7 @@ export default function LawSelection() {
                         </View>
                         <View className="items-center">
                             <View className="bg-primary/10 dark:bg-primary/20 rounded-full px-2.5 py-1 mb-1">
-                                <Text className="text-xs font-semibold text-primary dark:text-accent">
+                                <Text className="text-xs font-semibold text-primary">
                                     {law.amount}{" "}
                                     {law.amount === 1 ? "bot" : "bøter"}
                                 </Text>
@@ -104,7 +105,7 @@ export default function LawSelection() {
                                 <Scale
                                     size={28}
                                     color={
-                                        isDarkColorScheme ? "#8ba3d4" : "#2d5dab"
+                                        themeColors(isDarkColorScheme).primary
                                     }
                                 />
                             </View>

@@ -3,6 +3,7 @@ import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Rect, G, Mask, Path, Defs, ClipPath } from "react-native-svg";
+import { themeColors } from "@/lib/theme/colors";
 
 
 export default function Arrangementer() {
@@ -29,8 +30,10 @@ export default function Arrangementer() {
     if (showLoading) {
         return (
             <SafeAreaProvider>
+                {/* Splashen er mørk uansett tema — logoen i den er hvit. */}
                 <SafeAreaView
-                    className="flex-1 justify-center items-center bg-[#001329]"
+                    className="flex-1 justify-center items-center"
+                    style={{ backgroundColor: themeColors(true).background }}
                 >
                     <SplashLogo />
                 </SafeAreaView>
@@ -55,7 +58,7 @@ function SplashLogo() {
             height={852}
             viewBox="0 0 393 852"
             fill="none">
-            <Rect width={393} height={852} fill="#001329" />
+            <Rect width={393} height={852} fill={themeColors(true).background} />
             <G clipPath="url(#clip0_167_297)">
                 <Mask
                     id="mask0_167_297"

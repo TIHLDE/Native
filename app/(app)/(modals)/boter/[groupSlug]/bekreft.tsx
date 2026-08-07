@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -34,7 +35,7 @@ type SelectedUser = {
 export default function ConfirmFine() {
     const router = useRouter();
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? "#9ca3af" : "#6b7280";
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const {
         groupSlug,
@@ -154,7 +155,7 @@ export default function ConfirmFine() {
                     </Text>
                     <Pressable
                         onPress={goBackToStart}
-                        className="h-14 rounded-2xl bg-primary dark:bg-[#1C5ECA] items-center justify-center px-8 active:opacity-80"
+                        className="h-14 rounded-2xl bg-primary items-center justify-center px-8 active:opacity-80"
                     >
                         <Text
                             className="text-white text-base font-semibold"
@@ -177,7 +178,7 @@ export default function ConfirmFine() {
             >
                 {/* Law summary */}
                 <View className="mx-4 mt-4 bg-primary/10 dark:bg-primary/20 rounded-2xl p-4">
-                    <Text className="text-sm font-semibold text-primary dark:text-accent">
+                    <Text className="text-sm font-semibold text-primary">
                         §{lawParagraph} — {lawTitle}
                     </Text>
                     <Text className="text-sm text-muted-foreground mt-1">
@@ -208,7 +209,7 @@ export default function ConfirmFine() {
                                         />
                                     ) : (
                                         <View className="w-12 h-12 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                                            <Text className="text-sm font-bold text-primary dark:text-accent">
+                                            <Text className="text-sm font-bold text-primary">
                                                 {user.first_name[0]}
                                                 {user.last_name[0]}
                                             </Text>
@@ -327,7 +328,7 @@ export default function ConfirmFine() {
                     disabled={!reason.trim() || isSubmitting}
                     className={`h-14 rounded-2xl flex-row items-center justify-center ${
                         reason.trim() && !isSubmitting
-                            ? "bg-primary dark:bg-[#1C5ECA] active:opacity-80"
+                            ? "bg-primary active:opacity-80"
                             : "bg-gray-200 dark:bg-secondary/30"
                     }`}
                 >

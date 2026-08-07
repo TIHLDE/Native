@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { View, Image, ActivityIndicator, Pressable } from "react-native";
@@ -138,7 +139,7 @@ export default function ArrangementSide() {
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const unregisterSheetRef = useRef<BottomSheetModal>(null);
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const event = useQuery({
         queryKey: ["event", id],
@@ -235,7 +236,7 @@ export default function ArrangementSide() {
                 title: event.data.organizer?.name || '',
                 headerLeft: () => (
                     <Pressable onPress={() => router.back()} className="flex-row items-center -ml-2">
-                        <ChevronLeft size={28} color={isDarkColorScheme ? '#ffffff' : '#000000'} />
+                        <ChevronLeft size={28} color={themeColors(isDarkColorScheme).foreground} />
                         <Text className="text-[17px] text-foreground -ml-1">Tilbake</Text>
                     </Pressable>
                 ),
@@ -315,8 +316,8 @@ export default function ArrangementSide() {
                                 })}
                                 className="h-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex-row items-center justify-center mb-6 active:opacity-70"
                             >
-                                <ClipboardList size={18} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
-                                <Text className="text-base font-semibold text-primary dark:text-accent ml-2" style={{ fontFamily: "Inter" }}>
+                                <ClipboardList size={18} color={themeColors(isDarkColorScheme).primary} />
+                                <Text className="text-base font-semibold text-primary ml-2" style={{ fontFamily: "Inter" }}>
                                     Registrer oppmøte
                                 </Text>
                             </Pressable>
@@ -358,8 +359,8 @@ export default function ArrangementSide() {
                                     onPress={() => bottomSheetModalRef.current?.present()}
                                     className="flex-row items-center justify-center py-3 mb-2 active:opacity-70"
                                 >
-                                    <Icon icon="UserRound" className="color-primary dark:color-accent stroke-2" />
-                                    <Text className="text-sm font-semibold text-primary dark:text-accent ml-1.5" style={{ fontFamily: "Inter" }}>
+                                    <Icon icon="UserRound" className="color-primary stroke-2" />
+                                    <Text className="text-sm font-semibold text-primary ml-1.5" style={{ fontFamily: "Inter" }}>
                                         Se deltagerliste
                                     </Text>
                                 </Pressable>
@@ -472,7 +473,7 @@ function UnregisterDrawer({
             <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
                 <View className="items-center py-4">
                     <View className="w-14 h-14 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
-                        <CircleCheck size={26} color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'} />
+                        <CircleCheck size={26} color={themeColors(isDarkColorScheme).primary} />
                     </View>
                     <Text className="text-xl font-bold text-foreground text-center">
                         Avmeldt
@@ -489,7 +490,7 @@ function UnregisterDrawer({
         <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
             <View className="items-center mb-4">
                 <View className="w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 items-center justify-center mb-4">
-                    <TriangleAlert size={26} color={isDarkColorScheme ? '#f87171' : '#dc2626'} />
+                    <TriangleAlert size={26} color={themeColors(isDarkColorScheme).destructive} />
                 </View>
                 <Text className="text-xl font-bold text-foreground text-center">
                     Meld deg av?
@@ -624,6 +625,7 @@ function RegistrationButton({
     mutationPending?: boolean;
     unregisterSheetRef: React.RefObject<BottomSheetModal | null>;
 }) {
+    const { isDarkColorScheme } = useColorScheme();
     const user = useQuery({
         queryKey: ["users", "me"],
         queryFn: me,
@@ -705,11 +707,13 @@ function RegistrationButton({
         );
     }
 
+    const palette = themeColors(isDarkColorScheme);
+
     const statusBannerStyles: Record<string, { bg: string; iconColor: string; textColor: string }> = {
-        success: { bg: 'bg-primary/10 dark:bg-primary/20', iconColor: '#2d5dab', textColor: 'text-primary dark:text-accent' },
+        success: { bg: 'bg-primary/10 dark:bg-primary/20', iconColor: palette.primary, textColor: 'text-primary' },
         info: { bg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: '#ea580c', textColor: 'text-orange-600 dark:text-orange-400' },
         warning: { bg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: '#ea580c', textColor: 'text-orange-600 dark:text-orange-400' },
-        error: { bg: 'bg-destructive/10 dark:bg-destructive/20', iconColor: '#dc2626', textColor: 'text-destructive' },
+        error: { bg: 'bg-destructive/10 dark:bg-destructive/20', iconColor: palette.destructive, textColor: 'text-destructive' },
     };
 
     const statusIcon: Record<string, React.ReactNode> = {
@@ -759,7 +763,8 @@ function RegistrationButton({
                             <ActivityIndicator />
                         ) : (
                             <>
-                                <LogOut size={18} color={isDisabled ? '#f8717180' : '#dc2626'} />
+                                {/* 80 = 50 % opacity, samme dempning som teksten ved siden av. */}
+                                <LogOut size={18} color={isDisabled ? `${palette.destructive}80` : palette.destructive} />
                                 <Text className={`text-base font-semibold ml-2 ${isDisabled ? 'text-destructive/50' : 'text-destructive'}`} style={{ fontFamily: "Inter" }}>
                                     {buttonText}
                                 </Text>
@@ -772,7 +777,7 @@ function RegistrationButton({
                         onPress={() => onClick?.()}
                         disabled={isDisabled || mutationPending}
                         className={`h-14 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-80 ${
-                            isDisabled ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary dark:bg-[#1C5ECA]'
+                            isDisabled ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary'
                         }`}
                     >
                         {mutationPending ? (
@@ -822,7 +827,7 @@ function PaymentButton({ eventId }: { eventId: string }) {
             }}
             disabled={payment.isPending}
             className={`h-14 rounded-2xl flex-row items-center justify-center mb-4 active:opacity-80 ${
-                payment.isPending ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary dark:bg-[#1C5ECA]'
+                payment.isPending ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary'
             }`}
         >
             {payment.isPending ? (

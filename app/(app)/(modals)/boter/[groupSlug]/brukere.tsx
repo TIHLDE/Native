@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -47,7 +48,7 @@ export default function UserSelection() {
     }>();
 
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? "#9ca3af" : "#6b7280";
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const [searchText, setSearchText] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<GroupUser[]>([]);
@@ -169,7 +170,7 @@ export default function UserSelection() {
                                 />
                             ) : (
                                 <View className="w-10 h-10 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                                    <Text className="text-sm font-bold text-primary dark:text-accent">
+                                    <Text className="text-sm font-bold text-primary">
                                         {user.first_name[0]}
                                         {user.last_name[0]}
                                     </Text>
@@ -179,7 +180,7 @@ export default function UserSelection() {
                                 {user.first_name} {user.last_name}
                             </Text>
                             {selected && (
-                                <View className="w-7 h-7 rounded-full bg-primary dark:bg-[#1C5ECA] items-center justify-center">
+                                <View className="w-7 h-7 rounded-full bg-primary items-center justify-center">
                                     <Check size={16} color="white" />
                                 </View>
                             )}
@@ -221,7 +222,7 @@ export default function UserSelection() {
                     disabled={selectedUsers.length === 0}
                     className={`h-14 rounded-2xl flex-row items-center justify-center ${
                         selectedUsers.length > 0
-                            ? "bg-primary dark:bg-[#1C5ECA] active:opacity-80"
+                            ? "bg-primary active:opacity-80"
                             : "bg-gray-200 dark:bg-secondary/30"
                     }`}
                 >

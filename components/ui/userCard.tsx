@@ -11,7 +11,7 @@ export default function UserCard({ user }: { user: User }) {
                 <Image className="w-10 h-10 rounded-full" source={{ uri: user.image }} />
             ) : (
                 <View className="w-10 h-10 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                    <Text className="text-sm font-bold text-primary dark:text-accent">
+                    <Text className="text-sm font-bold text-primary">
                         {initials}
                     </Text>
                 </View>
