@@ -192,7 +192,14 @@ export default function ArrangementSide() {
             <PageWrapper className="flex-1 bg-background">
                 <Stack.Screen options={{ title: "" }} />
                 <View className="flex-1 items-center justify-center px-6">
-                    <Text className="text-base text-destructive">{event.error?.message}</Text>
+                    {/* Begge spørringene kan feile hver for seg. Uten
+                        rettighetsfeilen her ble skjermen helt hvit når det var
+                        den som røk. */}
+                    <Text className="text-base text-destructive text-center">
+                        {event.error?.message ??
+                            permissions.error?.message ??
+                            "Kunne ikke laste arrangementet."}
+                    </Text>
                 </View>
             </PageWrapper>
         );

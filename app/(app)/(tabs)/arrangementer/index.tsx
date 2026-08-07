@@ -56,7 +56,12 @@ export default function Arrangementer() {
         if (debouncedSearch) queryParams.set('search', debouncedSearch);
         // Photon skiller kommende og tidligere med `expired`, og har egne
         // flagg for påmelding og favoritter under samme navn som før.
-        if (filters.expired) queryParams.set('expired', 'true');
+        //
+        // `expired` må alltid med: uten den blander Photon kommende og
+        // tidligere arrangementer i samme liste, sortert med det som ligger
+        // lengst fram i tid øverst. Med false kommer det som skjer først
+        // øverst, og med true de sist avholdte.
+        queryParams.set('expired', filters.expired ? 'true' : 'false');
         if (filters.openForSignUp) queryParams.set('openForSignUp', 'true');
         if (filters.userFavorite) queryParams.set('userFavorite', 'true');
 
