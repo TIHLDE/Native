@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import me, { myEvents } from "@/actions/users/me";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
@@ -39,7 +40,7 @@ export default function Profil() {
     const refreshControl = useRefresh(["users", "me"]);
 
 
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     if (user.isPending) {
         return (
@@ -104,7 +105,7 @@ export default function Profil() {
                             />
                         ) : (
                             <View className="w-28 h-28 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                                <Text className="text-3xl font-bold text-primary dark:text-accent">
+                                <Text className="text-3xl font-bold text-primary">
                                     {initials}
                                 </Text>
                             </View>
@@ -153,7 +154,7 @@ export default function Profil() {
                             onPress={() => logoutSheetRef.current?.present()}
                             className="flex-row items-center justify-center h-14 rounded-2xl bg-destructive/10 dark:bg-destructive/20 active:opacity-70"
                         >
-                            <LogOut size={18} color={isDarkColorScheme ? '#f87171' : '#dc2626'} />
+                            <LogOut size={18} color={themeColors(isDarkColorScheme).destructive} />
                             <Text className="text-base font-semibold text-destructive ml-2">
                                 Logg ut
                             </Text>
@@ -174,7 +175,7 @@ export default function Profil() {
                         <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
                             <View className="items-center mb-4">
                                 <View className="w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 items-center justify-center mb-4">
-                                    <TriangleAlert size={26} color={isDarkColorScheme ? '#f87171' : '#dc2626'} />
+                                    <TriangleAlert size={26} color={themeColors(isDarkColorScheme).destructive} />
                                 </View>
                                 <Text className="text-xl font-bold text-foreground text-center">
                                     Logg ut

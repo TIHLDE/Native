@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import React, {useState, useRef, useEffect, type ReactNode} from 'react';
 import {TextInput, View, Pressable, type TextInputProps} from 'react-native';
 import Animated, {
@@ -36,15 +37,18 @@ const FloatingLabelInput = React.forwardRef<TextInput, FloatingLabelInputProps>(
             progress.value = withTiming(isActive ? 1 : 0, {duration: DURATION});
         }, [isFocused, value]);
 
+        // Hentes ut som vanlige strenger her, ikke inne i worklet-ene under:
+        // de kjører på UI-tråden og fanger bare verdier.
+        const { primary, mutedForeground, input, card, foreground } =
+            themeColors(isDarkColorScheme);
+
         const labelStyle = useAnimatedStyle(() => {
             const top = interpolate(progress.value, [0, 1], [17, -10]);
             const fontSize = interpolate(progress.value, [0, 1], [16, 12]);
             const color = interpolateColor(
                 progress.value,
                 [0, 1],
-                isDarkColorScheme
-                    ? ['#9ca3af', '#8ba3d4']
-                    : ['#9ca3af', '#2d5dab']
+                [mutedForeground, primary]
             );
 
             return {
@@ -63,17 +67,15 @@ const FloatingLabelInput = React.forwardRef<TextInput, FloatingLabelInputProps>(
             const borderColor = interpolateColor(
                 progress.value,
                 [0, 1],
-                isDarkColorScheme
-                    ? ['#6b7280', '#8ba3d4']
-                    : ['#d1d5db', '#2d5dab']
+                [input, primary]
             );
 
             return {borderColor};
         });
 
-        const iconColor = isDarkColorScheme ? '#8ba3d4' : '#2d5dab';
+        const iconColor = primary;
 
-        const bgColor = isDarkColorScheme ? '#1e1e2e' : '#ffffff';
+        const bgColor = card;
 
         return (
             <Pressable onPress={() => resolvedRef.current?.focus()}>
@@ -152,7 +154,7 @@ const FloatingLabelInput = React.forwardRef<TextInput, FloatingLabelInputProps>(
                                 flex: 1,
                                 fontFamily: 'Inter',
                                 fontSize: 16,
-                                color: isDarkColorScheme ? '#ffffff' : '#111827',
+                                color: foreground,
                                 padding: 0,
                             },
                             style,

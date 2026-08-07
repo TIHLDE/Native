@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { fetchJobPosts } from "@/actions/events/events";
 import JobPostCard, { JobPostCardSkeleton } from "@/components/karriere/jobpostcard";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -78,7 +79,7 @@ export default function Karriere() {
                             <View className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
                                 <BriefcaseBusiness
                                     size={28}
-                                    color={isDarkColorScheme ? '#8ba3d4' : '#2d5dab'}
+                                    color={themeColors(isDarkColorScheme).primary}
                                 />
                             </View>
                             <Text className="text-lg font-semibold text-foreground mb-1">

@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { JOBTYPES } from "@/components/karriere/jobpostcard";
 import { Text } from "@/components/ui/text";
 import { useQuery } from "@tanstack/react-query";
@@ -105,7 +106,7 @@ export default function Karriereside() {
     });
 
     const refreshControl = useRefresh(["jobpost", id as string]);
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     if (jobpost.isPending) return (
         <>
@@ -208,7 +209,7 @@ export default function Karriereside() {
                         {jobpost.data.link && (
                             <Pressable
                                 onPress={handleApply}
-                                className="h-14 rounded-2xl bg-primary dark:bg-[#1C5ECA] flex-row items-center justify-center mb-8 active:opacity-80"
+                                className="h-14 rounded-2xl bg-primary flex-row items-center justify-center mb-8 active:opacity-80"
                             >
                                 <Text
                                     className="text-white text-base font-semibold mr-2"

@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
 import useRefresh from "@/lib/useRefresh";
@@ -24,7 +25,7 @@ function MembershipCardSkeleton() {
 export default function MembershipSelection() {
     const router = useRouter();
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? "#9ca3af" : "#6b7280";
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const memberships = useQuery({
         queryKey: ["memberships"],
@@ -61,7 +62,7 @@ export default function MembershipSelection() {
                                 <Users
                                     size={20}
                                     color={
-                                        isDarkColorScheme ? "#8ba3d4" : "#2d5dab"
+                                        themeColors(isDarkColorScheme).primary
                                     }
                                 />
                             </View>
@@ -98,7 +99,7 @@ export default function MembershipSelection() {
                                 <Users
                                     size={28}
                                     color={
-                                        isDarkColorScheme ? "#8ba3d4" : "#2d5dab"
+                                        themeColors(isDarkColorScheme).primary
                                     }
                                 />
                             </View>

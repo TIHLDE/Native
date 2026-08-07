@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { Stack, useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
@@ -13,7 +14,7 @@ const modalScreenOptions = {
 export default function ModalsLayout() {
     const router = useRouter();
     const { isDarkColorScheme } = useColorScheme();
-    const backColor = isDarkColorScheme ? "#ffffff" : "#000000";
+    const backColor = themeColors(isDarkColorScheme).foreground;
 
     return (
         <Stack>

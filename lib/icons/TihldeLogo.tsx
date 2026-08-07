@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import { cn } from 'lib/utils';
 import Svg, { ClipPath, Defs, G, Path } from 'react-native-svg';
 import { iconWithClassName } from './iconWithClassName';
@@ -10,10 +11,12 @@ export type TihldeLogoProps = {
 };
 
 const TihldeLogo = ({ size, className }: TihldeLogoProps) => {
-    let backgroundColor: string = '#2853a9';
-    if (useColorScheme().isDarkColorScheme) {
-        backgroundColor = '#FFFFFF';
-    }
+    // Logoen er TIHLDE-blå i lys modus og hvit i mørk, som på nettsiden:
+    // der er `--logo` satt til `--foreground` når temaet er mørkt.
+    const { isDarkColorScheme } = useColorScheme();
+    const backgroundColor = isDarkColorScheme
+        ? themeColors(true).foreground
+        : themeColors(false).primary;
 
     return (
         <Svg

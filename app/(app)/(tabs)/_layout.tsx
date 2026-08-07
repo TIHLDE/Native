@@ -33,19 +33,19 @@ export default function TabsLayout() {
                 {/* Karriere tab */}
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
                     <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                        isKarriere ? "bg-primary/15 dark:bg-accent/20" : ""
+                        isKarriere ? "bg-primary/15" : ""
                     }`}>
                         <Icon
                             icon="BriefcaseBusiness"
                             className={`self-center stroke-2 ${
                                 isKarriere
-                                    ? "color-primary dark:color-accent"
+                                    ? "color-primary"
                                     : "color-gray-400 dark:color-gray-500"
                             }`}
                         />
                         <Text className={`text-[10px] mt-0.5 font-semibold ${
                             isKarriere
-                                ? "color-primary dark:color-accent"
+                                ? "color-primary"
                                 : "color-gray-400 dark:color-gray-500"
                         }`}>
                             Karriere
@@ -56,19 +56,19 @@ export default function TabsLayout() {
                 {/* Arrangementer tab */}
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
                     <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                        isArrangementer ? "bg-primary/15 dark:bg-accent/20" : ""
+                        isArrangementer ? "bg-primary/15" : ""
                     }`}>
                         <Icon
                             icon="Calendar"
                             className={`self-center stroke-2 ${
                                 isArrangementer
-                                    ? "color-primary dark:color-accent"
+                                    ? "color-primary"
                                     : "color-gray-400 dark:color-gray-500"
                             }`}
                         />
                         <Text className={`text-[10px] mt-0.5 font-semibold ${
                             isArrangementer
-                                ? "color-primary dark:color-accent"
+                                ? "color-primary"
                                 : "color-gray-400 dark:color-gray-500"
                         }`}>
                             Events
@@ -80,7 +80,7 @@ export default function TabsLayout() {
                 <View style={styles.qrContainer}>
                     <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
                         <View
-                            className="bg-primary dark:bg-accent items-center justify-center"
+                            className="bg-primary items-center justify-center"
                             style={styles.qrButton}
                         >
                             <QrCode className="color-white dark:color-background" size={26} />
@@ -96,19 +96,19 @@ export default function TabsLayout() {
                 <View style={styles.tabItem}>
                     <TouchableWithoutFeedback onPress={() => router.push('/profil')}>
                         <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                            isProfil ? "bg-primary/15 dark:bg-accent/20" : ""
+                            isProfil ? "bg-primary/15" : ""
                         }`}>
                             <Icon
                                 icon="UserRound"
                                 className={`self-center stroke-2 ${
                                     isProfil
-                                        ? "color-primary dark:color-accent"
+                                        ? "color-primary"
                                         : "color-gray-400 dark:color-gray-500"
                                 }`}
                             />
                             <Text className={`text-[10px] mt-0.5 font-semibold ${
                                 isProfil
-                                    ? "color-primary dark:color-accent"
+                                    ? "color-primary"
                                     : "color-gray-400 dark:color-gray-500"
                             }`}>
                                 Profil

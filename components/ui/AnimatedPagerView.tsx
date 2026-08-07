@@ -24,7 +24,7 @@ export default function AnimatedPagerView(props: AnimatedPagerViewProps) {
                     const isActive = activeIndex === index;
                     return (
                         <Pressable
-                            className={`flex-1 py-2.5 rounded-xl items-center justify-center ${isActive ? 'bg-primary dark:bg-[#1C5ECA]' : ''}`}
+                            className={`flex-1 py-2.5 rounded-xl items-center justify-center ${isActive ? 'bg-primary' : ''}`}
                             key={index}
                             onPress={() => requestAnimationFrame(() => pagerViewRef.current?.setPage(index))}
                         >

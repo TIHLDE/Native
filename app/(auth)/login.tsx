@@ -84,7 +84,7 @@ export default function Login() {
                                 "h-14 rounded-2xl items-center justify-center",
                                 isPending
                                     ? "bg-primary/40 dark:bg-primary/30"
-                                    : "bg-primary dark:bg-[#1C5ECA] active:opacity-80"
+                                    : "bg-primary active:opacity-80"
                             )}
                         >
                             {isPending ? (
@@ -105,7 +105,7 @@ export default function Login() {
                                 onPress={_handlePressButtonForgotPasswordAsync}
                                 hitSlop={8}
                             >
-                                <Text className="text-sm text-primary dark:text-accent">
+                                <Text className="text-sm text-primary">
                                     Glemt passord?
                                 </Text>
                             </Pressable>
@@ -120,7 +120,7 @@ export default function Login() {
                                 onPress={_handlePressButtonCreateUserAsync}
                                 hitSlop={8}
                             >
-                                <Text className="text-sm font-semibold text-primary dark:text-accent">
+                                <Text className="text-sm font-semibold text-primary">
                                     Opprett bruker
                                 </Text>
                             </Pressable>

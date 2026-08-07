@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import React from 'react';
 import { View, Image, Pressable } from 'react-native';
 import { Text } from "@/components/ui/text";
@@ -32,7 +33,7 @@ function OrganizerBadge({ organizer }: { organizer: EventCardProps['organizer'] 
         plask: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-600 dark:text-purple-400' },
     };
 
-    const colors = colorMap[slug ?? ''] ?? { bg: 'bg-primary/10 dark:bg-primary/20', text: 'text-primary dark:text-accent' };
+    const colors = colorMap[slug ?? ''] ?? { bg: 'bg-primary/10 dark:bg-primary/20', text: 'text-primary' };
 
     return (
         <View className={`px-3 py-1 rounded-full ${colors.bg}`}>
@@ -52,7 +53,7 @@ const EventCard = ({
     location,
 }: EventCardProps) => {
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = isDarkColorScheme ? '#9ca3af' : '#6b7280';
+    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const dateObj = date
         ? typeof date === "string" ? new Date(date) : date

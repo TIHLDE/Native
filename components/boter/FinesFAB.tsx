@@ -1,3 +1,4 @@
+import { themeColors } from "@/lib/theme/colors";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { Gavel } from "lucide-react-native";
@@ -15,7 +16,7 @@ export default function FinesHeaderButton() {
         >
             {({ pressed }) => (
                 <View style={{ opacity: pressed ? 0.7 : 1 }}>
-                    <Gavel size={22} strokeWidth={2} color={isDarkColorScheme ? "#ffffff" : "#000000"} />
+                    <Gavel size={22} strokeWidth={2} color={themeColors(isDarkColorScheme).foreground} />
                 </View>
             )}
         </Pressable>
