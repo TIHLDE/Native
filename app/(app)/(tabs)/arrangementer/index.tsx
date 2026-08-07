@@ -81,13 +81,14 @@ export default function Arrangementer() {
     } = useInfiniteQuery({
         queryKey: ["events", debouncedSearch, filters.expired, filters.openForSignUp, filters.userFavorite],
         queryFn: fetchEvents,
-        initialPageParam: 1,
-        getNextPageParam: (lastPage, allPages, lastPageParam) => {
-            if (!lastPage.results || lastPage.results?.length === 0) {
-                return undefined;
-            }
-            return lastPageParam + 1;
-        },
+        // Photon teller sider fra 0. Med 1 her hoppet lista over de ti første
+        // arrangementene, så den startet midt i rekka i stedet for på det som
+        // skjer først.
+        initialPageParam: 0,
+        getNextPageParam: (lastPage) =>
+            // `next` er Photons `nextPage`, som er null på siste side. Å telle
+            // opp selv ga en side til etter at lista var tom.
+            lastPage.next !== null ? Number(lastPage.next) : undefined,
     });
 
     const refreshControl = useRefresh(["events", debouncedSearch, filters.expired, filters.openForSignUp, filters.userFavorite]);

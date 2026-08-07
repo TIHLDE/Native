@@ -72,9 +72,9 @@ export default function MembershipSelection() {
                                 {membership.group.name}
                             </Text>
                             <Text className="text-sm text-muted-foreground mt-0.5">
-                                {membership.membership_type === "MEMBER"
-                                    ? "Medlem"
-                                    : membership.membership_type}
+                                {membership.membership_type === "LEADER"
+                                    ? "Leder"
+                                    : "Medlem"}
                             </Text>
                         </View>
                         <ChevronRight size={20} color={mutedColor} />

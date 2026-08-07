@@ -246,7 +246,7 @@ function ManualRegistration() {
     } = useInfiniteQuery({
         queryKey: ["event", id, "participants", debouncedSearch],
         queryFn: async ({ pageParam }) => await eventParticipants(id, pageParam, debouncedSearch || undefined),
-        initialPageParam: 1,
+        initialPageParam: 0,
         getNextPageParam: (lastPage, allPages, lastPageParam) => {
             if (lastPage.next === null) return undefined;
             return lastPageParam + 1;

@@ -14,6 +14,9 @@ const PAGE_SIZE = 25;
  * Deltakerlista. Photon paginerer med side og sidestørrelse, og gir `nextPage`
  * som et tall — skjermene forventer `next` som en streng eller null, siden
  * Lepton ga en URL der.
+ *
+ * Sidetallene er nullbaserte: `page=0` er første side. Ba man om side 1 fikk
+ * man side to, og de første 25 deltakerne fantes ikke.
  */
 export async function eventParticipants(
     eventId: string,
@@ -21,7 +24,7 @@ export async function eventParticipants(
     search?: string
 ): Promise<{ results: Registration[]; next: string | null }> {
     const params = new URLSearchParams({
-        page: String(pageParam || 1),
+        page: String(pageParam),
         pageSize: String(PAGE_SIZE),
     });
     if (search) params.set("search", search);
