@@ -2,44 +2,102 @@ import { useQuery } from "@tanstack/react-query";
 import { apiJson } from "@/lib/api/client";
 import { ISSUER } from "@/lib/auth/photon";
 import { Event, Permissions, Membership, User } from "@/actions/types";
-import { PhotonGroup, PhotonUser, toMembership, toUser } from "@/actions/photon";
+import { PhotonGroup, toMembership, toUser } from "@/actions/photon";
 
-type PhotonSession = {
-    user: PhotonUser;
-    permissions: string[];
-    groups: { slug: string; name: string; type: string; logoUrl: string | null; role: string }[];
+/**
+ * Standardkravene fra OIDC-userinfo, pluss brukernavnet og rettighetene Photon
+ * legger på.
+ */
+type PhotonUserInfo = {
+    sub: string;
+    name?: string | null;
+    email?: string | null;
+    picture?: string | null;
+    preferred_username?: string | null;
+    permissions?: string[];
 };
 
 /**
- * Sesjonen dekker det Lepton delte på tre kall: /users/me/,
- * /users/me/permissions/ og /users/me/memberships/.
+ * Hvem tokenet tilhører, og hva det gir lov til.
+ *
+ * Access-tokenet er ikke alltid en JWT — plugin-en signerer bare når kallet har
+ * en audience, og gir ellers et opakt token uten krav i seg. Userinfo svarer
+ * likt uansett, så alt leses derfra.
  */
-async function session(): Promise<PhotonSession> {
-    return apiJson<PhotonSession>(`${ISSUER}/get-session`);
+function userinfo(): Promise<PhotonUserInfo> {
+    return apiJson<PhotonUserInfo>(`${ISSUER}/oauth2/userinfo`);
 }
 
+/** Delen av `/user/:id` appen viser. */
+type PhotonUserProfile = {
+    id: string;
+    name: string;
+    username: string | null;
+    image: string | null;
+    studyProgram: string | null;
+    studyStartYear: number | null;
+};
+
+/**
+ * Brukeren bak tokenet.
+ *
+ * Better Auth sin egen `/get-session` leser sesjonscookien, og en OAuth-klient
+ * har aldri noen cookie — den svarer `null` uansett hvor gyldig tokenet er.
+ * Identiteten hentes derfor fra OIDC-userinfo, og studieprogrammet fra Photons
+ * egen profilrute. Begge tar bearer-tokenet.
+ */
 export default async function me(): Promise<User> {
-    const data = await session();
-    return toUser(data.user);
+    const info = await userinfo();
+    const profile = await apiJson<PhotonUserProfile>(
+        `/user/${encodeURIComponent(info.sub)}`,
+    );
+
+    return toUser({
+        id: info.sub,
+        // Profilruta er kilden der begge har feltet: den foretrekker den
+        // opplastede avataren, mens userinfo alltid gir Feide-bildet.
+        name: profile.name ?? info.name,
+        username: profile.username ?? info.preferred_username,
+        // E-posten er privat i profilruta, så den kan bare komme herfra.
+        email: info.email,
+        image: profile.image ?? info.picture,
+        studyProgram: profile.studyProgram,
+        studyStartYear: profile.studyStartYear,
+    });
 }
 
 /**
  * Photons rettigheter er navngitte strenger med scope, ikke Leptons tabell
  * over Django-modeller med read/write per modell.
  *
- * Appen leser bare `event.write`, så oversettelsen dekker det den faktisk
- * bruker framfor å gjenskape en tabell ingen spør etter. Lesing er åpen for
- * innloggede i Photon, så `read` er sann når sesjonen finnes.
+ * Strengene kommer fra userinfo. En scopet rettighet ser ut som
+ * `events:update@group:sosialen`; her holder det å vite at brukeren har den et
+ * sted, siden API-et sjekker scopet på nytt når handlingen faktisk utføres.
+ *
+ * Appen leser bare `event.write` og `fine.write`, så oversettelsen dekker det
+ * den faktisk bruker framfor å gjenskape en tabell ingen spør etter. Lesing er
+ * åpen for innloggede i Photon, så `read` er sann når sesjonen finnes.
  */
 export async function myPermissions(): Promise<Permissions> {
-    const data = await session();
+    const { permissions } = await userinfo();
+    const granted = new Set(
+        (permissions ?? []).map((raw) => raw.split("@")[0]),
+    );
     const has = (...needles: string[]) =>
-        needles.some((needle) => data.permissions.includes(needle));
+        needles.some((needle) => granted.has(needle));
 
     return {
         event: {
             read: true,
-            write: has("events:manage", "events:create", "events:update"),
+            // Det eneste `event.write` styrer i appen er «Registrer oppmøte»,
+            // så innsjekksrettighetene teller like mye som redigering.
+            write: has(
+                "events:manage",
+                "events:create",
+                "events:update",
+                "events:registrations:manage",
+                "events:registrations:checkin",
+            ),
         },
         fine: {
             read: true,
