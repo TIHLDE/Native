@@ -19,6 +19,19 @@ export const CLIENT_ID =
 
 export const SCOPES = ["openid", "profile", "email", "offline_access"];
 
+/**
+ * Hvem tokenet er ment for (RFC 8707 `resource`).
+ *
+ * Uten den gir Photon et opakt token — en ren streng uten krav i seg — og API-et
+ * avviser alt som krever innlogging med «Authentication required», fordi
+ * `requireAuth` bare godtar signerte JWT-er. Ber vi om denne mottakeren får vi
+ * en JWT i stedet, og resten av appen virker.
+ *
+ * Verdien må være en av utstederens godkjente mottakere; standarden er
+ * utstederen selv.
+ */
+export const RESOURCE = ISSUER;
+
 export const discovery: AuthSession.DiscoveryDocument = {
     authorizationEndpoint: `${ISSUER}/oauth2/authorize`,
     tokenEndpoint: `${ISSUER}/oauth2/token`,
@@ -65,6 +78,7 @@ export async function exchangeCode(
         client_id: CLIENT_ID,
         redirect_uri: redirectUri,
         code_verifier: codeVerifier,
+        resource: RESOURCE,
     });
 
     const res = await fetch(discovery.tokenEndpoint as string, {
@@ -86,13 +100,36 @@ export async function exchangeCode(
 }
 
 /**
+ * Fornyelsen som allerede er i gang, om noen.
+ *
+ * Photon roterer refresh-tokenet: hvert token kan brukes én gang, og brukes det
+ * samme to ganger tolkes det som tyveri — da slettes hele kjeden og brukeren er
+ * logget ut. En skjerm som henter tre ting samtidig fikk tre 401-er, som hver
+ * startet sin egen fornyelse med det samme tokenet. Første gikk igjennom, de to
+ * andre så ut som gjenbruk, og sesjonen røk.
+ *
+ * Derfor deler alle på det samme kallet: den som kommer først starter det,
+ * resten venter på svaret.
+ */
+let inFlightRefresh: Promise<string | null> | null = null;
+
+export function refreshSession(): Promise<string | null> {
+    if (!inFlightRefresh) {
+        inFlightRefresh = performRefresh().finally(() => {
+            inFlightRefresh = null;
+        });
+    }
+    return inFlightRefresh;
+}
+
+/**
  * Exchange the refresh token for a fresh access token.
  *
  * Returns null when the session cannot be renewed — a revoked or expired
  * refresh token — and clears the stored one so the app stops retrying with a
  * token the server has already rejected.
  */
-export async function refreshSession(): Promise<string | null> {
+async function performRefresh(): Promise<string | null> {
     const stored = await getSession();
     if (!stored?.refreshToken) return null;
 
@@ -100,6 +137,9 @@ export async function refreshSession(): Promise<string | null> {
         grant_type: "refresh_token",
         refresh_token: stored.refreshToken,
         client_id: CLIENT_ID,
+        // Må med her også: mottakeren avgjøres per utstedelse, så uten den
+        // faller man tilbake til et opakt token ved første fornyelse.
+        resource: RESOURCE,
     });
 
     const res = await fetch(discovery.tokenEndpoint as string, {
