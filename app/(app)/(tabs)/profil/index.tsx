@@ -94,7 +94,7 @@ export default function Profil() {
                 <ScrollView
                     refreshControl={refreshControl}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{paddingBottom: 40}}
+                    contentContainerStyle={{paddingBottom: 100}}
                 >
                     {/* Profile hero */}
                     <View className="items-center pt-8 pb-6">

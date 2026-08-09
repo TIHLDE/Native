@@ -91,31 +91,28 @@ export default function TabsLayout() {
                 {/* Holder QR-knappen midtstilt: to plasser på hver side. */}
                 <View style={styles.tabItem} />
 
-                {/* Profil — ligger utenfor tab-navigatoren, så den dyttes på
-                    stacken som QR-knappen framfor å være en TabTrigger. */}
-                <View style={styles.tabItem}>
-                    <TouchableWithoutFeedback onPress={() => router.push('/profil')}>
-                        <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                            isProfil ? "bg-primary/15" : ""
-                        }`}>
-                            <Icon
-                                icon="UserRound"
-                                className={`self-center stroke-2 ${
-                                    isProfil
-                                        ? "color-primary"
-                                        : "color-gray-400 dark:color-gray-500"
-                                }`}
-                            />
-                            <Text className={`text-[10px] mt-0.5 font-semibold ${
+                {/* Profil tab */}
+                <TabTrigger name="profil" href="/profil" reset="never" style={styles.tabItem}>
+                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
+                        isProfil ? "bg-primary/15" : ""
+                    }`}>
+                        <Icon
+                            icon="UserRound"
+                            className={`self-center stroke-2 ${
                                 isProfil
                                     ? "color-primary"
                                     : "color-gray-400 dark:color-gray-500"
-                            }`}>
-                                Profil
-                            </Text>
-                        </View>
-                    </TouchableWithoutFeedback>
-                </View>
+                            }`}
+                        />
+                        <Text className={`text-[10px] mt-0.5 font-semibold ${
+                            isProfil
+                                ? "color-primary"
+                                : "color-gray-400 dark:color-gray-500"
+                        }`}>
+                            Profil
+                        </Text>
+                    </View>
+                </TabTrigger>
             </TabList>
         </Tabs>
     );

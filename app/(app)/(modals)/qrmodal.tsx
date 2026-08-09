@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { View } from "react-native";
 import QRCode from 'react-native-qrcode-svg';
 
-export default function qrmodal() {
+export default function QrModal() {
     const { isDarkColorScheme } = useColorScheme();
 
     const user = useQuery({
