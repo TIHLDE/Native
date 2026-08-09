@@ -7,3 +7,4 @@ export * from "./event";
 export * from "./registration";
 export * from "./payment";
 export * from "./fine";
+export * from "./application";

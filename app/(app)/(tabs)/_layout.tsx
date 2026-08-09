@@ -15,6 +15,7 @@ export default function TabsLayout() {
     const { isDarkColorScheme } = useColorScheme();
     const insets = useSafeAreaInsets();
 
+    const isUtlegg = pathname.includes("/utlegg");
     const isKarriere = pathname.includes("/karriere");
     const isArrangementer = pathname.includes("/arrangementer");
     const isProfil = pathname.includes("/profil");
@@ -29,6 +30,29 @@ export default function TabsLayout() {
                     style={StyleSheet.absoluteFill}
                 />
                 <View style={styles.topBorder} className="bg-border/30 dark:bg-white/8" />
+
+                {/* Utlegg tab */}
+                <TabTrigger name="utlegg" href="/utlegg" reset="never" style={styles.tabItem}>
+                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
+                        isUtlegg ? "bg-primary/15" : ""
+                    }`}>
+                        <Icon
+                            icon="ReceiptText"
+                            className={`self-center stroke-2 ${
+                                isUtlegg
+                                    ? "color-primary"
+                                    : "color-gray-400 dark:color-gray-500"
+                            }`}
+                        />
+                        <Text className={`text-[10px] mt-0.5 font-semibold ${
+                            isUtlegg
+                                ? "color-primary"
+                                : "color-gray-400 dark:color-gray-500"
+                        }`}>
+                            Utlegg
+                        </Text>
+                    </View>
+                </TabTrigger>
 
                 {/* Karriere tab */}
                 <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
@@ -53,6 +77,18 @@ export default function TabsLayout() {
                     </View>
                 </TabTrigger>
 
+                {/* QR center button */}
+                <View style={styles.qrContainer}>
+                    <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
+                        <View
+                            className="bg-primary items-center justify-center"
+                            style={styles.qrButton}
+                        >
+                            <QrCode className="color-white dark:color-background" size={26} />
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+
                 {/* Arrangementer tab */}
                 <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
                     <View className={`rounded-2xl py-1.5 items-center w-20 ${
@@ -75,21 +111,6 @@ export default function TabsLayout() {
                         </Text>
                     </View>
                 </TabTrigger>
-
-                {/* QR center button */}
-                <View style={styles.qrContainer}>
-                    <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
-                        <View
-                            className="bg-primary items-center justify-center"
-                            style={styles.qrButton}
-                        >
-                            <QrCode className="color-white dark:color-background" size={26} />
-                        </View>
-                    </TouchableWithoutFeedback>
-                </View>
-
-                {/* Holder QR-knappen midtstilt: to plasser på hver side. */}
-                <View style={styles.tabItem} />
 
                 {/* Profil tab */}
                 <TabTrigger name="profil" href="/profil" reset="never" style={styles.tabItem}>
