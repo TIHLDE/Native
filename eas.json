@@ -17,6 +17,11 @@
   },
   "submit": {
     "production": {
+      "ios": {
+        "appleTeamId": "J96RPMBZY9",
+        "bundleIdentifier": "com.tihlde.app",
+        "ascAppId": "6742454079"
+      },
       "android": {
         "serviceAccountKeyPath": "./service-account-file.json",
         "track": "production"

@@ -42,34 +42,7 @@ export default function Profil() {
 
     const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
-    if (user.isPending) {
-        return (
-            <PageWrapper className="flex-1 bg-background">
-                <ScrollView refreshControl={refreshControl} contentContainerStyle={{flexGrow: 1}}>
-                    <View className="flex-1 items-center justify-center">
-                        <Text className="text-base text-muted-foreground">Laster profil...</Text>
-                    </View>
-                </ScrollView>
-            </PageWrapper>
-        );
-    }
-
-    if (user.isError) {
-        return (
-            <PageWrapper className="flex-1 bg-background">
-                <ScrollView refreshControl={refreshControl} contentContainerStyle={{flexGrow: 1}}>
-                    <View className="flex-1 items-center justify-center px-6">
-                        <Text className="text-base text-destructive">{user.error.message}</Text>
-                    </View>
-                </ScrollView>
-            </PageWrapper>
-        );
-    }
-
-    const initials = `${user.data.first_name[0]}${user.data.last_name[0]}`;
-
-    const handleLogoutConfirm = async () => {
-        logoutSheetRef.current?.dismiss();
+    const performLogout = async () => {
         const isLoggedOut = await deleteToken();
 
         if (!isLoggedOut) {
@@ -86,6 +59,51 @@ export default function Profil() {
             token: null,
         });
         router.replace("/(auth)/login");
+    };
+
+    if (user.isPending) {
+        return (
+            <PageWrapper className="flex-1 bg-background">
+                <ScrollView refreshControl={refreshControl} contentContainerStyle={{flexGrow: 1}}>
+                    <View className="flex-1 items-center justify-center">
+                        <Text className="text-base text-muted-foreground">Laster profil...</Text>
+                    </View>
+                </ScrollView>
+            </PageWrapper>
+        );
+    }
+
+    if (user.isError) {
+        return (
+            <PageWrapper className="flex-1 bg-background">
+                <ScrollView refreshControl={refreshControl} contentContainerStyle={{flexGrow: 1}}>
+                    {/*
+                      * «Logg ut» hører hjemme her også. Ligger den bare i den
+                      * ferdiglastede profilen, er den utilgjengelig akkurat når
+                      * den trengs mest — når profilen ikke lar seg hente.
+                      */}
+                    <View className="flex-1 items-center justify-center px-6">
+                        <Text className="text-base text-destructive text-center">{user.error.message}</Text>
+                        <Pressable
+                            onPress={() => user.refetch()}
+                            className="mt-6 h-12 px-6 rounded-2xl items-center justify-center bg-primary active:opacity-80"
+                        >
+                            <Text className="text-white text-base font-semibold">Prøv igjen</Text>
+                        </Pressable>
+                        <Pressable onPress={performLogout} hitSlop={8} className="mt-4">
+                            <Text className="text-base text-primary">Logg ut</Text>
+                        </Pressable>
+                    </View>
+                </ScrollView>
+            </PageWrapper>
+        );
+    }
+
+    const initials = `${user.data.first_name[0]}${user.data.last_name[0]}`;
+
+    const handleLogoutConfirm = async () => {
+        logoutSheetRef.current?.dismiss();
+        await performLogout();
     };
 
     return (

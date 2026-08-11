@@ -1,11 +1,27 @@
 import { API_URL } from "@/actions/constant";
-import { getValidAccessToken, refreshSession } from "@/lib/auth/photon";
+import { getValidAccessToken, ISSUER, refreshSession } from "@/lib/auth/photon";
+import { emitSessionLost } from "@/lib/auth/session-events";
 
 export class UnauthorizedError extends Error {
     constructor() {
         super("Sesjonen er utløpt");
         this.name = "UnauthorizedError";
     }
+}
+
+/**
+ * Om svaret betyr «tokenet duger ikke», uansett hvilken status det kom med.
+ *
+ * API-et svarer 401 slik man venter. Auth-endepunktene gjør det ikke:
+ * `/oauth2/userinfo` kjører tokenet gjennom introspeksjon først, og et utløpt
+ * token blir da et token uten scope — som svarer 400 «Missing required
+ * scope». Uten denne linja så appen 400 som en vanlig feil, hoppet over
+ * fornyelsen, og profilsiden ble stående på «Forespørselen feilet (400)»
+ * resten av sesjonen.
+ */
+function isTokenRejection(url: string, response: Response): boolean {
+    if (response.status === 401) return true;
+    return response.status === 400 && url.startsWith(ISSUER);
 }
 
 /**
@@ -25,7 +41,10 @@ export async function apiFetch(
     init: RequestInit = {},
 ): Promise<Response> {
     const token = await getValidAccessToken();
-    if (!token) throw new UnauthorizedError();
+    if (!token) {
+        emitSessionLost();
+        throw new UnauthorizedError();
+    }
 
     const url = path.startsWith("http") ? path : `${API_URL}${path}`;
     const send = (bearer: string) =>
@@ -39,11 +58,21 @@ export async function apiFetch(
         });
 
     const response = await send(token);
-    if (response.status !== 401) return response;
+    if (!isTokenRejection(url, response)) return response;
 
     const refreshed = await refreshSession();
     if (!refreshed) throw new UnauthorizedError();
-    return await send(refreshed);
+
+    const retried = await send(refreshed);
+    // Et ferskt token som også blir avvist betyr at sesjonen er borte for
+    // godt. Å gi svaret videre ville vist «(400)» eller «(401)» på skjermen i
+    // stedet for å sende brukeren til innloggingen.
+    if (isTokenRejection(url, retried)) {
+        emitSessionLost();
+        throw new UnauthorizedError();
+    }
+
+    return retried;
 }
 
 /** apiFetch plus JSON parsing, throwing on a non-2xx response. */

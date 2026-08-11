@@ -1,7 +1,7 @@
 import { apiJson } from "@/lib/api/client";
 import { API_URL } from "@/actions/constant";
 import { Event, JobPost } from "../types";
-import { PhotonEvent, toEvent } from "@/actions/photon";
+import { PhotonEvent, toEvent, toJobTypeKey } from "@/actions/photon";
 
 type PhotonEventList = { items: PhotonEvent[]; totalCount: number; nextPage: number | null };
 
@@ -90,7 +90,7 @@ const toJobPost = (job: PhotonJobPost): JobPost => ({
     location: job.location,
     body: job.body,
     ingress: job.ingress,
-    job_type: job.jobType,
+    job_type: toJobTypeKey(job.jobType),
     class_start: job.classStart,
     class_end: job.classEnd,
     deadline: job.deadline,

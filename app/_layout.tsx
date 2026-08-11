@@ -8,7 +8,8 @@ import { Platform } from 'react-native';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { AuthProvider } from '@/context/auth';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import Toast from "react-native-toast-message";
 import { PortalHost } from '@rn-primitives/portal';
 import { getTheme } from '@/lib/storage/themeStore';
@@ -31,7 +32,6 @@ export default function RootLayout() {
     const hasMounted = React.useRef(false);
     const { isDarkColorScheme, setColorScheme } = useColorScheme();
     const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
-    const queryClient = new QueryClient();
 
 
     useIsomorphicLayoutEffect(() => {

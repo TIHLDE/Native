@@ -2,7 +2,7 @@
   "expo": {
     "name": "TIHLDE",
     "slug": "Native",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tihlde",
@@ -13,8 +13,7 @@
       "bundleIdentifier": "com.tihlde.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "buildNumber": "3.0.0"
+      }
     },
     "android": {
       "softwareKeyboardLayoutMode": "pan",
@@ -22,7 +21,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tihlde.app"
+      "package": "com.tihlde.app",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -43,9 +45,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
+          "cameraPermission": "TIHLDE bruker kameraet til å skanne QR-koder ved innsjekk på arrangementer.",
+          "recordAudioAndroid": false
         }
       ],
       "expo-web-browser"
@@ -53,12 +54,13 @@
     "experiments": {
       "typedRoutes": true
     },
+    "owner": "tihlde",
     "extra": {
       "router": {
         "origin": false
       },
       "eas": {
-        "projectId": "d4b7e57e-868a-4636-b5ff-24f5ad334c5d"
+        "projectId": "849fbc28-9c38-440c-97b6-caa7525862cf"
       }
     }
   }
