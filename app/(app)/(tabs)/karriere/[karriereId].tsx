@@ -1,5 +1,6 @@
 import { themeColors } from "@/lib/theme/colors";
 import { JOBTYPES } from "@/components/karriere/jobpostcard";
+import { classRangeLabel } from "@/actions/photon";
 import { Text } from "@/components/ui/text";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -129,6 +130,11 @@ export default function Karriereside() {
         if (jobpost.data.link) await WebBrowser.openBrowserAsync(jobpost.data.link);
     }
 
+    const classLabel = classRangeLabel(
+        String(jobpost.data.class_start ?? ""),
+        String(jobpost.data.class_end ?? ""),
+    );
+
     const formattedDeadline = new Date(jobpost.data.deadline ?? "").toLocaleDateString("no-NO", {
         year: "numeric",
         month: "long",
@@ -178,11 +184,11 @@ export default function Karriereside() {
                                 label="Søknadsfrist"
                                 value={formattedDeadline}
                             />
-                            {jobpost.data.class_start && jobpost.data.class_end && (
+                            {classLabel !== "" && (
                                 <DetailRow
                                     icon={<GraduationCap size={18} color={mutedColor} />}
                                     label="Årstrinn"
-                                    value={`${jobpost.data.class_start}. - ${jobpost.data.class_end}. trinn`}
+                                    value={classLabel}
                                 />
                             )}
                             <DetailRow

@@ -11,6 +11,16 @@ export type StoredSession = {
     expiresAt: number;
 };
 
+/**
+ * Levetiden Photon faktisk gir access-tokenet i dag.
+ *
+ * Brukes bare når svaret mangler `expires_in`. Uten et lagret utløp vet appen
+ * ikke at tokenet er dødt før et kall svarer med feil, og de kallene svarer
+ * ikke likt: `/oauth2/userinfo` gir 400, ikke 401. Et anslag som er litt for
+ * kort koster én ekstra fornyelse; ingen anslag kostet profilsiden.
+ */
+const ASSUMED_LIFETIME_SECONDS = 3600;
+
 export async function getToken(): Promise<string | null> {
     return await SecureStore.getItemAsync(ACCESS_TOKEN);
 };
@@ -59,10 +69,13 @@ export async function setSession(session: {
         );
     }
 
-    if (session.expiresInSeconds) {
-        const expiresAt = Date.now() + session.expiresInSeconds * 1000;
-        writes.push(SecureStore.setItemAsync(EXPIRES_AT, String(expiresAt)));
-    }
+    const lifetime = session.expiresInSeconds || ASSUMED_LIFETIME_SECONDS;
+    writes.push(
+        SecureStore.setItemAsync(
+            EXPIRES_AT,
+            String(Date.now() + lifetime * 1000),
+        ),
+    );
 
     await Promise.all(writes);
 };

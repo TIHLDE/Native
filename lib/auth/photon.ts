@@ -1,5 +1,6 @@
 import * as AuthSession from "expo-auth-session";
 import { BASE_URL } from "@/actions/constant";
+import { emitSessionLost } from "@/lib/auth/session-events";
 import { deleteToken, getSession, setSession } from "@/lib/storage/tokenStore";
 
 /**
@@ -50,8 +51,16 @@ export function makeRedirectUri(): string {
  */
 const EXPIRY_SKEW_MS = 60_000;
 
+/**
+ * Et ukjent utløp regnes som utløpt.
+ *
+ * Motsatt vei — å anta at et token uten kjent utløp fortsatt lever — betyr at
+ * appen aldri fornyer av seg selv og i stedet venter på at et kall skal si
+ * fra. `/oauth2/userinfo` sier fra med 400, som ikke ligner en utløpt sesjon,
+ * og profilsiden ble stående på «Forespørselen feilet (400)» for godt.
+ */
 export function isExpired(expiresAt: number): boolean {
-    if (!expiresAt) return false;
+    if (!expiresAt) return true;
     return Date.now() >= expiresAt - EXPIRY_SKEW_MS;
 }
 
@@ -131,7 +140,13 @@ export function refreshSession(): Promise<string | null> {
  */
 async function performRefresh(): Promise<string | null> {
     const stored = await getSession();
-    if (!stored?.refreshToken) return null;
+    if (!stored?.refreshToken) {
+        // Ingen vei tilbake til et gyldig token: si fra én gang, så appen kan
+        // sende brukeren til innloggingen framfor å vise feil på hver side.
+        await deleteToken();
+        emitSessionLost();
+        return null;
+    }
 
     const body = new URLSearchParams({
         grant_type: "refresh_token",
@@ -150,6 +165,7 @@ async function performRefresh(): Promise<string | null> {
 
     if (!res.ok) {
         await deleteToken();
+        emitSessionLost();
         return null;
     }
 

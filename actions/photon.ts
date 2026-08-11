@@ -189,3 +189,36 @@ export const toRegistration = (registered: PhotonRegisteredUser) =>
             image: registered.image,
         }),
     }) as unknown as import("@/actions/types").Registration;
+
+/**
+ * Photon navngir stillingstypene med små bokstaver og understrek
+ * (`full_time`), Lepton med store (`FULL_TIME`). Skjermene slår opp i den
+ * gamle tabellen, så oversettelsen hører hjemme her — uten den ble
+ * «Stillingstype» stående tom.
+ */
+export const toJobTypeKey = (jobType: string): string =>
+    jobType.toUpperCase();
+
+const CLASS_NUMBERS: Record<string, string> = {
+    first: "1",
+    second: "2",
+    third: "3",
+    fourth: "4",
+    fifth: "5",
+};
+
+/**
+ * «1. – 5. trinn» av Photons `first`/`fifth`.
+ *
+ * Alumni er ikke et trinn og har ikke noe tall, så den skrives ut som seg
+ * selv framfor å bli presset inn i rekkefølgen.
+ */
+export const classRangeLabel = (start: string, end: string): string => {
+    const from = CLASS_NUMBERS[start];
+    const to = CLASS_NUMBERS[end];
+
+    if (from && to) return `${from}. – ${to}. trinn`;
+    if (from && end === "alumni") return `${from}. trinn – alumni`;
+    if (start === "alumni") return "Alumni";
+    return "";
+};

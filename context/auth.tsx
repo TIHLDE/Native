@@ -8,6 +8,8 @@ import {
     makeRedirectUri,
     SCOPES,
 } from "@/lib/auth/photon";
+import { onSessionLost } from "@/lib/auth/session-events";
+import { queryClient } from "@/lib/queryClient";
 import { deleteToken } from "@/lib/storage/tokenStore";
 
 
@@ -60,6 +62,26 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
         checkAuth();
     }, []);
+
+    /**
+     * Sesjonen kan dø midt i bruk — et fornyelsestoken kan være trukket
+     * tilbake eller utløpt. Da må appen si det på ett sted, i stedet for at
+     * hver skjerm viser sin egen feil om noe brukeren ikke kan gjøre noe med.
+     * Cachen tømmes samtidig, ellers møter de gamle feilmeldingene brukeren
+     * igjen etter neste innlogging.
+     */
+    useEffect(
+        () =>
+            onSessionLost(() => {
+                queryClient.clear();
+                setAuthState({
+                    token: null,
+                    auhtenticated: false,
+                    isLoading: false,
+                });
+            }),
+        [],
+    );
 
     const signIn = useCallback(async () => {
         const redirectUri = makeRedirectUri();
