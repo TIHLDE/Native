@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-export default function UtleggLayout() {
+export default function BotLayout() {
     return (
         <Stack
             screenOptions={{
@@ -11,16 +11,7 @@ export default function UtleggLayout() {
                 name="index"
                 options={{
                     headerShown: true,
-                    title: "Utlegg",
-                    headerBackTitle: "Tilbake",
-                    headerTitleAlign: "center",
-                }}
-            />
-            <Stack.Screen
-                name="nytt"
-                options={{
-                    headerShown: true,
-                    title: "Nytt utlegg",
+                    title: "Velg gruppe",
                     headerTitleAlign: "center",
                 }}
             />

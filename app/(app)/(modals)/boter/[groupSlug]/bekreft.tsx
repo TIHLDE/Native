@@ -61,9 +61,9 @@ export default function ConfirmFine() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
+    // Gruppevalget er nå bot-fanen, så det holder å lukke hele modalstacken.
     const goBackToStart = () => {
         router.dismissAll();
-        router.back();
     };
 
     useEffect(() => {

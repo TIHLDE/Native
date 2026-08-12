@@ -10,6 +10,9 @@ web-build/
 expo-env.d.ts
 
 # Native
+# ios/ og android/ genereres av `expo prebuild`/`expo run:*` (CNG) og skal ikke sjekkes inn
+/ios
+/android
 *.orig.*
 *.jks
 *.p8

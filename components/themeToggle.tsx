@@ -1,34 +1,53 @@
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { MoonStar } from '~/lib/icons/MoonStar';
 import { Sun } from '~/lib/icons/Sun';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { cn } from '~/lib/utils';
-import { Button } from './ui/button';
+import { Switch } from './ui/switch';
+import { Text } from './ui/text';
 
-export function ThemeToggle({ className }: { className?: string }) {
+/**
+ * Bryter mellom lyst og mørkt tema. Ikonene på hver side viser hvilken
+ * modus bryteren står i.
+ */
+export function ThemeSwitch({ className }: { className?: string }) {
     const { isDarkColorScheme, setColorScheme } = useColorScheme();
 
-    function toggleColorScheme() {
-        const newTheme = isDarkColorScheme ? 'light' : 'dark';
+    function setTheme(dark: boolean) {
+        const newTheme = dark ? 'dark' : 'light';
         setColorScheme(newTheme);
         setAndroidNavigationBar(newTheme);
     }
+
     return (
-        <Pressable
-            onPressIn={toggleColorScheme}
-            style={{width: 40, height: 40, justifyContent: 'center', alignItems: 'center'}}
-        >
-            {({ pressed }) => (
-                <View style={{opacity: pressed ? 0.7 : 1}}>
-                    {isDarkColorScheme ? (
-                        <Sun className='text-foreground' size={24} strokeWidth={2} />
-                    ) : (
-                        <MoonStar className='text-foreground' size={23} strokeWidth={2} />
-                    )}
-                </View>
+        <View
+            className={cn(
+                'bg-gray-100 dark:bg-secondary/30 rounded-2xl px-4 py-3.5 flex-row items-center justify-between',
+                className
             )}
-        </Pressable>
+        >
+            <Text className="text-base text-foreground">
+                {isDarkColorScheme ? 'Mørkt tema' : 'Lyst tema'}
+            </Text>
+
+            <View className="flex-row items-center gap-x-2.5">
+                <Sun
+                    size={18}
+                    strokeWidth={2}
+                    className={isDarkColorScheme ? 'color-muted-foreground' : 'color-primary'}
+                />
+                <Switch
+                    checked={isDarkColorScheme}
+                    onCheckedChange={setTheme}
+                    nativeID="theme-switch"
+                />
+                <MoonStar
+                    size={18}
+                    strokeWidth={2}
+                    className={isDarkColorScheme ? 'color-primary' : 'color-muted-foreground'}
+                />
+            </View>
+        </View>
     );
 }
-

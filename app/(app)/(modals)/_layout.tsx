@@ -52,11 +52,12 @@ export default function ModalsLayout() {
                 }}
             />
             <Stack.Screen
-                name="boter/index"
+                name="boter/[groupSlug]/index"
                 options={{
                     ...modalScreenOptions,
-                    title: "Velg gruppe",
+                    title: "Velg lov",
                     headerShown: true,
+                    // Første skjerm i modalstacken — den får ingen tilbakeknapp av seg selv.
                     headerLeft: () => (
                         <Pressable
                             onPress={() => router.back()}
@@ -66,14 +67,6 @@ export default function ModalsLayout() {
                             <Text className="text-base text-foreground">Tilbake</Text>
                         </Pressable>
                     ),
-                }}
-            />
-            <Stack.Screen
-                name="boter/[groupSlug]/index"
-                options={{
-                    ...modalScreenOptions,
-                    title: "Velg lov",
-                    headerShown: true,
                 }}
             />
             <Stack.Screen
