@@ -41,10 +41,11 @@ Modals use `router.push("/(modals)/...")` with `presentation: "card"` and `anima
 
 ### Data Layer
 
-- **API calls** live in `actions/` with direct `fetch()` calls against `https://api.tihlde.org` (configurable in `actions/constant.ts`)
+- **API calls** live in `actions/` and go against Photon — `BASE_URL` is `https://photon.tihlde.org` (override with `EXPO_PUBLIC_PHOTON_URL`), and every REST route lives under `API_URL = ${BASE_URL}/api` (see `actions/constant.ts`)
 - **Types** in `actions/types/` with barrel export from `index.ts` (Event, User, Registration, LoginData, etc.)
+- **Photon translation layer** in `actions/photon.ts` — Photon answers in camelCase with partly different shapes, while the screens were written against the old snake_case forms. `toUser`, `toGroup`, `toEvent`, `toRegistration`, `toLaw`, `toJobTypeKey` and friends convert in this one place so the screens stay untouched. New actions should map Photon responses here rather than reshaping data in the screen.
 - **Server state** via `@tanstack/react-query` (infinite queries for lists, standard queries for details)
-- **Auth state** via React Context (`context/auth.tsx`) with token in `expo-secure-store`
+- **Auth state** via React Context (`context/auth.tsx`); OAuth session (access token, refresh token, expiry) in `expo-secure-store` via `lib/storage/tokenStore.ts`
 
 ### Styling
 
@@ -66,20 +67,20 @@ All UI text must be in **Norwegian**. This includes button labels, headings, err
 ### API Calls
 
 - Place in `actions/[feature]/` with proper subfolder organization
-- Auth token via `X-Csrf-Token` header, retrieved from `getToken()` in `lib/storage/tokenStore.ts`
-- Check `response.ok` before parsing; cast errors to `LeptonError` type for the `detail` message
-- Return typed responses using `ActionResponse<T>` wrapper (`{ data?, status, error? }`)
+- **Authenticated calls go through `apiJson`/`apiFetch` in `lib/api/client.ts`** — never build the headers by hand. The helpers attach the OAuth access token as `Authorization: Bearer …`, and on a token rejection they refresh the session once and retry; if the fresh token is rejected too they emit a session-lost event and throw `UnauthorizedError`, which sends the user to the login screen.
+- Paths passed to `apiJson`/`apiFetch` are relative to `API_URL` (e.g. `/event/${id}/registration`); an absolute `http…` URL is passed through unchanged
+- `apiJson<T>` already checks `response.ok` and throws — Photon's error handler answers `{ message }`, and a non-JSON body falls back to `Forespørselen feilet (<status>)`
+- Actions return the mapped domain type directly and throw on failure; they do not wrap results in a response object
+- Open endpoints (events, job posts) use a plain `fetch()` against `API_URL` so they work without a token, but still map through `actions/photon.ts`
 
 ```typescript
-const token = await getToken();
-const response = await fetch(`${BASE_URL}/endpoint/`, {
-    method: "GET",
-    headers: { "X-Csrf-Token": token },
-});
-if (!response.ok) {
-    const errorData = await response.json() as LeptonError;
-    throw new Error(errorData.detail);
-}
+import { apiJson } from "@/lib/api/client";
+import { PhotonGroup, toMembership } from "@/actions/photon";
+
+// Authenticated: apiJson attaches the bearer token, refreshes on rejection,
+// and throws with Photons { message } when the response is not ok.
+const groups = await apiJson<PhotonGroup[]>("/groups/mine");
+return groups.map(toMembership);
 ```
 
 ### React Query
