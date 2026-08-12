@@ -1,181 +1,38 @@
-import { Tabs, TabList, TabTrigger, TabSlot } from 'expo-router/ui';
-import { View, StyleSheet } from 'react-native';
-import { usePathname, useRouter } from 'expo-router';
-import Icon from "@/lib/icons/Icon";
-import { QrCode } from '@/lib/icons/QrCode';
-import { Text } from '@/components/ui/text';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
-import { BlurView } from 'expo-blur';
-import { useColorScheme } from '@/lib/useColorScheme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
+/**
+ * Apples egen tab bar (Liquid Glass fra iOS 26). Systemet står for utseendet,
+ * så her definerer vi bare rekkefølgen, ikonene og etikettene.
+ *
+ * «Bot» ligger i midten fordi det er hovedhandlingen i appen.
+ */
 export default function TabsLayout() {
-    const pathname = usePathname();
-    const router = useRouter();
-    const { isDarkColorScheme } = useColorScheme();
-    const insets = useSafeAreaInsets();
-
-    const isUtlegg = pathname.includes("/utlegg");
-    const isKarriere = pathname.includes("/karriere");
-    const isArrangementer = pathname.includes("/arrangementer");
-    const isProfil = pathname.includes("/profil");
-
     return (
-        <Tabs>
-            <TabSlot />
-            <TabList style={[styles.tabBarOuter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-                <BlurView
-                    intensity={80}
-                    tint={isDarkColorScheme ? 'dark' : 'light'}
-                    style={StyleSheet.absoluteFill}
-                />
-                <View style={styles.topBorder} className="bg-border/30 dark:bg-white/8" />
+        <NativeTabs minimizeBehavior="onScrollDown">
+            <NativeTabs.Trigger name="utlegg">
+                <Icon sf={{ default: "receipt", selected: "receipt.fill" }} />
+                <Label>Utlegg</Label>
+            </NativeTabs.Trigger>
 
-                {/* Utlegg tab */}
-                <TabTrigger name="utlegg" href="/utlegg" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                        isUtlegg ? "bg-primary/15" : ""
-                    }`}>
-                        <Icon
-                            icon="ReceiptText"
-                            className={`self-center stroke-2 ${
-                                isUtlegg
-                                    ? "color-primary"
-                                    : "color-gray-400 dark:color-gray-500"
-                            }`}
-                        />
-                        <Text className={`text-[10px] mt-0.5 font-semibold ${
-                            isUtlegg
-                                ? "color-primary"
-                                : "color-gray-400 dark:color-gray-500"
-                        }`}>
-                            Utlegg
-                        </Text>
-                    </View>
-                </TabTrigger>
+            <NativeTabs.Trigger name="karriere">
+                <Icon sf={{ default: "briefcase", selected: "briefcase.fill" }} />
+                <Label>Karriere</Label>
+            </NativeTabs.Trigger>
 
-                {/* Karriere tab */}
-                <TabTrigger name="karriere" href="/karriere" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                        isKarriere ? "bg-primary/15" : ""
-                    }`}>
-                        <Icon
-                            icon="BriefcaseBusiness"
-                            className={`self-center stroke-2 ${
-                                isKarriere
-                                    ? "color-primary"
-                                    : "color-gray-400 dark:color-gray-500"
-                            }`}
-                        />
-                        <Text className={`text-[10px] mt-0.5 font-semibold ${
-                            isKarriere
-                                ? "color-primary"
-                                : "color-gray-400 dark:color-gray-500"
-                        }`}>
-                            Karriere
-                        </Text>
-                    </View>
-                </TabTrigger>
+            <NativeTabs.Trigger name="bot">
+                <Icon sf={{ default: "plus.circle", selected: "plus.circle.fill" }} />
+                <Label>Bot</Label>
+            </NativeTabs.Trigger>
 
-                {/* QR center button */}
-                <View style={styles.qrContainer}>
-                    <TouchableWithoutFeedback onPress={() => router.push('/(modals)/qrmodal')}>
-                        <View
-                            className="bg-primary items-center justify-center"
-                            style={styles.qrButton}
-                        >
-                            <QrCode className="color-white dark:color-background" size={26} />
-                        </View>
-                    </TouchableWithoutFeedback>
-                </View>
+            <NativeTabs.Trigger name="arrangementer">
+                <Icon sf={{ default: "calendar", selected: "calendar" }} />
+                <Label>Events</Label>
+            </NativeTabs.Trigger>
 
-                {/* Arrangementer tab */}
-                <TabTrigger name="arrangementer" href="/arrangementer" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                        isArrangementer ? "bg-primary/15" : ""
-                    }`}>
-                        <Icon
-                            icon="Calendar"
-                            className={`self-center stroke-2 ${
-                                isArrangementer
-                                    ? "color-primary"
-                                    : "color-gray-400 dark:color-gray-500"
-                            }`}
-                        />
-                        <Text className={`text-[10px] mt-0.5 font-semibold ${
-                            isArrangementer
-                                ? "color-primary"
-                                : "color-gray-400 dark:color-gray-500"
-                        }`}>
-                            Events
-                        </Text>
-                    </View>
-                </TabTrigger>
-
-                {/* Profil tab */}
-                <TabTrigger name="profil" href="/profil" reset="never" style={styles.tabItem}>
-                    <View className={`rounded-2xl py-1.5 items-center w-20 ${
-                        isProfil ? "bg-primary/15" : ""
-                    }`}>
-                        <Icon
-                            icon="UserRound"
-                            className={`self-center stroke-2 ${
-                                isProfil
-                                    ? "color-primary"
-                                    : "color-gray-400 dark:color-gray-500"
-                            }`}
-                        />
-                        <Text className={`text-[10px] mt-0.5 font-semibold ${
-                            isProfil
-                                ? "color-primary"
-                                : "color-gray-400 dark:color-gray-500"
-                        }`}>
-                            Profil
-                        </Text>
-                    </View>
-                </TabTrigger>
-            </TabList>
-        </Tabs>
+            <NativeTabs.Trigger name="profil">
+                <Icon sf={{ default: "person.crop.circle", selected: "person.crop.circle.fill" }} />
+                <Label>Profil</Label>
+            </NativeTabs.Trigger>
+        </NativeTabs>
     );
 }
-
-const styles = StyleSheet.create({
-    tabBarOuter: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 10,
-        overflow: 'hidden',
-    },
-    topBorder: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: StyleSheet.hairlineWidth,
-    },
-    tabItem: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    qrContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 8,
-    },
-    qrButton: {
-        width: 52,
-        height: 52,
-        borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 4,
-    },
-});

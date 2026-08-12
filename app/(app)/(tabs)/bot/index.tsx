@@ -48,7 +48,10 @@ export default function MembershipSelection() {
                 renderItem={({ item: membership }) => (
                     <Pressable
                         onPress={() =>
-                            router.push(`/(modals)/boter/${membership.group.slug}`)
+                            router.push({
+                                pathname: "/(app)/(modals)/boter/[groupSlug]",
+                                params: { groupSlug: membership.group.slug },
+                            })
                         }
                         className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
                     >
