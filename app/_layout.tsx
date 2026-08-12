@@ -15,6 +15,7 @@ import { PortalHost } from '@rn-primitives/portal';
 import { getTheme } from '@/lib/storage/themeStore';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { PushNotifications } from '@/components/notifications/PushNotifications';
 const LIGHT_THEME: Theme = {
     ...DefaultTheme,
     colors: NAV_THEME.light,
@@ -67,6 +68,7 @@ export default function RootLayout() {
                                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
                             </Stack>
+                            <PushNotifications />
                             <Toast />
                             <PortalHost />
                         </BottomSheetModalProvider>

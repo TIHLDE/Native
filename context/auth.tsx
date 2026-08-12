@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/photon";
 import { onSessionLost } from "@/lib/auth/session-events";
 import { queryClient } from "@/lib/queryClient";
+import { unregisterForPushNotifications } from "@/lib/notifications/push";
 import { deleteToken } from "@/lib/storage/tokenStore";
 
 
@@ -124,6 +125,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }, []);
 
     const signOut = useCallback(async () => {
+        // Må skje før tokenet slettes: avmeldingen er et vanlig API-kall og
+        // trenger sesjonen. Ellers ville telefonen fortsatt fått varsler for
+        // en bruker som har logget ut.
+        await unregisterForPushNotifications();
         await deleteToken();
         setAuthState({ token: null, auhtenticated: false, isLoading: false });
     }, []);
