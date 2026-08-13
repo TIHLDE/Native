@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function KarriereLayout() {
     return (
@@ -14,6 +15,7 @@ export default function KarriereLayout() {
                     title: "Jobbannonser",
                     headerBackTitle: "Tilbake",
                     headerTitleAlign: "center",
+                    headerRight: () => <NotificationBell />,
                 }}
             />
         </Stack>

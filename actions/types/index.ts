@@ -8,3 +8,4 @@ export * from "./registration";
 export * from "./payment";
 export * from "./fine";
 export * from "./application";
+export * from "./notification";

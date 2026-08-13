@@ -6,7 +6,14 @@
  * migrasjonen mye større og vanskeligere å verifisere. Oversettelsen ligger
  * derfor her, i ett lag, og skjermene er urørt.
  */
-import type { Event, GroupUser, Law, Membership, User } from "@/actions/types";
+import type {
+    Event,
+    GroupUser,
+    Law,
+    Membership,
+    Notification,
+    User,
+} from "@/actions/types";
 
 export type PhotonUser = {
     id: string;
@@ -222,3 +229,28 @@ export const classRangeLabel = (start: string, end: string): string => {
     if (start === "alumni") return "Alumni";
     return "";
 };
+
+export type PhotonNotification = {
+    id: string;
+    title: string;
+    description: string;
+    link?: string | null;
+    isRead: boolean;
+    createdAt: string;
+};
+
+/**
+ * Varsler har ingen Lepton-form å oversette til — feltene er Photons egne.
+ * Kartleggingen ligger her likevel, sånn at skjermene fortsatt bare kjenner
+ * `Notification` og ikke svarformen fra API-et.
+ */
+export const toNotification = (
+    notification: PhotonNotification,
+): Notification => ({
+    id: notification.id,
+    title: notification.title,
+    description: notification.description,
+    link: notification.link ?? null,
+    isRead: notification.isRead,
+    createdAt: notification.createdAt,
+});

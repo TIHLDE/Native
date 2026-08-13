@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function ArrangementerLayout() {
     return (
@@ -9,6 +10,7 @@ export default function ArrangementerLayout() {
                     headerShown: true,
                     title: "Arrangementer",
                     headerTitleAlign: "center",
+                    headerRight: () => <NotificationBell />,
                 }}
             />
         </Stack>

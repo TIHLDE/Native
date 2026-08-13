@@ -3,6 +3,7 @@ import { Pressable, View } from "react-native";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { QrCode } from "lucide-react-native";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function ProfilLayout() {
     const router = useRouter();
@@ -20,8 +21,9 @@ export default function ProfilLayout() {
                     headerShown: true,
                     title: "Profil",
                     headerTitleAlign: "center",
-                    // QR-koden hører hjemme her — den er det eneste som ligger i headeren.
-                    headerRight: () => (
+                    // QR-koden lå til høyre før bjella kom. Høyre side er nå
+                    // varsler på alle fanene, så QR-en flyttet til venstre.
+                    headerLeft: () => (
                         <Pressable
                             onPress={() => router.push("/(app)/(modals)/qrmodal")}
                             hitSlop={8}
@@ -38,6 +40,7 @@ export default function ProfilLayout() {
                             )}
                         </Pressable>
                     ),
+                    headerRight: () => <NotificationBell />,
                 }}
             />
         </Stack>
