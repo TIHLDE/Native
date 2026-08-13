@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function BotLayout() {
     return (
@@ -13,6 +14,7 @@ export default function BotLayout() {
                     headerShown: true,
                     title: "Velg gruppe",
                     headerTitleAlign: "center",
+                    headerRight: () => <NotificationBell />,
                 }}
             />
         </Stack>

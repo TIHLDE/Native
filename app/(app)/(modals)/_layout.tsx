@@ -36,6 +36,25 @@ export default function ModalsLayout() {
                 }}
             />
             <Stack.Screen
+                name="varsler"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Varsler",
+                    headerShown: true,
+                    // Åpnes fra bjella i en fane, så den er første skjerm i
+                    // denne stacken og får ingen tilbakeknapp av seg selv.
+                    headerLeft: () => (
+                        <Pressable
+                            onPress={() => router.back()}
+                            className="flex-row items-center active:opacity-70 mr-2"
+                        >
+                            <ChevronLeft size={24} color={backColor} />
+                            <Text className="text-base text-foreground">Tilbake</Text>
+                        </Pressable>
+                    ),
+                }}
+            />
+            <Stack.Screen
                 name="arrangement/[arrangementId]"
                 options={{
                     ...modalScreenOptions,
