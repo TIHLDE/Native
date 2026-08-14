@@ -1,8 +1,8 @@
 import { themeColors } from "@/lib/theme/colors";
-import { Image, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../ui/text";
 import { BriefcaseBusiness, MapPin, Building2 } from "lucide-react-native";
-import ImageMissing from '../ui/imageMissing';
+import CoverImage, { COVER_IMAGE_FRAME } from '../ui/coverImage';
 import { useColorScheme } from "@/lib/useColorScheme";
 
 export interface JobPostProps {
@@ -61,17 +61,7 @@ export default function JobPostCard(props: JobPostProps) {
     return (
         <View className="pb-7">
             {/* Full-width image */}
-            <View className="w-full aspect-[2/1] overflow-hidden">
-                {props.image ? (
-                    <Image
-                        source={{ uri: props.image }}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                    />
-                ) : (
-                    <ImageMissing />
-                )}
-            </View>
+            <CoverImage uri={props.image} />
 
             {/* Content */}
             <View className="px-4 pt-3.5">
@@ -118,7 +108,7 @@ export function JobPostCardSkeleton() {
     return (
         <View className="pb-7">
             {/* Image skeleton */}
-            <View className="w-full aspect-[2/1] bg-muted dark:bg-secondary/40 animate-pulse" />
+            <View className={`${COVER_IMAGE_FRAME} bg-muted dark:bg-secondary/40 animate-pulse`} />
 
             {/* Content skeleton */}
             <View className="px-4 pt-3.5">

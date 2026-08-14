@@ -1,3 +1,4 @@
+import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import me, { myEvents } from "@/actions/users/me";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -120,7 +121,8 @@ export default function Profil() {
                         {user.data.image ? (
                             <Image
                                 className="w-28 h-28 rounded-full"
-                                source={{ uri: user.data.image }}
+                                source={{ uri: avatarImageUrl(user.data.image) }}
+                                resizeMode="cover"
                             />
                         ) : (
                             <View className="w-28 h-28 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
