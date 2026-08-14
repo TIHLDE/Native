@@ -1,8 +1,8 @@
 import { themeColors } from "@/lib/theme/colors";
 import React from 'react';
-import { View, Image, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { Text } from "@/components/ui/text";
-import ImageMissing from '../ui/imageMissing';
+import CoverImage, { COVER_IMAGE_FRAME } from '../ui/coverImage';
 import { useColorScheme } from "@/lib/useColorScheme";
 import { CalendarDays, MapPin, Clock } from "lucide-react-native";
 
@@ -70,17 +70,7 @@ const EventCard = ({
     return (
         <Pressable onPress={onPress} className="pb-7 active:opacity-80">
             {/* Full-width image */}
-            <View className="w-full aspect-[2/1] overflow-hidden">
-                {image ? (
-                    <Image
-                        source={{ uri: image }}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                    />
-                ) : (
-                    <ImageMissing />
-                )}
-            </View>
+            <CoverImage uri={image} />
 
             {/* Content */}
             <View className="px-4 pt-3.5">
@@ -129,7 +119,7 @@ const EventCardSkeleton = () => {
     return (
         <View className="pb-7">
             {/* Image skeleton */}
-            <View className="w-full aspect-[2/1] bg-muted dark:bg-secondary/40 animate-pulse" />
+            <View className={`${COVER_IMAGE_FRAME} bg-muted dark:bg-secondary/40 animate-pulse`} />
 
             {/* Content skeleton */}
             <View className="px-4 pt-3.5">

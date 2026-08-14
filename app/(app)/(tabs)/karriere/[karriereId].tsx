@@ -4,7 +4,8 @@ import { classRangeLabel } from "@/actions/photon";
 import { Text } from "@/components/ui/text";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import CoverImage, { COVER_IMAGE_FRAME } from "@/components/ui/coverImage";
 import * as WebBrowser from 'expo-web-browser';
 import MarkdownView from "@/components/ui/MarkdownView";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -56,7 +57,7 @@ function DetailSkeleton() {
         <PageWrapper className="flex-1 bg-background">
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image skeleton */}
-                <View className="w-full aspect-[16/9] bg-muted dark:bg-secondary/40 animate-pulse" />
+                <View className={`${COVER_IMAGE_FRAME} bg-muted dark:bg-secondary/40 animate-pulse`} />
 
                 <View className="px-6 pt-5">
                     {/* Title skeleton */}
@@ -152,13 +153,7 @@ export default function Karriereside() {
                 >
                     {/* Hero image */}
                     {jobpost.data.image && (
-                        <View className="w-full aspect-[16/9] overflow-hidden">
-                            <Image
-                                className="w-full h-full"
-                                resizeMode="cover"
-                                source={{ uri: jobpost.data.image }}
-                            />
-                        </View>
+                        <CoverImage uri={jobpost.data.image} />
                     )}
 
                     <View className="px-6">

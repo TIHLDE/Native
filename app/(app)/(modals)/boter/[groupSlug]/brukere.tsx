@@ -1,3 +1,4 @@
+import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -165,8 +166,9 @@ export default function UserSelection() {
                         >
                             {user.image ? (
                                 <Image
-                                    source={{ uri: user.image }}
+                                    source={{ uri: avatarImageUrl(user.image) }}
                                     className="w-10 h-10 rounded-full"
+                                    resizeMode="cover"
                                 />
                             ) : (
                                 <View className="w-10 h-10 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">

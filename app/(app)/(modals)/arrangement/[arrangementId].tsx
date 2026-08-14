@@ -1,7 +1,7 @@
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, Image, ActivityIndicator, Pressable } from "react-native";
+import { View, ActivityIndicator, Pressable } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -20,7 +20,7 @@ import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheet
 import { publicEventParticipants } from "@/actions/events/participants";
 import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import UserCard from "@/components/ui/userCard";
-import ImageMissing from "@/components/ui/imageMissing";
+import CoverImage, { COVER_IMAGE_FRAME } from "@/components/ui/coverImage";
 import useRefresh from "@/lib/useRefresh";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -76,7 +76,7 @@ function DetailSkeleton() {
         <PageWrapper className="flex-1 bg-background">
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image skeleton */}
-                <View className="w-full aspect-[16/9] bg-muted dark:bg-secondary/40 animate-pulse" />
+                <View className={`${COVER_IMAGE_FRAME} bg-muted dark:bg-secondary/40 animate-pulse`} />
 
                 <View className="px-6 pt-5">
                     {/* Title skeleton */}
@@ -265,17 +265,7 @@ export default function ArrangementSide() {
                     contentContainerStyle={{ paddingBottom: 40 }}
                 >
                     {/* Hero image */}
-                    <View className="w-full aspect-[16/9] overflow-hidden">
-                        {event.data.image ? (
-                            <Image
-                                source={{ uri: event.data.image }}
-                                className="w-full h-full"
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <ImageMissing />
-                        )}
-                    </View>
+                    <CoverImage uri={event.data.image} />
 
                     <View className="px-6">
                         {/* Title section */}
