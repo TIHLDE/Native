@@ -12,8 +12,10 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
 import {
+    Calendar,
     Camera,
     Check,
     CheckCircle,
@@ -45,15 +47,28 @@ type Receipt = {
 };
 
 const ACCOUNT_PATTERN = /^\d{4}\.\d{2}\.\d{5}$/;
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_ATTACHMENTS = 10;
 
 /** Photon vil ha `YYYY-MM-DD`; `toISOString` ville gitt gårsdagen før kl. 01 om vinteren. */
-function today(): string {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return `${now.getFullYear()}-${month}-${day}`;
+function toIsoDate(date: Date): string {
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** `new Date("2026-08-14")` tolkes som UTC og kan bomme med en dag lokalt. */
+function fromIsoDate(iso: string): Date {
+    const [year, month, day] = iso.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+/** Datoen slik den vises i feltet, f.eks. «14. august 2026». */
+function formatDateLabel(iso: string): string {
+    return fromIsoDate(iso).toLocaleDateString("no-NO", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
 }
 
 /** Formaterer kontonummer til xxxx.xx.xxxxx mens det skrives. */
@@ -80,7 +95,8 @@ export default function NyttUtlegg() {
     const [contactEmail, setContactEmail] = useState("");
     const [ccEmail, setCcEmail] = useState<string | null>(null);
     const [amount, setAmount] = useState("");
-    const [expenseDate, setExpenseDate] = useState(today());
+    const [expenseDate, setExpenseDate] = useState(() => toIsoDate(new Date()));
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const [groupSlug, setGroupSlug] = useState<string | null>(null);
     const [budgetType, setBudgetType] = useState<BudgetType | null>(null);
     const [description, setDescription] = useState("");
@@ -164,7 +180,6 @@ export default function NyttUtlegg() {
         if (!Number.isInteger(parsedAmount) || parsedAmount <= 0)
             return "Beløpet må være et helt antall kroner over 0.";
         if (parsedAmount > 1_000_000) return "Beløpet kan ikke overstige 1 000 000 kr.";
-        if (!DATE_PATTERN.test(expenseDate)) return "Dato må være på formatet ÅÅÅÅ-MM-DD.";
         if (!groupSlug) return "Velg hvilken gruppe utlegget gjelder.";
         if (!budgetType) return "Velg budsjett.";
         if (!description.trim()) return "Beskriv hva utlegget gjelder.";
@@ -354,14 +369,37 @@ export default function NyttUtlegg() {
                             <Text className="text-sm text-muted-foreground mb-1.5">
                                 Dato for kjøpet
                             </Text>
-                            <TextInput
-                                value={expenseDate}
-                                onChangeText={setExpenseDate}
-                                placeholder="ÅÅÅÅ-MM-DD"
-                                placeholderTextColor={colors.mutedForeground}
-                                autoCapitalize="none"
-                                className={inputClass}
-                            />
+                            <Pressable
+                                onPress={() => {
+                                    setOpenPicker(null);
+                                    setIsDatePickerOpen((open) => !open);
+                                }}
+                                className="flex-row items-center justify-between h-12 rounded-xl bg-gray-100 dark:bg-secondary/30 px-4 active:opacity-70"
+                            >
+                                <Text className="text-base text-foreground">
+                                    {formatDateLabel(expenseDate)}
+                                </Text>
+                                <Calendar size={18} color={colors.mutedForeground} />
+                            </Pressable>
+
+                            {isDatePickerOpen && (
+                                <DateTimePicker
+                                    value={fromIsoDate(expenseDate)}
+                                    mode="date"
+                                    // iOS viser hjulet i skjemaet; Android åpner sin egen dialog.
+                                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                                    locale="nb-NO"
+                                    maximumDate={new Date()}
+                                    themeVariant={isDarkColorScheme ? "dark" : "light"}
+                                    onChange={(event, date) => {
+                                        // Android lukker seg selv; iOS-hjulet blir stående
+                                        // til man trykker på feltet igjen.
+                                        if (Platform.OS !== "ios") setIsDatePickerOpen(false);
+                                        if (event.type === "set" && date)
+                                            setExpenseDate(toIsoDate(date));
+                                    }}
+                                />
+                            )}
                         </View>
 
                         <Select
