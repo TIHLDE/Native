@@ -1,0 +1,65 @@
+# Hva som IKKE lastes opp til EAS Build.
+#
+# Viktig: finnes denne fila, bruker EAS den i stedet for `.gitignore` — ikke i
+# tillegg til. Alt som skal holdes utenfor arkivet må derfor stå her, også det
+# som allerede står i `.gitignore`.
+#
+# Bakgrunn: bygg 7 lastet opp 622 MB. `.claude/worktrees/` er bare ekskludert
+# i `.git/info/exclude`, som er lokal og ikke følger med repoet, og den mappa
+# er på flere gigabyte fordi hvert worktree har sin egen `node_modules` og
+# prebuild.
+
+# Agent-worktrees. Hvert av dem er en full kopi av repoet.
+.claude/
+
+# Git-historikken er 246 MB og utgjorde mesteparten av de 622 MB-ene.
+# Byggeren pakker bare ut arkivet og kjører `npm ci` og prebuild — den rører
+# aldri historikken. Commit-en bygget kommer fra leses lokalt av eas-cli før
+# opplasting, så den blir med uansett.
+#
+# Skulle et framtidig byggsteg trenge git-metadata, er det denne linja som må
+# vekk.
+.git/
+
+# Avhengigheter — installeres av byggeren selv
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# ios/ og android/ genereres av `expo prebuild` på byggeren (CNG).
+# Lokale kopier fra `expo run:*` skal ikke sendes med.
+/ios
+/android
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# lokale env-filer
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# Google Cloud Platform
+service-account-file.json
