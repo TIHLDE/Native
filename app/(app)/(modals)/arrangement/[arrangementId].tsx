@@ -395,7 +395,7 @@ export default function ArrangementSide() {
                     </View>
 
                     <InteropBottomSheetModal ref={bottomSheetModalRef}
-                        backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                        backgroundStyleClassName="bg-popover rounded-3xl"
                         snapPoints={["75%"]}
                         index={0}
                         enableDynamicSizing={false}
@@ -411,7 +411,7 @@ export default function ArrangementSide() {
                     </InteropBottomSheetModal>
 
                     <InteropBottomSheetModal ref={unregisterSheetRef}
-                        backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                        backgroundStyleClassName="bg-popover rounded-3xl"
                         enableDynamicSizing
                         backdropComponent={(props) => (
                             <BottomSheetBackdrop
@@ -479,7 +479,7 @@ function UnregisterDrawer({
 
     if (status === 'loading') {
         return (
-            <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-8">
+            <BottomSheetView className="bg-popover px-6 pb-10 pt-8">
                 <View className="items-center py-4">
                     <ActivityIndicator size="large" />
                     <Text className="text-base text-muted-foreground mt-4">
@@ -492,7 +492,7 @@ function UnregisterDrawer({
 
     if (status === 'success') {
         return (
-            <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
+            <BottomSheetView className="bg-popover px-6 pb-10 pt-6">
                 <View className="items-center py-4">
                     <View className="w-14 h-14 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
                         <CircleCheck size={26} color={themeColors(isDarkColorScheme).primary} />
@@ -509,7 +509,7 @@ function UnregisterDrawer({
     }
 
     return (
-        <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
+        <BottomSheetView className="bg-popover px-6 pb-10 pt-6">
             <View className="items-center mb-4">
                 <View className="w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 items-center justify-center mb-4">
                     <TriangleAlert size={26} color={themeColors(isDarkColorScheme).destructive} />
@@ -566,7 +566,7 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
 
     if (isError) {
         return (
-            <BottomSheetView className="bg-primary-foreground flex-1">
+            <BottomSheetView className="bg-popover flex-1">
                 <View className="px-4 pt-4 pb-3">
                     <Text className="text-lg font-bold text-center text-foreground">Deltagerliste</Text>
                 </View>
@@ -580,7 +580,7 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
 
     if (isPending) {
         return (
-            <BottomSheetView className="bg-primary-foreground flex-1">
+            <BottomSheetView className="bg-popover flex-1">
                 <View className="px-4 pt-4 pb-3">
                     <Text className="text-lg font-bold text-center text-foreground">Deltagerliste</Text>
                 </View>
@@ -598,7 +598,7 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
 
     return (
         <BottomSheetFlatList
-            className="bg-primary-foreground"
+            className="bg-popover"
             data={participants}
             stickyHeaderIndices={[0]}
             renderItem={({ item: registration }) => (
@@ -613,7 +613,7 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
                 fetchNextPage();
             }}
             ListHeaderComponent={
-                <View className="bg-primary-foreground">
+                <View className="bg-popover">
                     <View className="px-4 pt-4 pb-3">
                         <Text className="text-lg font-bold text-center text-foreground">Deltagerliste</Text>
                         <Text className="text-sm text-muted-foreground text-center mt-0.5">

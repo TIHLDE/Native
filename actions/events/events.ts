@@ -8,6 +8,10 @@ type PhotonEventList = { items: PhotonEvent[]; totalCount: number; nextPage: num
 /**
  * Arrangementslista. Åpne data, så den går uten token — men gjennom samme
  * base-URL som resten, slik at bare ett sted peker på API-et.
+ *
+ * Photon ignorerer ukjente query-parametre i stillhet, så et feilstavet filter
+ * ser ut til å virke mens det ikke gjør noe. Navnene her må stemme med
+ * `/api/event` i https://photon.tihlde.org/openapi.
  */
 export async function fetchEvents(params?: URLSearchParams): Promise<{ results: Event[]; next: string | null }> {
     const query = params ? `?${params}` : "";
@@ -22,6 +26,59 @@ export async function fetchEvents(params?: URLSearchParams): Promise<{ results: 
         results: data.items.map((event) => toEvent(event)),
         next: data.nextPage !== null ? String(data.nextPage) : null,
     };
+}
+
+/** Det Photon gir oss om et favorittmerket arrangement. */
+type PhotonFavoriteEvent = {
+    eventId: string;
+    title: string;
+    slug: string;
+    startTime: string;
+    endTime: string;
+    createdAt: string;
+};
+
+/**
+ * Favorittmerkede arrangementer.
+ *
+ * Photon har ingen favoritt-parameter på arrangementslista, bare et eget
+ * endepunkt — og det svarer med en tynn form uten bilde, arrangør eller sted,
+ * så hvert arrangement må hentes for seg for å kunne vises som kort.
+ *
+ * Lista er ikke paginert hos Photon, og favoritter er få nok til at alt
+ * hentes i én omgang. Søk og tidligere/kommende filtreres derfor her.
+ */
+export async function fetchFavoriteEvents(options: {
+    search?: string;
+    expired: boolean;
+}): Promise<{ results: Event[]; next: string | null }> {
+    const favorites = await apiJson<PhotonFavoriteEvent[]>("/event/favorite");
+
+    const now = Date.now();
+    const search = options.search?.trim().toLowerCase();
+
+    const wanted = favorites.filter((favorite) => {
+        const isOver = new Date(favorite.endTime).getTime() < now;
+        if (isOver !== options.expired) return false;
+        return !search || favorite.title.toLowerCase().includes(search);
+    });
+
+    // Ett oppslag per favoritt. Faller et enkelt bort — slettet arrangement,
+    // eller et man ikke lenger har tilgang til — utelates det i stedet for at
+    // hele lista feiler.
+    const events = await Promise.all(
+        wanted.map((favorite) => fetchEvent(favorite.eventId).catch(() => null)),
+    );
+
+    const results = events.filter((event): event is Event => event !== null);
+    results.sort((a, b) => {
+        const left = new Date(a.start_date).getTime();
+        const right = new Date(b.start_date).getTime();
+        // Kommende: det som skjer først øverst. Tidligere: sist avholdte først.
+        return options.expired ? right - left : left - right;
+    });
+
+    return { results, next: null };
 }
 
 export async function fetchEvent(eventId: string): Promise<Event> {
