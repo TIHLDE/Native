@@ -5,7 +5,7 @@ import { router, Stack } from "expo-router";
 import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { fetchEvents as fetchEventList } from "@/actions/events/events";
+import { fetchEvents as fetchEventList, fetchFavoriteEvents } from "@/actions/events/events";
 import type { Event } from "@/actions/types";
 import useRefresh from "@/lib/useRefresh";
 import useDebounce from "@/lib/useDebounce";
@@ -63,8 +63,19 @@ export default function Arrangementer() {
         // lengst fram i tid øverst. Med false kommer det som skjer først
         // øverst, og med true de sist avholdte.
         queryParams.set('expired', filters.expired ? 'true' : 'false');
-        if (filters.openForSignUp) queryParams.set('openForSignUp', 'true');
-        if (filters.userFavorite) queryParams.set('userFavorite', 'true');
+        // Parameteren heter `openSignUp` i Photon. Den het `openForSignUp` her,
+        // og siden ukjente parametre blir ignorert i stillhet så filteret ut
+        // til å virke mens det ikke gjorde noe.
+        if (filters.openForSignUp) queryParams.set('openSignUp', 'true');
+
+        // Favoritter er ikke et filter på lista i Photon — de har sitt eget
+        // endepunkt — så de hentes for seg.
+        if (filters.userFavorite) {
+            return fetchFavoriteEvents({
+                search: debouncedSearch,
+                expired: filters.expired,
+            });
+        }
 
         return fetchEventList(queryParams);
     }, [debouncedSearch, filters]);
