@@ -150,6 +150,8 @@ export default function Arrangementer() {
                                         onChangeText={setSearchText}
                                         autoCapitalize="none"
                                         autoCorrect={false}
+                                        inputMode="search"
+                                        returnKeyType="search"
                                         style={{ fontFamily: "Inter", fontSize: 16, lineHeight: 20, paddingTop: 0, paddingBottom: 0 }}
                                     />
                                     {searchText.length > 0 && (

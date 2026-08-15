@@ -117,6 +117,8 @@ export default function UserSelection() {
                                     onChangeText={setSearchText}
                                     autoCapitalize="none"
                                     autoCorrect={false}
+                                    inputMode="search"
+                                    returnKeyType="search"
                                     style={{
                                         fontFamily: "Inter",
                                         fontSize: 16,

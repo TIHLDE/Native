@@ -6,6 +6,7 @@ import {
     Platform,
     Pressable,
     ScrollView,
+    StyleSheet,
     TextInput,
     View,
 } from "react-native";
@@ -35,7 +36,7 @@ import PageWrapper from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { themeColors } from "@/lib/theme/colors";
+import { themeColors, type ThemeColors } from "@/lib/theme/colors";
 import type { BudgetType } from "@/actions/types";
 
 /** En valgt kvittering. `key` settes først når fila er lastet opp. */
@@ -47,6 +48,9 @@ type Receipt = {
 };
 
 const ACCOUNT_PATTERN = /^\d{4}\.\d{2}\.\d{5}$/;
+// Bevisst romslig: e-post skal avvises bare når den åpenbart ikke kan
+// leveres til. Photon eier den endelige valideringen.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_ATTACHMENTS = 10;
 
 /** Photon vil ha `YYYY-MM-DD`; `toISOString` ville gitt gårsdagen før kl. 01 om vinteren. */
@@ -69,6 +73,30 @@ function formatDateLabel(iso: string): string {
         month: "long",
         year: "numeric",
     });
+}
+
+/** Legger `top` med gitt alpha over `bottom` og gir en ugjennomsiktig hex. */
+function blend(top: string, bottom: string, alpha: number): string {
+    const channels = (hex: string) =>
+        [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    const [tr, tg, tb] = channels(top);
+    const [br, bg, bb] = channels(bottom);
+    const mix = (t: number, b: number) =>
+        Math.round(t * alpha + b * (1 - alpha))
+            .toString(16)
+            .padStart(2, "0");
+    return `#${mix(tr, br)}${mix(tg, bg)}${mix(tb, bb)}`;
+}
+
+/**
+ * Feltbakgrunnen som en ugjennomsiktig farge.
+ *
+ * Feltene bruker ellers `bg-secondary/30`, men datofeltet må dekke over
+ * pillen til den native datovelgeren — og en halvgjennomsiktig bakgrunn ville
+ * latt den skinne gjennom. Lys modus bruker `bg-gray-100`, som allerede er tett.
+ */
+function solidFieldColor(colors: ThemeColors, isDark: boolean): string {
+    return isDark ? blend(colors.secondary, colors.background, 0.3) : "#f3f4f6";
 }
 
 /** Formaterer kontonummer til xxxx.xx.xxxxx mens det skrives. */
@@ -175,7 +203,8 @@ export default function NyttUtlegg() {
     /** Første feilmelding, eller null når skjemaet kan sendes. */
     const validate = (): string | null => {
         if (!contactName.trim()) return "Fyll inn navn.";
-        if (!contactEmail.trim().includes("@")) return "Fyll inn en gyldig e-post.";
+        if (!EMAIL_PATTERN.test(contactEmail.trim()))
+            return "Fyll inn en gyldig e-post.";
         const parsedAmount = Number(amount);
         if (!Number.isInteger(parsedAmount) || parsedAmount <= 0)
             return "Beløpet må være et helt antall kroner over 0.";
@@ -353,53 +382,98 @@ export default function NyttUtlegg() {
 
                     <SectionHeader title="Utlegget" />
                     <View className="gap-y-3 mb-6">
-                        <View>
-                            <Text className="text-sm text-muted-foreground mb-1.5">Beløp (kr)</Text>
-                            <TextInput
-                                value={amount}
-                                onChangeText={(text) => setAmount(text.replace(/\D/g, ""))}
-                                keyboardType="number-pad"
-                                placeholder="0"
-                                placeholderTextColor={colors.mutedForeground}
-                                className={inputClass}
-                            />
-                        </View>
-
-                        <View>
-                            <Text className="text-sm text-muted-foreground mb-1.5">
-                                Dato for kjøpet
-                            </Text>
-                            <Pressable
-                                onPress={() => {
-                                    setOpenPicker(null);
-                                    setIsDatePickerOpen((open) => !open);
-                                }}
-                                className="flex-row items-center justify-between h-12 rounded-xl bg-gray-100 dark:bg-secondary/30 px-4 active:opacity-70"
-                            >
-                                <Text className="text-base text-foreground">
-                                    {formatDateLabel(expenseDate)}
+                        {/* Beløp og dato er begge korte verdier, så de deler rad. */}
+                        <View className="flex-row gap-x-3">
+                            <View className="flex-1">
+                                <Text className="text-sm text-muted-foreground mb-1.5">
+                                    Beløp (kr)
                                 </Text>
-                                <Calendar size={18} color={colors.mutedForeground} />
-                            </Pressable>
-
-                            {isDatePickerOpen && (
-                                <DateTimePicker
-                                    value={fromIsoDate(expenseDate)}
-                                    mode="date"
-                                    // iOS viser hjulet i skjemaet; Android åpner sin egen dialog.
-                                    display={Platform.OS === "ios" ? "spinner" : "default"}
-                                    locale="nb-NO"
-                                    maximumDate={new Date()}
-                                    themeVariant={isDarkColorScheme ? "dark" : "light"}
-                                    onChange={(event, date) => {
-                                        // Android lukker seg selv; iOS-hjulet blir stående
-                                        // til man trykker på feltet igjen.
-                                        if (Platform.OS !== "ios") setIsDatePickerOpen(false);
-                                        if (event.type === "set" && date)
-                                            setExpenseDate(toIsoDate(date));
-                                    }}
+                                <TextInput
+                                    value={amount}
+                                    onChangeText={(text) => setAmount(text.replace(/\D/g, ""))}
+                                    keyboardType="number-pad"
+                                    // 1 000 000 er taket, så sju siffer er alt som trengs.
+                                    maxLength={7}
+                                    placeholder="0"
+                                    placeholderTextColor={colors.mutedForeground}
+                                    className={inputClass}
                                 />
-                            )}
+                            </View>
+
+                            <View className="flex-1">
+                                <Text className="text-sm text-muted-foreground mb-1.5">
+                                    Dato for kjøpet
+                                </Text>
+                                {Platform.OS === "ios" ? (
+                                    // Kontrollen ligger under, og raden tegnes oppå som et
+                                    // ugjennomsiktig lokk: pillen dens lar seg ikke style
+                                    // bort, så den skjules i stedet. Lokket tar ikke imot
+                                    // trykk, så de går rett gjennom til kontrollen.
+                                    <View className="h-12 justify-center overflow-hidden rounded-xl">
+                                        <DateTimePicker
+                                            value={fromIsoDate(expenseDate)}
+                                            mode="date"
+                                            display="compact"
+                                            locale="nb-NO"
+                                            maximumDate={new Date()}
+                                            themeVariant={isDarkColorScheme ? "dark" : "light"}
+                                            onChange={(_event, date) => {
+                                                if (date) setExpenseDate(toIsoDate(date));
+                                            }}
+                                        />
+                                        <View
+                                            pointerEvents="none"
+                                            style={{
+                                                ...StyleSheet.absoluteFillObject,
+                                                backgroundColor: solidFieldColor(
+                                                    colors,
+                                                    isDarkColorScheme,
+                                                ),
+                                            }}
+                                            className="flex-row items-center justify-between rounded-xl px-3"
+                                        >
+                                            <Text
+                                                className="text-base text-foreground"
+                                                numberOfLines={1}
+                                            >
+                                                {formatDateLabel(expenseDate)}
+                                            </Text>
+                                            <Calendar
+                                                size={18}
+                                                color={colors.mutedForeground}
+                                            />
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <Pressable
+                                        onPress={() => {
+                                            setOpenPicker(null);
+                                            setIsDatePickerOpen(true);
+                                        }}
+                                        className="flex-row items-center justify-between h-12 rounded-xl bg-gray-100 dark:bg-secondary/30 px-3 active:opacity-70"
+                                    >
+                                        <Text className="text-base text-foreground" numberOfLines={1}>
+                                            {formatDateLabel(expenseDate)}
+                                        </Text>
+                                        <Calendar size={18} color={colors.mutedForeground} />
+                                    </Pressable>
+                                )}
+
+                                {isDatePickerOpen && Platform.OS !== "ios" && (
+                                    <DateTimePicker
+                                        value={fromIsoDate(expenseDate)}
+                                        mode="date"
+                                        display="default"
+                                        maximumDate={new Date()}
+                                        onChange={(event, date) => {
+                                            // Dialogen lukker seg selv etter valg.
+                                            setIsDatePickerOpen(false);
+                                            if (event.type === "set" && date)
+                                                setExpenseDate(toIsoDate(date));
+                                        }}
+                                    />
+                                )}
+                            </View>
                         </View>
 
                         <Select
@@ -474,10 +548,19 @@ export default function NyttUtlegg() {
                                     setAccountNumber(formatAccountNumber(text))
                                 }
                                 keyboardType="number-pad"
+                                autoCorrect={false}
                                 placeholder="1234.56.78901"
                                 placeholderTextColor={colors.mutedForeground}
                                 className={inputClass}
                             />
+                            {/* Sier fra mens man skriver i stedet for å vente til
+                                man trykker «Send inn utlegg». */}
+                            {accountNumber.length > 0 &&
+                                !ACCOUNT_PATTERN.test(accountNumber) && (
+                                    <Text className="text-xs text-muted-foreground mt-1.5">
+                                        {`Mangler ${11 - accountNumber.replace(/\D/g, "").length} siffer.`}
+                                    </Text>
+                                )}
                         </View>
 
                         <View>
@@ -486,6 +569,9 @@ export default function NyttUtlegg() {
                                 value={contactName}
                                 onChangeText={setContactName}
                                 maxLength={200}
+                                autoCapitalize="words"
+                                autoComplete="name"
+                                textContentType="name"
                                 placeholder="Ditt navn"
                                 placeholderTextColor={colors.mutedForeground}
                                 className={inputClass}
@@ -499,6 +585,10 @@ export default function NyttUtlegg() {
                                 onChangeText={setContactEmail}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
+                                // Autokorrektur på en e-postadresse gjør mer skade enn nytte.
+                                autoCorrect={false}
+                                autoComplete="email"
+                                textContentType="emailAddress"
                                 placeholder="din@epost.no"
                                 placeholderTextColor={colors.mutedForeground}
                                 className={inputClass}
