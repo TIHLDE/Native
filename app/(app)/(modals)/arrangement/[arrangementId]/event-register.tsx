@@ -154,7 +154,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             }
             <InteropBottomSheetModal
                 ref={bottomSheetModalRef}
-                backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                backgroundStyleClassName="bg-popover rounded-3xl"
                 enableDynamicSizing
                 backdropComponent={(props) => (
                     <BottomSheetBackdrop
@@ -165,7 +165,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                     />
                 )}
             >
-                <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
+                <BottomSheetView className="bg-popover px-6 pb-10 pt-6">
                     {registrationSuccess ? (
                         <View className="items-center py-4">
                             <View className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 items-center justify-center mb-4">

@@ -188,7 +188,7 @@ export default function Profil() {
                     </View>
 
                     <InteropBottomSheetModal ref={logoutSheetRef}
-                        backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                        backgroundStyleClassName="bg-popover rounded-3xl"
                         enableDynamicSizing
                         backdropComponent={(props) => (
                             <BottomSheetBackdrop
@@ -198,7 +198,7 @@ export default function Profil() {
                                 {...props}
                             />
                         )} >
-                        <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-6">
+                        <BottomSheetView className="bg-popover px-6 pb-10 pt-6">
                             <View className="items-center mb-4">
                                 <View className="w-14 h-14 rounded-full bg-destructive/10 dark:bg-destructive/20 items-center justify-center mb-4">
                                     <TriangleAlert size={26} color={themeColors(isDarkColorScheme).destructive} />

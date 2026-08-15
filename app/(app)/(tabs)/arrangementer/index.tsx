@@ -276,7 +276,7 @@ export default function Arrangementer() {
 
                 {/* Filter drawer */}
                 <InteropBottomSheetModal ref={filterSheetRef}
-                    backgroundStyleClassName="bg-primary-foreground rounded-3xl"
+                    backgroundStyleClassName="bg-popover rounded-3xl"
                     enableDynamicSizing
                     backdropComponent={(props) => (
                         <BottomSheetBackdrop
@@ -286,7 +286,7 @@ export default function Arrangementer() {
                             {...props}
                         />
                     )} >
-                    <BottomSheetView className="bg-primary-foreground px-6 pb-10 pt-4">
+                    <BottomSheetView className="bg-popover px-6 pb-10 pt-4">
                         {/* Header */}
                         <View className="flex-row items-center justify-between mb-5">
                             <View className="flex-row items-center">
