@@ -7,12 +7,14 @@
  * derfor her, i ett lag, og skjermene er urørt.
  */
 import type {
+    Allergy,
     Event,
     GroupUser,
     Law,
     Membership,
     Notification,
     User,
+    UserSettings,
 } from "@/actions/types";
 
 export type PhotonUser = {
@@ -48,6 +50,46 @@ export const toUser = (user: PhotonUser | null | undefined): User =>
         studyyear: { group: { name: String(user?.studyStartYear ?? ""), slug: "" } },
         unanswered_evaluations_count: 0,
     }) as unknown as User;
+
+export type PhotonUserSettings = {
+    gender?: "male" | "female" | "other";
+    allowsPhotosByDefault: boolean;
+    acceptsEventRules: boolean;
+    receiveMailCommunication: boolean;
+    publicEventRegistrations?: boolean;
+    allergies?: string[];
+    bioDescription?: string;
+    githubUrl?: string;
+    linkedinUrl?: string;
+    imageUrl?: string;
+    isOnboarded?: boolean;
+};
+
+/**
+ * `publicEventRegistrations` og `allergies` kom til etter at feltene ble tatt i
+ * bruk, og er valgfrie i svaret. Standardene her er Photons egne: å stå
+ * oppført med navn er slik påmeldinger alltid har virket, og ingen allergier
+ * er en tom liste — ikke «ukjent».
+ */
+export const toUserSettings = (settings: PhotonUserSettings): UserSettings => ({
+    acceptsEventRules: settings.acceptsEventRules,
+    allowsPhotosByDefault: settings.allowsPhotosByDefault,
+    publicEventRegistrations: settings.publicEventRegistrations ?? true,
+    receiveMailCommunication: settings.receiveMailCommunication,
+    allergies: settings.allergies ?? [],
+});
+
+export type PhotonAllergy = {
+    slug: string;
+    label: string;
+    description?: string | null;
+};
+
+export const toAllergy = (allergy: PhotonAllergy): Allergy => ({
+    slug: allergy.slug,
+    label: allergy.label,
+    description: allergy.description ?? null,
+});
 
 export const toGroupUser = (user: PhotonUser | null | undefined): GroupUser => ({
     ...splitName(user?.name),

@@ -1,8 +1,8 @@
 
 import { useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import { Text } from './text';
+import { SegmentedControl } from './segmented-control';
 
 
 interface AnimatedPagerViewProps {
@@ -19,25 +19,14 @@ export default function AnimatedPagerView(props: AnimatedPagerViewProps) {
     return (
         <View className={props.className}>
             {/* Tab bar */}
-            <View className="mx-4 mb-4 flex-row bg-gray-100 dark:bg-secondary/30 rounded-2xl p-1">
-                {props.titles.map((title, index) => {
-                    const isActive = activeIndex === index;
-                    return (
-                        <Pressable
-                            className={`flex-1 py-2.5 rounded-xl items-center justify-center ${isActive ? 'bg-primary' : ''}`}
-                            key={index}
-                            onPress={() => requestAnimationFrame(() => pagerViewRef.current?.setPage(index))}
-                        >
-                            <Text
-                                className={`text-base font-semibold ${isActive ? 'text-white' : 'text-muted-foreground'}`}
-                                style={{ fontFamily: "Inter" }}
-                            >
-                                {title}
-                            </Text>
-                        </Pressable>
-                    );
-                })}
-            </View>
+            <SegmentedControl
+                className="mx-4 mb-4"
+                options={props.titles}
+                value={activeIndex}
+                onChange={(index) =>
+                    requestAnimationFrame(() => pagerViewRef.current?.setPage(index))
+                }
+            />
             <PagerView style={{ flex: 1 }}
                 orientation="horizontal"
                 ref={pagerViewRef}

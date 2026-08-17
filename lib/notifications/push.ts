@@ -10,6 +10,57 @@ import {
 } from "@/actions/notifications/devices";
 
 const STORED_TOKEN = "tihlde_push_token";
+const PUSH_PREFERENCE = "tihlde_push_enabled";
+
+/**
+ * Om brukeren vil ha push på denne telefonen.
+ *
+ * Photon har ingen innstilling for det — der finnes bare listen over påmeldte
+ * enheter — så valget hører hjemme på telefonen som er meldt på. Ingen lagret
+ * verdi betyr «ikke svart», og da spør appen om tillatelse som før.
+ */
+export async function isPushEnabled(): Promise<boolean> {
+    return (await AsyncStorage.getItem(PUSH_PREFERENCE)) !== "false";
+}
+
+export type PushEnableResult =
+    /** Telefonen er meldt på. */
+    | "ok"
+    /** Brukeren har sagt nei til varsler i systemdialogen. */
+    | "denied"
+    /** Ingen ekte enhet, eller manglende EAS-prosjekt — ikke noe brukeren gjorde. */
+    | "unavailable";
+
+/**
+ * Skrur push av eller på for telefonen.
+ *
+ * Valget lagres først, slik at `registerForPushNotifications` — som også kjører
+ * ved oppstart — ser det med en gang.
+ */
+export async function setPushEnabled(
+    enabled: boolean,
+): Promise<PushEnableResult> {
+    await AsyncStorage.setItem(PUSH_PREFERENCE, String(enabled));
+
+    if (!enabled) {
+        await unregisterForPushNotifications();
+        return "ok";
+    }
+
+    if (Device.isDevice && (await registerForPushNotifications())) return "ok";
+
+    // Påmeldingen gikk ikke. Valget settes tilbake, ellers ville innstillingen
+    // stått som «på» mens telefonen ikke får noe — og appen ville prøvd på
+    // nytt ved hver oppstart uten å komme lenger.
+    await AsyncStorage.setItem(PUSH_PREFERENCE, "false");
+
+    if (!Device.isDevice) return "unavailable";
+
+    // Systemdialogen kan bare vises én gang. Er svaret nei, må brukeren inn i
+    // telefoninnstillingene — og det må skjermen kunne si fra om.
+    const { status } = await Notifications.getPermissionsAsync();
+    return status === "granted" ? "unavailable" : "denied";
+}
 
 /**
  * Varsler som kommer mens appen er åpen vises ikke av seg selv — uten en
@@ -51,6 +102,10 @@ export async function registerForPushNotifications(): Promise<string | null> {
     // Push krever ekte maskinvare. Simulatoren har ingen enhet å levere til,
     // og getExpoPushTokenAsync kaster der.
     if (!Device.isDevice) return null;
+
+    // Sperren ligger her, ikke bare hos den som kaller: påmeldingen gjentas
+    // ved hver oppstart, og den skal ikke overkjøre et nei fra innstillingene.
+    if (!(await isPushEnabled())) return null;
 
     await ensureAndroidChannel();
 

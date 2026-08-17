@@ -9,3 +9,4 @@ export * from "./payment";
 export * from "./fine";
 export * from "./application";
 export * from "./notification";
+export * from "./settings";

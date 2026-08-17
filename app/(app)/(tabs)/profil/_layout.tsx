@@ -40,7 +40,28 @@ export default function ProfilLayout() {
                             )}
                         </Pressable>
                     ),
+                    // Bjella har høyre side for seg selv. Tannhjulet ligger i
+                    // profilhodet i stedet — to knapper her ble for trangt.
                     headerRight: () => <NotificationBell />,
+                }}
+            />
+            <Stack.Screen
+                name="innstillinger"
+                options={{
+                    headerShown: true,
+                    title: "Innstillinger",
+                    headerTitleAlign: "center",
+                    // Bjella følger med hit også, slik at varsler er like
+                    // tilgjengelige som på fanene den ligger på ellers.
+                    headerRight: () => <NotificationBell />,
+                }}
+            />
+            <Stack.Screen
+                name="allergier"
+                options={{
+                    headerShown: true,
+                    title: "Allergier",
+                    headerTitleAlign: "center",
                 }}
             />
         </Stack>
