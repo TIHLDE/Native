@@ -18,6 +18,12 @@ export type Law = {
 };
 
 export type GroupUser = {
+    /**
+     * Photons interne bruker-id. Den er nøkkelen API-et slår opp på, og er
+     * ikke det samme som brukernavnet — `user_id` under er brukernavnet, som
+     * er det appen viser og søker på.
+     */
+    id: string;
     user_id: string;
     first_name: string;
     last_name: string;
@@ -32,6 +38,11 @@ export type CreateFinePayload = {
     reason: string;
     user: string[];
     image: string | null;
+    /**
+     * Paragrafen boten gis under. Nullbar fordi en gruppe med tomt lovverk
+     * fortsatt kan dele ut bøter.
+     */
+    lawId: string | null;
 };
 
 /**

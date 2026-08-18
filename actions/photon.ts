@@ -98,6 +98,10 @@ export const toAllergy = (allergy: PhotonAllergy): Allergy => ({
 
 export const toGroupUser = (user: PhotonUser | null | undefined): GroupUser => ({
     ...splitName(user?.name),
+    // Photons id og brukernavnet er to forskjellige ting. Begge trengs: id-en
+    // er det API-et godtar når en bot opprettes, brukernavnet er det folk
+    // kjenner igjen og søker på.
+    id: user?.id ?? "",
     user_id: user?.username ?? user?.id ?? "",
     email: user?.email ?? "",
     image: user?.image ?? undefined,

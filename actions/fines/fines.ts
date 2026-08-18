@@ -58,6 +58,11 @@ export async function createFine(
                     // description og reason.
                     reason: payload.reason || payload.description,
                     amount: payload.amount,
+                    // Uten denne ble paragrafen kastet: skjermen visste hvilken
+                    // lov boten ble gitt under, men sendte den bare som tekst i
+                    // `description`, som `reason` overstyrer. Photon lagret da
+                    // `lawId: null`, og bøtelista hadde ingen paragraf å vise.
+                    ...(payload.lawId ? { lawId: payload.lawId } : {}),
                     ...(payload.image ? { image: payload.image } : {}),
                 }),
             }).then(async (response) => {
