@@ -30,12 +30,21 @@ app/
 ├── index.tsx                # Splash → redirects to /login or /arrangementer
 ├── (auth)/login.tsx         # Login screen
 └── (app)/
-    ├── (tabs)/              # Bottom tab navigator (expo-router/ui Tabs)
+    ├── (tabs)/              # Bottom tab navigator (NativeTabs)
+    │   ├── grupper/         # The user's groups (list only; details are a modal)
+    │   ├── karriere/        # Job postings
+    │   ├── bot/             # Give a fine — group picker, then the fines flow
     │   ├── arrangementer/   # Events (infinite scroll list + details)
-    │   └── karriere/        # Job postings
-    ├── profil/              # User profile
+    │   └── profil/          # User profile
     └── (modals)/            # Slide-from-right modal screens (route group)
+        ├── gruppe/[groupSlug]/   # One group: fines, laws, leaderboard
+        ├── boter/[groupSlug]/    # The give-a-fine flow (laws → users → confirm)
+        └── utlegg/               # Expenses, reached from the icon in grupper's header
 ```
+
+Two tabs list groups, deliberately: `bot/` shows only groups with fines enabled and
+leads into the give-a-fine flow, while `grupper/` shows every group and leads to the
+read-only group page. Giving a fine stays a one-tap action, which is worth the overlap.
 
 Modals use `router.push("/(modals)/...")` with `presentation: "card"` and `animation: "slide_from_right"`. Dynamic params via `useLocalSearchParams()`.
 

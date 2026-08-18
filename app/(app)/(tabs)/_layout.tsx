@@ -9,9 +9,9 @@ import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 export default function TabsLayout() {
     return (
         <NativeTabs minimizeBehavior="onScrollDown">
-            <NativeTabs.Trigger name="utlegg">
-                <Icon sf={{ default: "receipt", selected: "receipt.fill" }} />
-                <Label>Utlegg</Label>
+            <NativeTabs.Trigger name="grupper">
+                <Icon sf={{ default: "person.3", selected: "person.3.fill" }} />
+                <Label>Grupper</Label>
             </NativeTabs.Trigger>
 
             <NativeTabs.Trigger name="karriere">

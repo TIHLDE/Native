@@ -47,7 +47,7 @@ export default function Utlegg() {
                 refreshControl={refreshControl}
                 ListHeaderComponent={
                     <Pressable
-                        onPress={() => router.push("/utlegg/nytt")}
+                        onPress={() => router.push("/(app)/(modals)/utlegg/nytt")}
                         className="flex-row items-center justify-center h-14 rounded-2xl bg-primary my-4 active:opacity-80"
                     >
                         <Plus size={20} color="#ffffff" />

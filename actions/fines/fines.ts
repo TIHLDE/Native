@@ -1,5 +1,37 @@
 import { apiFetch, apiJson } from "@/lib/api/client";
-import { CreateFinePayload } from "@/actions/types";
+import { CreateFinePayload, Fine, FineStatus } from "@/actions/types";
+import { PhotonFineList, toFine } from "@/actions/photon";
+
+export const PAGE_SIZE = 25;
+
+/**
+ * Bøtene i en gruppe, nyeste først.
+ *
+ * Sidetallet er 0-basert i Photon, og `nextPage` er null på siste side. Den
+ * sendes videre som den er framfor å telles opp her — å regne den ut lokalt gir
+ * en tom side til etter at lista er slutt.
+ */
+export async function fetchFines(
+    groupSlug: string,
+    options: { page?: number; status?: FineStatus; userId?: string } = {}
+): Promise<{ results: Fine[]; next: number | null; totalCount: number }> {
+    const query = new URLSearchParams({
+        pageSize: String(PAGE_SIZE),
+        page: String(options.page ?? 0),
+    });
+    if (options.status) query.set("status", options.status);
+    if (options.userId) query.set("userId", options.userId);
+
+    const data = await apiJson<PhotonFineList>(
+        `/groups/${encodeURIComponent(groupSlug)}/fines?${query}`
+    );
+
+    return {
+        results: data.fines.map(toFine),
+        next: data.nextPage,
+        totalCount: data.totalCount,
+    };
+}
 
 /**
  * Oppretter bot på én eller flere medlemmer.
