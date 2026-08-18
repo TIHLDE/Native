@@ -85,6 +85,7 @@ export default function UserSelection() {
                 lawDescription,
                 selectedUsers: JSON.stringify(
                     selectedUsers.map((u) => ({
+                        id: u.id,
                         user_id: u.user_id,
                         first_name: u.first_name,
                         last_name: u.last_name,

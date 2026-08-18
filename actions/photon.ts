@@ -9,6 +9,11 @@
 import type {
     Allergy,
     Event,
+    Fine,
+    FineLeaderboardEntry,
+    FinePerson,
+    FineStatistics,
+    FineStatus,
     GroupUser,
     Law,
     Membership,
@@ -93,6 +98,10 @@ export const toAllergy = (allergy: PhotonAllergy): Allergy => ({
 
 export const toGroupUser = (user: PhotonUser | null | undefined): GroupUser => ({
     ...splitName(user?.name),
+    // Photons id og brukernavnet er to forskjellige ting. Begge trengs: id-en
+    // er det API-et godtar når en bot opprettes, brukernavnet er det folk
+    // kjenner igjen og søker på.
+    id: user?.id ?? "",
     user_id: user?.username ?? user?.id ?? "",
     email: user?.email ?? "",
     image: user?.image ?? undefined,
@@ -295,4 +304,128 @@ export const toNotification = (
     link: notification.link ?? null,
     isRead: notification.isRead,
     createdAt: notification.createdAt,
+});
+
+export type PhotonFinePerson = {
+    id: string;
+    name: string;
+    image: string | null;
+};
+
+export type PhotonFineLaw = {
+    id: string;
+    paragraph: string;
+    title: string;
+};
+
+export type PhotonFine = {
+    id: string;
+    userId: string;
+    groupSlug: string;
+    reason: string;
+    amount: number;
+    defense: string | null;
+    image: string | null;
+    status: string;
+    createdByUserId: string | null;
+    approvedByUserId: string | null;
+    approvedAt: string | null;
+    paidAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+    user: PhotonFinePerson;
+    createdByUser: PhotonFinePerson | null;
+    lawId: string | null;
+    law: PhotonFineLaw | null;
+};
+
+export type PhotonFineList = {
+    totalCount: number;
+    pages: number;
+    nextPage: number | null;
+    fines: PhotonFine[];
+};
+
+export type PhotonFineStatistics = {
+    notApproved: number;
+    approvedNotPaid: number;
+    paid: number;
+};
+
+export type PhotonFineUser = {
+    id: string;
+    name: string;
+    image: string | null;
+    finesAmount: number;
+    finesCount: number;
+};
+
+export type PhotonFineUserList = {
+    totalCount: number;
+    pages: number;
+    nextPage: number | null;
+    users: PhotonFineUser[];
+};
+
+const FINE_STATUSES: FineStatus[] = ["pending", "approved", "paid", "rejected"];
+
+export const toFinePerson = (person: PhotonFinePerson): FinePerson => ({
+    id: person.id,
+    name: person.name,
+    image: person.image,
+});
+
+/**
+ * Bøtelistene er nye i appen og har ingen Lepton-skjermer å bevare, så de
+ * beholder Photons camelCase i stedet for å bli presset inn i snake_case slik
+ * `toMembership` og `toLaw` rett over gjør. Det er samme valg som
+ * `toNotification`: oversettelsen ligger her sånn at skjermene bare kjenner
+ * `Fine`, men en oversettelse ingen har bruk for skal ikke finnes opp.
+ *
+ * Mapperen gjør likevel tre ting svaret ikke gjør selv: smalner statusen til
+ * unionen, dropper feltene appen ikke bruker, og lar bildene stå rå. Bevisbildet
+ * og avataren er samme felttype i to helt ulike bredder, så `avatarImageUrl`
+ * hører til skjermen — som i `toGroup`.
+ */
+export const toFine = (fine: PhotonFine): Fine => ({
+    id: fine.id,
+    userId: fine.userId,
+    groupSlug: fine.groupSlug,
+    reason: fine.reason,
+    amount: fine.amount,
+    defense: fine.defense,
+    image: fine.image,
+    status: FINE_STATUSES.includes(fine.status as FineStatus)
+        ? (fine.status as FineStatus)
+        : "pending",
+    createdAt: fine.createdAt,
+    approvedAt: fine.approvedAt,
+    paidAt: fine.paidAt,
+    user: toFinePerson(fine.user),
+    createdByUser: fine.createdByUser ? toFinePerson(fine.createdByUser) : null,
+    law: fine.law
+        ? {
+              id: fine.law.id,
+              paragraph: fine.law.paragraph,
+              title: fine.law.title,
+          }
+        : null,
+});
+
+export const toFineStatistics = (
+    statistics: PhotonFineStatistics,
+): FineStatistics => ({
+    notApproved: statistics.notApproved,
+    approvedNotPaid: statistics.approvedNotPaid,
+    paid: statistics.paid,
+});
+
+export const toFineLeaderboardEntry = (
+    user: PhotonFineUser,
+): FineLeaderboardEntry => ({
+    id: user.id,
+    name: user.name,
+    image: user.image,
+    finesAmount: user.finesAmount,
+    finesCount: user.finesCount,
 });

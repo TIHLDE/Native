@@ -18,6 +18,12 @@ export type Law = {
 };
 
 export type GroupUser = {
+    /**
+     * Photons interne bruker-id. Den er nøkkelen API-et slår opp på, og er
+     * ikke det samme som brukernavnet — `user_id` under er brukernavnet, som
+     * er det appen viser og søker på.
+     */
+    id: string;
     user_id: string;
     first_name: string;
     last_name: string;
@@ -32,4 +38,70 @@ export type CreateFinePayload = {
     reason: string;
     user: string[];
     image: string | null;
+    /**
+     * Paragrafen boten gis under. Nullbar fordi en gruppe med tomt lovverk
+     * fortsatt kan dele ut bøter.
+     */
+    lawId: string | null;
+};
+
+/**
+ * Der en bot står i oppgjøret. Photon typer feltet som fri streng i skjemaet
+ * selv om ruten validerer mot disse fire, så mapperen smalner den her.
+ */
+export type FineStatus = "pending" | "approved" | "paid" | "rejected";
+
+/** Den lille brukerformen bøtelistene svarer med — ikke en hel `User`. */
+export type FinePerson = {
+    id: string;
+    name: string;
+    image: string | null;
+};
+
+export type Fine = {
+    id: string;
+    userId: string;
+    groupSlug: string;
+    reason: string;
+    /**
+     * Antall bøter, ikke kroner.
+     *
+     * Photons skjema kaller feltet «Fine amount in NOK», men det stemmer ikke
+     * med hvordan det faktisk brukes: lovverket teller bøter per paragraf, og
+     * bekreft-skjermen i botflyten merker det samme feltet «Antall bøter».
+     * Kroneverdien er noe hver gruppe avtaler selv utenfor appen.
+     */
+    amount: number;
+    defense: string | null;
+    /** Bevisbildet, i full størrelse. Ikke en avatar. */
+    image: string | null;
+    status: FineStatus;
+    createdAt: string;
+    approvedAt: string | null;
+    paidAt: string | null;
+    user: FinePerson;
+    createdByUser: FinePerson | null;
+    /** Null for bøter fra Lepton og for bøter gitt uten paragraf. */
+    law: { id: string; paragraph: string; title: string } | null;
+};
+
+/**
+ * Antall bøter per stadium i oppgjøret. Avviste bøter er holdt utenfor.
+ *
+ * Tallene er summer av `Fine.amount`, altså bøter — ikke kroner.
+ */
+export type FineStatistics = {
+    notApproved: number;
+    approvedNotPaid: number;
+    paid: number;
+};
+
+export type FineLeaderboardEntry = {
+    id: string;
+    name: string;
+    image: string | null;
+    /** Summen av medlemmets `Fine.amount`, altså totalt antall bøter. */
+    finesAmount: number;
+    /** Antall ganger medlemmet har blitt bøtelagt. */
+    finesCount: number;
 };

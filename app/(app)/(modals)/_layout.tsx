@@ -55,6 +55,53 @@ export default function ModalsLayout() {
                 }}
             />
             <Stack.Screen
+                name="gruppe/[groupSlug]/index"
+                options={{
+                    ...modalScreenOptions,
+                    // Gruppenavnet settes av skjermen selv når medlemskapet er
+                    // lastet.
+                    title: "",
+                    headerShown: true,
+                    // Første skjerm i modalstacken — får ingen tilbakeknapp selv.
+                    headerLeft: () => (
+                        <Pressable
+                            onPress={() => router.back()}
+                            className="flex-row items-center active:opacity-70 mr-2"
+                        >
+                            <ChevronLeft size={24} color={backColor} />
+                            <Text className="text-base text-foreground">Tilbake</Text>
+                        </Pressable>
+                    ),
+                }}
+            />
+            <Stack.Screen
+                name="utlegg/index"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Utlegg",
+                    headerShown: true,
+                    // Åpnes fra ikonet i grupper-headeren, så den er første
+                    // skjerm i denne stacken og får ingen tilbakeknapp selv.
+                    headerLeft: () => (
+                        <Pressable
+                            onPress={() => router.back()}
+                            className="flex-row items-center active:opacity-70 mr-2"
+                        >
+                            <ChevronLeft size={24} color={backColor} />
+                            <Text className="text-base text-foreground">Tilbake</Text>
+                        </Pressable>
+                    ),
+                }}
+            />
+            <Stack.Screen
+                name="utlegg/nytt"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Nytt utlegg",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
                 name="arrangement/[arrangementId]"
                 options={{
                     ...modalScreenOptions,

@@ -27,6 +27,8 @@ import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
 
 type SelectedUser = {
+    /** Photons bruker-id — det API-et slår opp på. */
+    id: string;
     user_id: string;
     first_name: string;
     last_name: string;
@@ -40,6 +42,7 @@ export default function ConfirmFine() {
 
     const {
         groupSlug,
+        lawId,
         lawTitle,
         lawParagraph,
         lawAmount,
@@ -120,8 +123,15 @@ export default function ConfirmFine() {
             await createFine(groupSlug, {
                 description: `§${lawParagraph} - ${lawTitle}`,
                 amount,
+                // Lovlista sender denne videre gjennom hele flyten. Den ble
+                // aldri plukket ut her, så bøtene havnet i Photon uten
+                // paragraf.
+                lawId: lawId ?? null,
                 reason: reason.trim(),
-                user: selectedUsers.map((u) => u.user_id),
+                // Photon slår opp på sin egen id. Her sto brukernavnet, og
+                // hver eneste bot feilet med «User with ID ... not found» for
+                // alle der de to er forskjellige.
+                user: selectedUsers.map((u) => u.id),
                 image: uploadedUrl,
             });
 
