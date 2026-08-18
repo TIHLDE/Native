@@ -79,12 +79,16 @@ function FineCard({ fine }: { fine: Fine }) {
         minute: "2-digit",
     });
 
-    // Paragrafen er null for bøter migrert fra Lepton og for bøter gitt uten
-    // lovverk. Da er begrunnelsen det eneste som finnes, og den tar paragrafens
-    // plass framfor at raden blir stående uten kjennetegn.
-    const heading = fine.law
+    // Bøtene i Photon har fått paragraf, så denne linja er paragrafens plass og
+    // ingenting annet. Den håndfullen som fortsatt mangler den, er migrerte
+    // Lepton-bøter der koblingen aldri fantes; der sier raden det rett ut.
+    //
+    // Begrunnelsen sto her før, som reserve. Det ga to problemer: den lot som
+    // om den var en paragraf, og siden den også står under «Begrunnelse» når
+    // raden åpnes, ble den samme teksten stående dobbelt.
+    const paragraph = fine.law
         ? `§${fine.law.paragraph} ${fine.law.title}`
-        : fine.reason;
+        : null;
 
     const toggle = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -99,7 +103,7 @@ function FineCard({ fine }: { fine: Fine }) {
                 onPress={toggle}
                 accessibilityRole="button"
                 accessibilityState={{ expanded: isOpen }}
-                accessibilityLabel={`${fine.user.name}, ${heading}`}
+                accessibilityLabel={`${fine.user.name}, ${paragraph ?? "uten paragraf"}`}
                 className="flex-row items-center active:opacity-70"
             >
                 <PersonAvatar name={fine.user.name} image={fine.user.image} />
@@ -111,10 +115,14 @@ function FineCard({ fine }: { fine: Fine }) {
                         {fine.user.name}
                     </Text>
                     <Text
-                        className="text-sm text-muted-foreground mt-0.5"
+                        className={
+                            paragraph
+                                ? "text-sm text-muted-foreground mt-0.5"
+                                : "text-sm text-muted-foreground mt-0.5 italic"
+                        }
                         numberOfLines={1}
                     >
-                        {heading}
+                        {paragraph ?? "Uten paragraf"}
                     </Text>
                 </View>
                 <View className="items-end ml-2">
