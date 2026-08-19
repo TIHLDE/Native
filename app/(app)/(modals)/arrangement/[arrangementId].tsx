@@ -318,7 +318,7 @@ export default function ArrangementSide() {
                         {permissions.data?.event?.write && event.data.sign_up && (
                             <Pressable
                                 onPress={() => router.push({
-                                    pathname: "/(modals)/arrangement/[arrangementId]/event-register",
+                                    pathname: "/(app)/(modals)/arrangement/[arrangementId]/event-register",
                                     params: { arrangementId: id as string },
                                 })}
                                 className="h-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex-row items-center justify-center mb-6 active:opacity-70"
@@ -601,13 +601,13 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
             className="bg-popover"
             data={participants}
             stickyHeaderIndices={[0]}
-            renderItem={({ item: registration }) => (
+            renderItem={({ item: registration }: { item: Registration }) => (
                 <>
                     <UserCard user={registration.user_info} />
                     <View className="h-px bg-border dark:bg-muted" />
                 </>
             )}
-            keyExtractor={(item, index) => item.user_info?.user_id?.toString() ?? index.toString()}
+            keyExtractor={(item: Registration, index: number) => item.user_info?.user_id?.toString() ?? index.toString()}
             onEndReached={() => {
                 if (!hasNextPage) return;
                 fetchNextPage();
