@@ -1,7 +1,7 @@
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES, TAB_BAR_CLEARANCE } from "@/components/ui/pagewrapper";
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { fetchMemberships } from "@/actions/fines/memberships";
@@ -39,11 +39,11 @@ export default function MembershipSelection() {
         memberships.data?.filter((m: Membership) => m.group.fines_activated) ?? [];
 
     return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <FlatList
                 data={finesGroups}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
+                contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_CLEARANCE }}
                 refreshControl={refreshControl}
                 keyExtractor={(item) => item.group.slug}
                 renderItem={({ item: membership }) => (

@@ -5,7 +5,7 @@ import {
     settingsKeys,
     updateMySettings,
 } from "@/actions/users/settings";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES, TAB_BAR_CLEARANCE } from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -93,7 +93,7 @@ export default function Allergier() {
 
     if (settings.isPending || allergies.isPending) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" />
                 </View>
@@ -103,7 +103,7 @@ export default function Allergier() {
 
     if (settings.isError || allergies.isError) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <View className="flex-1 items-center justify-center px-6">
                     <Text className="text-base text-destructive text-center">
                         {(settings.error ?? allergies.error)?.message}
@@ -140,7 +140,7 @@ export default function Allergier() {
             selected.every((slug) => settings.data.allergies.includes(slug)));
 
     return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <View className="flex-1">
                 <FlatList
                     data={suggestions}
@@ -238,7 +238,10 @@ export default function Allergier() {
 
                 {/* Faneraden flyter over innholdet, så knappen trenger luft
                     under seg for ikke å ligge klemt inntil den. */}
-                <View className="px-5 pb-6 pt-2 border-t border-border dark:border-muted">
+                <View
+                    className="px-5 pt-2 border-t border-border dark:border-muted"
+                    style={{ paddingBottom: TAB_BAR_CLEARANCE }}
+                >
                     <Pressable
                         onPress={() => save.mutate(current)}
                         disabled={isUnchanged || save.isPending}

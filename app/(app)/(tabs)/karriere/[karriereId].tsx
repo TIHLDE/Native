@@ -8,7 +8,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import CoverImage, { COVER_IMAGE_FRAME } from "@/components/ui/coverImage";
 import * as WebBrowser from 'expo-web-browser';
 import MarkdownView from "@/components/ui/MarkdownView";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES } from "@/components/ui/pagewrapper";
 import { fetchJobPost } from "@/actions/events/events";
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -54,7 +54,7 @@ function DetailRow({
 
 function DetailSkeleton() {
     return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image skeleton */}
                 <View className={`${COVER_IMAGE_FRAME} bg-muted dark:bg-secondary/40 animate-pulse`} />
@@ -118,7 +118,7 @@ export default function Karriereside() {
     );
 
     if (jobpost.isError) return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <Stack.Screen options={{ title: "" }} />
             <View className="flex-1 items-center justify-center px-6">
                 <Text className="text-base text-destructive">{jobpost.error.message}</Text>
@@ -145,7 +145,7 @@ export default function Karriereside() {
     return (
         <>
             <Stack.Screen options={{ title: jobpost.data.company }} />
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <ScrollView
                     refreshControl={refreshControl}
                     showsVerticalScrollIndicator={false}

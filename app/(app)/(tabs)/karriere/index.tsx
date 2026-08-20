@@ -1,7 +1,7 @@
 import { themeColors } from "@/lib/theme/colors";
 import { fetchJobPosts } from "@/actions/events/events";
 import JobPostCard, { JobPostCardSkeleton } from "@/components/karriere/jobpostcard";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES } from "@/components/ui/pagewrapper";
 import { Text } from "@/components/ui/text";
 import { SectionHeader } from "@/components/ui/section-header";
 import useRefresh from "@/lib/useRefresh";
@@ -25,7 +25,7 @@ export default function Karriere() {
 
     if (jobposts.isError) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <View className="flex-1 items-center justify-center px-6">
                     <Text className="text-base text-destructive">{jobposts.error.message}</Text>
                 </View>
@@ -36,7 +36,7 @@ export default function Karriere() {
     const resultCount = jobposts.data?.results?.length ?? 0;
 
     return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <ScrollView
                 refreshControl={refreshControl}
                 showsVerticalScrollIndicator={false}

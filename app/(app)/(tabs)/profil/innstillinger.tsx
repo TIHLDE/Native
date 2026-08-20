@@ -5,7 +5,7 @@ import {
     updateMySettings,
 } from "@/actions/users/settings";
 import { ThemeSwitch } from "@/components/themeToggle";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES, TAB_BAR_CLEARANCE } from "@/components/ui/pagewrapper";
 import { SectionHeader } from "@/components/ui/section-header";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Switch } from "@/components/ui/switch";
@@ -159,7 +159,7 @@ export default function Innstillinger() {
 
     if (settings.isPending) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" />
                 </View>
@@ -169,7 +169,7 @@ export default function Innstillinger() {
 
     if (settings.isError) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <View className="flex-1 items-center justify-center px-6">
                     <Text className="text-base text-destructive text-center">
                         {settings.error.message}
@@ -203,11 +203,11 @@ export default function Innstillinger() {
     };
 
     return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <ScrollView
                 refreshControl={refreshControl}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 60 }}
+                contentContainerStyle={{ paddingBottom: TAB_BAR_CLEARANCE }}
             >
                 {/* Utseende */}
                 <View className="px-5 pt-5">
