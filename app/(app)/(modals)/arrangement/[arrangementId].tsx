@@ -1,16 +1,21 @@
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, ActivityIndicator, Pressable } from "react-native";
+import { View, ActivityIndicator, AppState, Linking, Pressable } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { fetchEvent, fetchEventCounts } from "@/actions/events/events";
 import { registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
-import { createPayment } from "@/actions/events/payments";
+import {
+    confirmPayment,
+    createPayment,
+    PaymentConfirmation,
+} from "@/actions/events/payments";
+import { VippsButton } from "@/components/ui/vipps-button";
 import * as WebBrowser from "expo-web-browser";
 import { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
@@ -760,8 +765,21 @@ function RegistrationButton({
                 <StatusBanner
                     tone="warning"
                     palette={palette}
-                    message="Plass reservert — venter på betaling"
+                    message="Plassen din er reservert, betal for å sikre den"
                     secondary={paymentDeadlineText(mine, paymentCountdown)}
+                />
+            )}
+
+            {state === "cancelled" && (
+                <StatusBanner
+                    tone="error"
+                    palette={palette}
+                    message="Påmeldinga di ble avbrutt"
+                    secondary={
+                        event.is_paid_event
+                            ? "Plassen er gitt videre, som regel fordi betalingsfristen gikk ut. Ta kontakt med arrangøren om du fortsatt vil være med."
+                            : "Plassen er ikke lenger din. Ta kontakt med arrangøren om du fortsatt vil være med."
+                    }
                 />
             )}
 
@@ -950,39 +968,122 @@ function StatusBanner({
 }
 
 
+// Vipps svarer sjelden med en gang. Seks forsøk med to sekunder mellom gir
+// betalingen et drøyt titalls sekunder på å bli bekreftet før vi gir oss og
+// lar arrangementet selv være fasit.
+const PAYMENT_CONFIRM_ATTEMPTS = 6;
+const PAYMENT_CONFIRM_RETRY_MS = 2_000;
+
 function PaymentButton({ eventId }: { eventId: string }) {
     const queryClient = useQueryClient();
 
-    const payment = useQuery({
-        queryFn: () => createPayment(eventId),
-        queryKey: ["event", eventId, "payment"],
+    // Sant fra vi sender medlemmet til Vipps til appen er i forgrunnen igjen.
+    const awaitingVipps = useRef(false);
+    const [isConfirming, setIsConfirming] = useState(false);
+
+    // Betalingen fulgte tidligere skjermen: en useQuery som la inn en Vipps-
+    // checkout bare av at arrangementet ble åpnet. Vipps-deeplinken varer i
+    // fem minutter, så en lenke laget ved åpning var som regel død når
+    // medlemmet trykte. Nå lages den i trykket.
+    const payment = useMutation({
+        mutationFn: async () => createPayment(eventId),
+        onSuccess: async ({ checkoutUrl }) => {
+            if (!checkoutUrl) {
+                Toast.show({
+                    type: "error",
+                    text1: "Kunne ikke starte betalingen",
+                    text2: "Prøv igjen om litt.",
+                });
+                return;
+            }
+
+            // Photon ber Vipps om NATIVE_REDIRECT, og da er checkoutUrl en
+            // `vipps://`-deeplink som bytter til Vipps-appen. Den kan ikke
+            // åpnes i en nettleser: openBrowserAsync tar bare http og https,
+            // og Vipps krever at lenka åpnes slik den er.
+            try {
+                awaitingVipps.current = true;
+                await Linking.openURL(checkoutUrl);
+            } catch {
+                awaitingVipps.current = false;
+                Toast.show({
+                    type: "error",
+                    text1: "Fikk ikke åpnet Vipps",
+                    text2: "Sjekk at Vipps er installert på telefonen.",
+                });
+            }
+        },
+        onError: (error) => {
+            Toast.show({
+                type: "error",
+                text1: "Kunne ikke starte betalingen",
+                text2: registrationErrorMessage(error),
+            });
+        },
     });
 
+    // Med app-bytte er det ingen nettleser som lukker seg, så det er
+    // forgrunnen som forteller at medlemmet er tilbake fra Vipps.
+    useEffect(() => {
+        const subscription = AppState.addEventListener("change", (state) => {
+            if (state !== "active" || !awaitingVipps.current) return;
+            awaitingVipps.current = false;
+            setIsConfirming(true);
+        });
+
+        return () => subscription.remove();
+    }, []);
+
+    // Vipps slipper medlemmet tilbake i det de har godkjent, som regel før
+    // webhooken har nådd Photon. Da spør vi Photon om å høre med Vipps i
+    // stedet for å la medlemmet stå igjen med «betal for å sikre den» rett
+    // etter å ha betalt.
+    useEffect(() => {
+        if (!isConfirming) return;
+
+        let cancelled = false;
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+
+        const ask = async (attempt: number) => {
+            let status: PaymentConfirmation["status"] | null = null;
+            try {
+                status = (await confirmPayment(eventId)).status;
+            } catch {
+                // Nettverket eller API-et svikta. Det er ikke et svar om
+                // betalingen, så vi behandler det som «vet ikke ennå».
+                status = null;
+            }
+            if (cancelled) return;
+
+            // «pending» er det eneste som er verdt å vente på: betalingen er
+            // underveis hos Vipps. Alt annet er et svar.
+            const keepWaiting = status === null || status === "pending";
+            if (keepWaiting && attempt + 1 < PAYMENT_CONFIRM_ATTEMPTS) {
+                timeout = setTimeout(
+                    () => void ask(attempt + 1),
+                    PAYMENT_CONFIRM_RETRY_MS
+                );
+                return;
+            }
+
+            await queryClient.invalidateQueries({ queryKey: ["event"] });
+            if (!cancelled) setIsConfirming(false);
+        };
+
+        void ask(0);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timeout);
+        };
+    }, [isConfirming, eventId, queryClient]);
+
     return (
-        <Pressable
-            onPress={() => {
-                const paymentLink = payment.data?.payment_link || "https://tihlde.org/arrangementer/" + eventId;
-                WebBrowser.openBrowserAsync(paymentLink).then(() => {
-                    queryClient.invalidateQueries({ queryKey: ["event"] });
-                    queryClient.refetchQueries({ queryKey: ["event"] });
-                });
-            }}
-            disabled={payment.isPending}
-            className={`h-14 rounded-2xl flex-row items-center justify-center mb-4 active:opacity-80 ${
-                payment.isPending ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary'
-            }`}
-        >
-            {payment.isPending ? (
-                <ActivityIndicator color="white" />
-            ) : (
-                <>
-                    <CreditCard size={16} color="white" />
-                    <Text className="text-white text-base font-semibold ml-2" style={{ fontFamily: "Inter" }}>
-                        Betal her
-                    </Text>
-                </>
-            )}
-        </Pressable>
+        <VippsButton
+            className="w-full mb-4"
+            loading={payment.isPending || isConfirming}
+            onPress={() => payment.mutate()}
+        />
     );
 }
 

@@ -15,6 +15,7 @@ export type EventRegistrationState =
     | "processing"
     | "joined"
     | "awaiting-payment"
+    | "cancelled"
     | "on-waitlist"
     | "closed"
     | "full";
@@ -60,6 +61,13 @@ export function deriveRegistrationState(
             return "joined";
         case "waitlisted":
             return "on-waitlist";
+        // Photon setter «cancelled» når plassen er tapt: betalingsfristen gikk
+        // ut, påmeldingen kom inn på et stengt arrangement, eller prikkene
+        // stengte den ute. Uten denne grenen falt tilstanden ned i `default` og
+        // viste «Meld deg på» — en knapp som aldri kunne lykkes, siden Photon
+        // svarer 409 så lenge raden ligger der.
+        case "cancelled":
+            return "cancelled";
         // Påmeldingen står som «pending» til serveren har avgjort om det ble
         // plass eller venteliste. Photon avviser betaling før det er avgjort,
         // så «behandler» gjelder også på betalte arrangementer.
@@ -159,8 +167,10 @@ export function registrationErrorMessage(error: unknown): string {
     if (message.includes("not open for registration")) {
         return "Dette arrangementet er ikke åpent for påmelding.";
     }
+    // Photon svarer dette så lenge det ligger en påmeldingsrad på deg, også
+    // når den er avbrutt — da er «du er påmeldt» direkte feil.
     if (message.includes("already registered")) {
-        return "Du er allerede påmeldt. Dra ned for å oppdatere.";
+        return "Du har allerede en påmelding på dette arrangementet. Dra ned for å oppdatere.";
     }
     if (message.includes("accept the event rules")) {
         return "Du må godkjenne arrangementsreglene før du kan melde deg på. Huk av i varselet over.";
@@ -196,7 +206,7 @@ export function registrationErrorMessage(error: unknown): string {
         return "Dette arrangementet krever ingen betaling.";
     }
     if (message.includes("Failed to initiate Vipps payment")) {
-        return "Vipps svarte ikke. Prøv igjen om litt — plassen din står så lenge fristen ikke har gått ut.";
+        return "Vipps svarte ikke. Prøv igjen om litt, plassen din står så lenge fristen ikke har gått ut.";
     }
 
     return message;

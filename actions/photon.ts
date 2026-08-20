@@ -18,6 +18,7 @@ import type {
     Law,
     Membership,
     Notification,
+    Payment,
     Registration,
     User,
     UserSettings,
@@ -500,4 +501,29 @@ export const toFineLeaderboardEntry = (
     image: user.image,
     finesAmount: user.finesAmount,
     finesCount: user.finesCount,
+});
+
+export type PhotonPayment = {
+    eventId: string;
+    userId: string;
+    checkoutUrl: string;
+    amount: number;
+    currency: string;
+};
+
+/**
+ * Betalingssvaret fra Photon.
+ *
+ * Appen leste `payment_link` fra svaret, et felt Lepton hadde og Photon ikke
+ * har: `POST /event/<id>/payment` svarer med `checkoutUrl` — lenka til Vipps.
+ * Feltet var derfor alltid undefined, og skjermen falt tilbake til
+ * arrangementssida på tihlde.org — en nettleser uten innlogging, der brukeren
+ * så ut til å ikke være påmeldt i det hele tatt.
+ */
+export const toPayment = (payment: PhotonPayment): Payment => ({
+    eventId: payment.eventId,
+    userId: payment.userId,
+    checkoutUrl: payment.checkoutUrl,
+    amount: payment.amount,
+    currency: payment.currency,
 });

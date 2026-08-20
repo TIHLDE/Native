@@ -1,5 +1,5 @@
 import { apiJson } from "@/lib/api/client";
-import { Payment } from "../types";
+import { PhotonPayment, toPayment } from "@/actions/photon";
 import * as Linking from "expo-linking";
 
 /**
@@ -16,7 +16,7 @@ export async function createPayment(eventid: string) {
     // `NATIVE_REDIRECT` finnes nettopp for apper: betalingsleverandøren
     // sender brukeren tilbake til `tihlde://arrangement/<id>` i stedet for å
     // etterlate dem i nettleseren.
-    return apiJson<Payment>(
+    const payment = await apiJson<PhotonPayment>(
         `/event/${encodeURIComponent(String(eventid))}/payment`,
         {
             method: "POST",
@@ -25,5 +25,36 @@ export async function createPayment(eventid: string) {
                 userFlow: "NATIVE_REDIRECT",
             }),
         }
+    );
+
+    return toPayment(payment);
+}
+
+export type PaymentConfirmation = {
+    /**
+     * `pending` betyr at checkouten fortsatt er åpen, eller at Photon ikke
+     * fikk svar fra Vipps: spør igjen om litt. `none` betyr at det ikke er
+     * noen utestående betaling å bekrefte.
+     */
+    status: "paid" | "pending" | "failed" | "none";
+};
+
+/**
+ * «Gikk betalinga gjennom?», spurt av medlemmet som nettopp kom tilbake fra
+ * Vipps.
+ *
+ * Vipps sender medlemmet tilbake i det de har godkjent, som regel før
+ * webhooken som registrerer betalingen har nådd Photon. Uten dette landet de
+ * på «betal for å sikre den» rett etter å ha betalt, og eneste vei ut var å
+ * dra ned til webhooken tilfeldigvis hadde kommet.
+ *
+ * Ruta ser bare på kallerens egen betaling.
+ */
+export async function confirmPayment(
+    eventId: string
+): Promise<PaymentConfirmation> {
+    return apiJson<PaymentConfirmation>(
+        `/event/${encodeURIComponent(String(eventId))}/payment/confirm`,
+        { method: "POST", body: JSON.stringify({}) }
     );
 }
