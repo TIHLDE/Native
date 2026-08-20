@@ -1,14 +1,14 @@
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, ActivityIndicator, Pressable } from "react-native";
+import { View, ActivityIndicator, AppState, Linking, Pressable } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { fetchEvent, fetchEventCounts } from "@/actions/events/events";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import { VippsButton } from "@/components/ui/vipps-button";
@@ -982,36 +982,70 @@ function StatusBanner({
 function PaymentButton({ eventId }: { eventId: string }) {
     const queryClient = useQueryClient();
 
-    const payment = useQuery({
-        queryFn: () => createPayment(eventId),
-        queryKey: ["event", eventId, "payment"],
+    // Sant fra vi sender medlemmet til Vipps til appen er i forgrunnen igjen.
+    const awaitingVipps = useRef(false);
+
+    // Betalingen fulgte tidligere skjermen: en useQuery som la inn en Vipps-
+    // checkout bare av at arrangementet ble åpnet. Vipps-deeplinken varer i
+    // fem minutter, så en lenke laget ved åpning var som regel død når
+    // medlemmet trykte. Nå lages den i trykket.
+    const payment = useMutation({
+        mutationFn: async () => createPayment(eventId),
+        onSuccess: async ({ checkoutUrl }) => {
+            if (!checkoutUrl) {
+                Toast.show({
+                    type: "error",
+                    text1: "Kunne ikke starte betalingen",
+                    text2: "Prøv igjen om litt.",
+                });
+                return;
+            }
+
+            // Photon ber Vipps om NATIVE_REDIRECT, og da er checkoutUrl en
+            // `vipps://`-deeplink som bytter til Vipps-appen. Den kan ikke
+            // åpnes i en nettleser: openBrowserAsync tar bare http og https,
+            // og Vipps krever at lenka åpnes slik den er.
+            try {
+                awaitingVipps.current = true;
+                await Linking.openURL(checkoutUrl);
+            } catch {
+                awaitingVipps.current = false;
+                Toast.show({
+                    type: "error",
+                    text1: "Fikk ikke åpnet Vipps",
+                    text2: "Sjekk at Vipps er installert på telefonen.",
+                });
+            }
+        },
+        onError: (error) => {
+            Toast.show({
+                type: "error",
+                text1: "Kunne ikke starte betalingen",
+                text2: registrationErrorMessage(error),
+            });
+        },
     });
+
+    // Med app-bytte er det ingen nettleser som lukker seg, så det er
+    // forgrunnen som forteller at medlemmet er tilbake fra Vipps. Betalingen
+    // bekreftes av Photons webhook, ikke av oss, så her hentes bare status på
+    // nytt.
+    useEffect(() => {
+        const subscription = AppState.addEventListener("change", (state) => {
+            if (state !== "active" || !awaitingVipps.current) return;
+            awaitingVipps.current = false;
+            queryClient.invalidateQueries({ queryKey: ["event"] });
+            queryClient.refetchQueries({ queryKey: ["event"] });
+        });
+
+        return () => subscription.remove();
+    }, [queryClient]);
 
     return (
         <VippsButton
             className="w-full mb-4"
             loading={payment.isPending}
-            onPress={() => {
-                // Uten en checkout-lenke er det ingenting å åpne. Tidligere
-                // falt vi tilbake til arrangementssida på tihlde.org, men den
-                // nettleseren deler ikke innloggingen med appen — brukeren
-                // havnet på en side der de så ut til å ikke være påmeldt.
-                const checkoutUrl = payment.data?.checkoutUrl;
-                if (!checkoutUrl) {
-                    Toast.show({
-                        type: "error",
-                        text1: "Kunne ikke starte betalingen",
-                        text2: "Prøv igjen om litt.",
-                    });
-                    payment.refetch();
-                    return;
-                }
-
-                WebBrowser.openBrowserAsync(checkoutUrl).then(() => {
-                    queryClient.invalidateQueries({ queryKey: ["event"] });
-                    queryClient.refetchQueries({ queryKey: ["event"] });
-                });
-            }}
+            onPress={() => payment.mutate()}
         />
     );
 }
