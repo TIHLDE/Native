@@ -308,7 +308,7 @@ export default function ArrangementSide() {
                                 <DetailRow
                                     icon={<CreditCard size={18} color={mutedColor} />}
                                     label="Pris"
-                                    value={event.data.paid_information.price}
+                                    value={formatPrice(event.data.paid_information.price)}
                                     isLast
                                 />
                             )}
@@ -798,14 +798,14 @@ function RegistrationButton({
                     <Pressable
                         onPress={() => onClick?.()}
                         disabled={isDisabled || mutationPending}
-                        className={`h-14 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-80 ${
+                        className={`min-h-14 px-4 py-3 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-80 ${
                             isDisabled ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary'
                         }`}
                     >
                         {mutationPending ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text className="text-white text-base font-semibold" style={{ fontFamily: "Inter" }}>
+                            <Text className="text-white text-base font-semibold text-center" style={{ fontFamily: "Inter" }}>
                                 {showCountdown && countdownTime && !countdownIsForPayment ? (
                                     <CountTextWrapper
                                         interval={1000}
@@ -864,6 +864,22 @@ function PaymentButton({ eventId }: { eventId: string }) {
             )}
         </Pressable>
     );
+}
+
+/**
+ * Photon oppgir prisen i øre; `toEvent` gjør om til kroner. Her handler det
+ * bare om visningen: hele kroner uten desimaler, ører med komma slik norsk
+ * skrivemåte er — «510 kr», ikke «510.0 kr».
+ */
+function formatPrice(kroner: string): string {
+    const value = Number(kroner);
+    if (!Number.isFinite(value)) return `${kroner} kr`;
+
+    const decimals = Number.isInteger(value) ? 0 : 2;
+    return `${value.toLocaleString("no-NO", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    })} kr`;
 }
 
 function CountTextWrapper({
@@ -938,10 +954,26 @@ function CountTextWrapper({
     const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((remaining / (1000 * 60)) % 60);
     const seconds = Math.floor((remaining / 1000) % 60);
+
+    // Ledd som er null tas bort. «0 timer, 0 minutter og 41 sekunder» brakk
+    // over to linjer i knappen og leste som om noe var galt — «41 sekunder»
+    // sier det samme og får plass.
+    const parts = [
+        hours > 0 && `${hours} ${hours === 1 ? "time" : "timer"}`,
+        minutes > 0 && `${minutes} ${minutes === 1 ? "minutt" : "minutter"}`,
+        seconds > 0 && `${seconds} ${seconds === 1 ? "sekund" : "sekunder"}`,
+    ].filter(Boolean) as string[];
+
+    const spelled =
+        parts.length > 1
+            ? `${parts.slice(0, -1).join(", ")} og ${parts[parts.length - 1]}`
+            : (parts[0] ?? "et øyeblikk");
+
     return (
         <Text>
             {prefix}
-            {hours} timer, {minutes} minutter og {seconds} sekunder {suffix}
+            {spelled}
+            {suffix}
         </Text>
     );
 }

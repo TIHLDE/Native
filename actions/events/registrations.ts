@@ -41,9 +41,15 @@ export async function iAmRegisteredToEvent(eventId: string): Promise<Registratio
 }
 
 export async function registerToEvent(eventId: string): Promise<Registration> {
+    // Photon krever en JSON-body her (`requestBody.required`), og `apiFetch`
+    // setter Content-Type uansett — uten body prøvde serveren å parse tomt og
+    // svarte «Malformed JSON in request body», så påmelding var umulig.
+    //
+    // `allowPhoto` utelates med vilje: da bruker Photon samtykket brukeren har
+    // satt på kontoen sin, som er der det hører hjemme.
     const response = await apiFetch(
         `/event/${encodeURIComponent(String(eventId))}/registration`,
-        { method: "POST" }
+        { method: "POST", body: JSON.stringify({}) }
     );
 
     if (!response.ok) {
