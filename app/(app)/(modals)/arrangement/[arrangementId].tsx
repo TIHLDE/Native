@@ -6,7 +6,7 @@ import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { fetchEvent, fetchEventCounts } from "@/actions/events/events";
-import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
+import { registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
 import { useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
@@ -174,11 +174,6 @@ export default function ArrangementSide() {
         queryFn: async (): Promise<Event> => {
             return fetchEvent(String(id));
         },
-    });
-
-    const { data: registration, isPending: registrationPending } = useQuery({
-        queryKey: ["event", id, "registration"],
-        queryFn: async () => iAmRegisteredToEvent(String(id)),
     });
 
     // Tallene ligger ikke på arrangementet i Photon; de telles på
@@ -381,8 +376,6 @@ export default function ArrangementSide() {
 
                                 <RegistrationButton
                                     event={event.data}
-                                    registration={registration}
-                                    registrationPending={registrationPending}
                                     mutationPending={registrationMutation.isPending}
                                     mutationError={registrationMutation.error}
                                     onClick={() => registrationMutation.mutate(String(id))}
@@ -659,16 +652,12 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
  */
 function RegistrationButton({
     event,
-    registration,
-    registrationPending,
     onClick,
     mutationPending,
     mutationError,
     unregisterSheetRef,
 }: {
     event: Event;
-    registration?: Registration | null;
-    registrationPending?: boolean;
     onClick?: () => void;
     mutationPending?: boolean;
     mutationError?: unknown;
@@ -683,9 +672,11 @@ function RegistrationButton({
     const [now, setNow] = useState<Date>(() => new Date());
     useInterval(() => setNow(new Date()), 1000);
 
-    // Photon legger egen påmelding på arrangementet. `registration` er igjen
-    // fra da den måtte letes opp i påmeldingslista, og brukes som reserve.
-    const mine = event.my_registration ?? registration ?? null;
+    // Photon legger egen påmelding på arrangementet: `GET /event/:id` svarer
+    // med medlemmets egen rad uansett status, med betaling og frist. Lista over
+    // påmeldte kan ikke brukes til dette — den skjuler status, e-post og
+    // betaling for alle uten arrangementstilgang.
+    const mine = event.my_registration ?? null;
     const state = deriveRegistrationState(event, mine, now);
 
     // Bare tilstandene der medlemmet ellers kunne meldt seg på — å be noen
@@ -693,12 +684,6 @@ function RegistrationButton({
     const blockedByEventRules =
         eventRules.mustAccept &&
         (state === "open" || state === "not-open" || state === "full");
-
-    if (registrationPending) {
-        return (
-            <View className="h-14 bg-muted dark:bg-secondary/40 rounded-2xl animate-pulse mb-2" />
-        );
-    }
 
     const errorText = mutationError
         ? registrationErrorMessage(mutationError)
