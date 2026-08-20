@@ -11,6 +11,7 @@ import { Event, Registration } from "@/actions/types";
 import { useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
+import { VippsButton } from "@/components/ui/vipps-button";
 import * as WebBrowser from "expo-web-browser";
 import { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
@@ -974,7 +975,9 @@ function PaymentButton({ eventId }: { eventId: string }) {
     });
 
     return (
-        <Pressable
+        <VippsButton
+            className="w-full mb-4"
+            loading={payment.isPending}
             onPress={() => {
                 // Uten en checkout-lenke er det ingenting å åpne. Tidligere
                 // falt vi tilbake til arrangementssida på tihlde.org, men den
@@ -996,22 +999,7 @@ function PaymentButton({ eventId }: { eventId: string }) {
                     queryClient.refetchQueries({ queryKey: ["event"] });
                 });
             }}
-            disabled={payment.isPending}
-            className={`h-14 rounded-2xl flex-row items-center justify-center mb-4 active:opacity-80 ${
-                payment.isPending ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary'
-            }`}
-        >
-            {payment.isPending ? (
-                <ActivityIndicator color="white" />
-            ) : (
-                <>
-                    <CreditCard size={16} color="white" />
-                    <Text className="text-white text-base font-semibold ml-2" style={{ fontFamily: "Inter" }}>
-                        Betal her
-                    </Text>
-                </>
-            )}
-        </Pressable>
+        />
     );
 }
 
