@@ -776,7 +776,7 @@ function RegistrationButton({
                 <StatusBanner
                     tone="warning"
                     palette={palette}
-                    message="Plass reservert — venter på betaling"
+                    message="Plassen din er reservert, betal for å sikre den"
                     secondary={paymentDeadlineText(mine, paymentCountdown)}
                 />
             )}

@@ -206,7 +206,7 @@ export function registrationErrorMessage(error: unknown): string {
         return "Dette arrangementet krever ingen betaling.";
     }
     if (message.includes("Failed to initiate Vipps payment")) {
-        return "Vipps svarte ikke. Prøv igjen om litt — plassen din står så lenge fristen ikke har gått ut.";
+        return "Vipps svarte ikke. Prøv igjen om litt, plassen din står så lenge fristen ikke har gått ut.";
     }
 
     return message;
