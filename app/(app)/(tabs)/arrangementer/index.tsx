@@ -4,7 +4,7 @@ import { Text } from "@/components/ui/text";
 import { router, Stack } from "expo-router";
 import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES } from "@/components/ui/pagewrapper";
 import { fetchEvents as fetchEventList, fetchFavoriteEvents } from "@/actions/events/events";
 import type { Event } from "@/actions/types";
 import useRefresh from "@/lib/useRefresh";
@@ -141,7 +141,7 @@ export default function Arrangementer() {
                     ),
                 }}
             />
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <FlatList
                     data={allEvents}
                     showsVerticalScrollIndicator={false}

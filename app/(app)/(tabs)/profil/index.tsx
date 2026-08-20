@@ -4,7 +4,7 @@ import me, { myEvents } from "@/actions/users/me";
 import EventCard, {
     EventCardSkeleton,
 } from "@/components/arrangement/eventCard";
-import PageWrapper from "@/components/ui/pagewrapper";
+import PageWrapper, { TAB_SCREEN_EDGES } from "@/components/ui/pagewrapper";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
@@ -54,7 +54,7 @@ export default function Profil() {
 
     if (user.isPending) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <ScrollView
                     refreshControl={refreshControl}
                     contentContainerStyle={{ flexGrow: 1 }}
@@ -71,7 +71,7 @@ export default function Profil() {
 
     if (user.isError) {
         return (
-            <PageWrapper className="flex-1 bg-background">
+            <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
                 <ScrollView
                     refreshControl={refreshControl}
                     contentContainerStyle={{ flexGrow: 1 }}
@@ -119,7 +119,7 @@ export default function Profil() {
     const events = tab === 0 ? registered : favorites;
 
     return (
-        <PageWrapper className="flex-1 bg-background">
+        <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <ScrollView
                 refreshControl={refreshControl}
                 showsVerticalScrollIndicator={false}
