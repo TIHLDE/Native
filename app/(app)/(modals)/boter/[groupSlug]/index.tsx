@@ -46,7 +46,7 @@ export default function LawSelection() {
                     <Pressable
                         onPress={() =>
                             router.push({
-                                pathname: "/(modals)/boter/[groupSlug]/brukere",
+                                pathname: "/(app)/(modals)/boter/[groupSlug]/brukere",
                                 params: {
                                     groupSlug,
                                     lawId: law.id,

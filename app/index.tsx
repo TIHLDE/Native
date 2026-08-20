@@ -12,7 +12,7 @@ export default function Arrangementer() {
     const [showLoading, setShowLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        let timer: ReturnType<typeof setTimeout> | undefined;
 
         if (!authState?.isLoading) {
             // Set a timer to hide the loading screen after 2 seconds

@@ -75,7 +75,7 @@ export default function UserSelection() {
 
     const handleNext = () => {
         router.push({
-            pathname: "/(modals)/boter/[groupSlug]/bekreft",
+            pathname: "/(app)/(modals)/boter/[groupSlug]/bekreft",
             params: {
                 groupSlug,
                 lawId,
