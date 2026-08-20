@@ -18,6 +18,7 @@ import type {
     Law,
     Membership,
     Notification,
+    Payment,
     Registration,
     User,
     UserSettings,
@@ -501,3 +502,35 @@ export const toFineLeaderboardEntry = (
     finesAmount: user.finesAmount,
     finesCount: user.finesCount,
 });
+
+export type PhotonPayment = {
+    orderId?: string | null;
+    id?: string | null;
+    status?: string | null;
+    // Photon har navngitt lenka ulikt gjennom migrasjonen; alle formene under
+    // peker på det samme: der Vipps skal ta over.
+    paymentLink?: string | null;
+    paymentUrl?: string | null;
+    redirectUrl?: string | null;
+    url?: string | null;
+};
+
+/**
+ * Betalingslenka fra Photon.
+ *
+ * Appen leste `payment_link` rett fra svaret, men Photon svarer i camelCase.
+ * Feltet var derfor alltid undefined, og skjermen falt tilbake til
+ * arrangementssida på tihlde.org — en nettleser uten innlogging, der brukeren
+ * så ut til å ikke være påmeldt i det hele tatt.
+ */
+export const toPayment = (payment: PhotonPayment): Payment =>
+    ({
+        order_id: payment.orderId ?? payment.id ?? "",
+        status: payment.status ?? "",
+        payment_link:
+            payment.paymentLink ??
+            payment.paymentUrl ??
+            payment.redirectUrl ??
+            payment.url ??
+            "",
+    }) as unknown as Payment;

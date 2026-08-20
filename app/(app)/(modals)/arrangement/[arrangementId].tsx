@@ -976,7 +976,21 @@ function PaymentButton({ eventId }: { eventId: string }) {
     return (
         <Pressable
             onPress={() => {
-                const paymentLink = payment.data?.payment_link || "https://tihlde.org/arrangementer/" + eventId;
+                // Uten en betalingslenke er det ingenting å åpne. Tidligere
+                // falt vi tilbake til arrangementssida på tihlde.org, men den
+                // nettleseren deler ikke innloggingen med appen — brukeren
+                // havnet på en side der de så ut til å ikke være påmeldt.
+                const paymentLink = payment.data?.payment_link;
+                if (!paymentLink) {
+                    Toast.show({
+                        type: "error",
+                        text1: "Kunne ikke starte betalingen",
+                        text2: "Prøv igjen om litt.",
+                    });
+                    payment.refetch();
+                    return;
+                }
+
                 WebBrowser.openBrowserAsync(paymentLink).then(() => {
                     queryClient.invalidateQueries({ queryKey: ["event"] });
                     queryClient.refetchQueries({ queryKey: ["event"] });

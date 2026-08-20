@@ -1,5 +1,5 @@
 import { apiJson } from "@/lib/api/client";
-import { Payment } from "../types";
+import { PhotonPayment, toPayment } from "@/actions/photon";
 import * as Linking from "expo-linking";
 
 /**
@@ -16,7 +16,7 @@ export async function createPayment(eventid: string) {
     // `NATIVE_REDIRECT` finnes nettopp for apper: betalingsleverandøren
     // sender brukeren tilbake til `tihlde://arrangement/<id>` i stedet for å
     // etterlate dem i nettleseren.
-    return apiJson<Payment>(
+    const payment = await apiJson<PhotonPayment>(
         `/event/${encodeURIComponent(String(eventid))}/payment`,
         {
             method: "POST",
@@ -26,4 +26,6 @@ export async function createPayment(eventid: string) {
             }),
         }
     );
+
+    return toPayment(payment);
 }
