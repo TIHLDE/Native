@@ -74,7 +74,7 @@ export default async function me(): Promise<User> {
  * `events:update@group:sosialen`; her holder det å vite at brukeren har den et
  * sted, siden API-et sjekker scopet på nytt når handlingen faktisk utføres.
  *
- * Appen leser bare `event.write` og `fine.write`, så oversettelsen dekker det
+ * Appen leser `event.write`, `event.register` og `fine.write`, så oversettelsen dekker det
  * den faktisk bruker framfor å gjenskape en tabell ingen spør etter. Lesing er
  * åpen for innloggede i Photon, så `read` er sann når sesjonen finnes.
  */
@@ -98,6 +98,10 @@ export async function myPermissions(): Promise<Permissions> {
                 "events:registrations:manage",
                 "events:registrations:checkin",
             ),
+            // Alumni har lesetilgang uten påmeldingsrett. Brukes til å la være
+            // å mase om arrangementsreglene på folk som uansett ikke kan melde
+            // seg på — samme avgrensning som nettsiden gjør.
+            register: has("events:registrations:create"),
         },
         fine: {
             read: true,
