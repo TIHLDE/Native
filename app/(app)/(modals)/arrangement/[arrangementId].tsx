@@ -10,7 +10,11 @@ import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/ac
 import { Event, Registration } from "@/actions/types";
 import { useEffect, useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
-import { createPayment } from "@/actions/events/payments";
+import {
+    confirmPayment,
+    createPayment,
+    PaymentConfirmation,
+} from "@/actions/events/payments";
 import { VippsButton } from "@/components/ui/vipps-button";
 import * as WebBrowser from "expo-web-browser";
 import { usePermissions } from "@/actions/users/me";
@@ -979,11 +983,18 @@ function StatusBanner({
 }
 
 
+// Vipps svarer sjelden med en gang. Seks forsøk med to sekunder mellom gir
+// betalingen et drøyt titalls sekunder på å bli bekreftet før vi gir oss og
+// lar arrangementet selv være fasit.
+const PAYMENT_CONFIRM_ATTEMPTS = 6;
+const PAYMENT_CONFIRM_RETRY_MS = 2_000;
+
 function PaymentButton({ eventId }: { eventId: string }) {
     const queryClient = useQueryClient();
 
     // Sant fra vi sender medlemmet til Vipps til appen er i forgrunnen igjen.
     const awaitingVipps = useRef(false);
+    const [isConfirming, setIsConfirming] = useState(false);
 
     // Betalingen fulgte tidligere skjermen: en useQuery som la inn en Vipps-
     // checkout bare av at arrangementet ble åpnet. Vipps-deeplinken varer i
@@ -1027,24 +1038,65 @@ function PaymentButton({ eventId }: { eventId: string }) {
     });
 
     // Med app-bytte er det ingen nettleser som lukker seg, så det er
-    // forgrunnen som forteller at medlemmet er tilbake fra Vipps. Betalingen
-    // bekreftes av Photons webhook, ikke av oss, så her hentes bare status på
-    // nytt.
+    // forgrunnen som forteller at medlemmet er tilbake fra Vipps.
     useEffect(() => {
         const subscription = AppState.addEventListener("change", (state) => {
             if (state !== "active" || !awaitingVipps.current) return;
             awaitingVipps.current = false;
-            queryClient.invalidateQueries({ queryKey: ["event"] });
-            queryClient.refetchQueries({ queryKey: ["event"] });
+            setIsConfirming(true);
         });
 
         return () => subscription.remove();
-    }, [queryClient]);
+    }, []);
+
+    // Vipps slipper medlemmet tilbake i det de har godkjent, som regel før
+    // webhooken har nådd Photon. Da spør vi Photon om å høre med Vipps i
+    // stedet for å la medlemmet stå igjen med «betal for å sikre den» rett
+    // etter å ha betalt.
+    useEffect(() => {
+        if (!isConfirming) return;
+
+        let cancelled = false;
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+
+        const ask = async (attempt: number) => {
+            let status: PaymentConfirmation["status"] | null = null;
+            try {
+                status = (await confirmPayment(eventId)).status;
+            } catch {
+                // Nettverket eller API-et svikta. Det er ikke et svar om
+                // betalingen, så vi behandler det som «vet ikke ennå».
+                status = null;
+            }
+            if (cancelled) return;
+
+            // «pending» er det eneste som er verdt å vente på: betalingen er
+            // underveis hos Vipps. Alt annet er et svar.
+            const keepWaiting = status === null || status === "pending";
+            if (keepWaiting && attempt + 1 < PAYMENT_CONFIRM_ATTEMPTS) {
+                timeout = setTimeout(
+                    () => void ask(attempt + 1),
+                    PAYMENT_CONFIRM_RETRY_MS
+                );
+                return;
+            }
+
+            await queryClient.invalidateQueries({ queryKey: ["event"] });
+            if (!cancelled) setIsConfirming(false);
+        };
+
+        void ask(0);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timeout);
+        };
+    }, [isConfirming, eventId, queryClient]);
 
     return (
         <VippsButton
             className="w-full mb-4"
-            loading={payment.isPending}
+            loading={payment.isPending || isConfirming}
             onPress={() => payment.mutate()}
         />
     );
