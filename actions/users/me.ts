@@ -138,7 +138,7 @@ const asEvent = (registration: MyRegistration): Event =>
         title: registration.title,
         start_date: registration.startTime,
         end_date: registration.startTime,
-        paid_information: { price: "" },
+        paid_information: undefined,
         limit: 0,
         list_count: "0",
         waiting_list_count: "0",

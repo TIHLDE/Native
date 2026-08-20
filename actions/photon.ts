@@ -203,7 +203,16 @@ export const toEvent = (
         contact_person: event.contactPerson
             ? splitName(event.contactPerson.name)
             : undefined,
-        paid_information: { price: String(event.payInfo?.price ?? "") },
+        // Photon oppgir prisen i øre («Event price in minor units»), mens
+        // skjermen viser hele kroner. Uten delingen ble 150 kr til «15000».
+        //
+        // Feltet må være undefined for gratis arrangementer: skjermen bruker
+        // `event.paid_information` som «koster dette noe?», og et objekt som
+        // alltid er satt er alltid truthy — da fikk påmeldte på gratis
+        // arrangementer betalingsvarsel.
+        paid_information: event.payInfo?.price
+            ? { price: String(Math.round(event.payInfo.price) / 100) }
+            : undefined,
         limit: event.capacity ?? 0,
         list_count: String(counts?.listCount ?? 0),
         waiting_list_count: String(counts?.waitingListCount ?? 0),

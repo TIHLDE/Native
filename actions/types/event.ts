@@ -20,7 +20,9 @@ export type Event = {
         first_name: string;
         last_name: string;
     };
-    paid_information: {
+    /** Bare satt for arrangementer som faktisk koster noe. */
+    paid_information?: {
+        /** Hele kroner. Photon oppgir øre — omregningen skjer i `toEvent`. */
         price: string;
     };
     limit: number;
