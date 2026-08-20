@@ -1,3 +1,4 @@
+import type { Registration } from "./registration";
 
 export type Event = {
     // Photon bruker UUID der Lepton hadde løpenummer.
@@ -26,6 +27,13 @@ export type Event = {
         price: string;
     };
     limit: number;
+    /** Arrangøren har stengt påmeldingen manuelt. */
+    closed?: boolean;
+    /** Om fulle arrangementer har venteliste. Uten den er fullt endestasjon. */
+    allow_waitlist?: boolean;
+    is_paid_event?: boolean;
+    /** Innloggedes egen påmelding. Bare satt når kallet hadde token. */
+    my_registration?: Registration;
     list_count: string;
     waiting_list_count: string;
     sign_off_deadline: string;

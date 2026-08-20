@@ -1,5 +1,6 @@
-import { apiJson } from "@/lib/api/client";
+import { apiFetch, apiJson } from "@/lib/api/client";
 import { API_URL } from "@/actions/constant";
+import { getToken } from "@/lib/storage/tokenStore";
 import { Event, JobPost } from "../types";
 import { PhotonEvent, toEvent, toJobTypeKey } from "@/actions/photon";
 
@@ -81,8 +82,21 @@ export async function fetchFavoriteEvents(options: {
     return { results, next: null };
 }
 
+/**
+ * Ett arrangement.
+ *
+ * Åpent endepunkt, så det virker uten token — men Photon legger innloggedes
+ * egen påmelding på arrangementet, og bare når kallet er autentisert. Uten
+ * token er `registration` alltid borte, og skjermen vet ikke om du står på
+ * lista. Derfor: token når vi har en, vanlig fetch ellers.
+ */
 export async function fetchEvent(eventId: string): Promise<Event> {
-    const response = await fetch(`${API_URL}/event/${encodeURIComponent(eventId)}`);
+    const path = `/event/${encodeURIComponent(eventId)}`;
+    const token = await getToken();
+
+    const response = token
+        ? await apiFetch(path)
+        : await fetch(`${API_URL}${path}`);
 
     if (!response.ok) {
         throw new Error(`Kunne ikke hente arrangementet (${response.status})`);

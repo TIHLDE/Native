@@ -9,5 +9,13 @@ export type Registration = {
     payment_orders: string[];
     wait_queue_number: number;
     registration_id: number;
+    /** Photons egen status. Avgjør hvilken tilstand påmeldingskortet viser. */
+    status?:
+        | "registered"
+        | "waitlisted"
+        | "cancelled"
+        | "attended"
+        | "no_show"
+        | "pending";
     user_info: User;
 }

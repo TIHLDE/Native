@@ -8,11 +8,11 @@ import PageWrapper from "@/components/ui/pagewrapper";
 import { fetchEvent, fetchEventCounts } from "@/actions/events/events";
 import { iAmRegisteredToEvent, registerToEvent, unregisterFromEvent } from "@/actions/events/registrations";
 import { Event, Registration } from "@/actions/types";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import useInterval from "@/lib/useInterval";
 import { createPayment } from "@/actions/events/payments";
 import * as WebBrowser from "expo-web-browser";
-import me, { usePermissions } from "@/actions/users/me";
+import { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
 import Icon from "@/lib/icons/Icon";
 import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
@@ -24,9 +24,16 @@ import CoverImage, { COVER_IMAGE_FRAME } from "@/components/ui/coverImage";
 import useRefresh from "@/lib/useRefresh";
 import { SectionHeader } from "@/components/ui/section-header";
 import EventRulesConsent from "@/components/events/EventRulesConsent";
+import {
+    TICKET_RESALE_GROUP_URL,
+    deriveRegistrationState,
+    formatCountdown,
+    formatTimeUntil,
+    registrationErrorMessage,
+} from "@/lib/events/registrationState";
 import { useEventRulesConsent } from "@/lib/useEventRulesConsent";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { isBefore, isAfter } from "date-fns";
+import { isBefore } from "date-fns";
 import {
     CalendarDays,
     Clock,
@@ -42,7 +49,26 @@ import {
     TriangleAlert,
     Info,
     OctagonX,
+    Ticket,
 } from "lucide-react-native";
+
+/**
+ * Datoformatene skjermen bruker. Lå tidligere inne i sidekomponenten, men
+ * påmeldingskortet trenger dem også — det viser når påmeldingen åpner og når
+ * betalingsfristen går ut.
+ */
+const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("no-NO", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+
+const formatTime = (dateStr: string) =>
+    new Date(dateStr).toLocaleTimeString("no-NO", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
 
 function DetailRow({
     icon,
@@ -236,18 +262,6 @@ export default function ArrangementSide() {
 
     const hasSignOffDeadline = isValidDate(event.data.sign_off_deadline);
 
-    const formatDate = (dateStr: string) =>
-        new Date(dateStr).toLocaleDateString("no-NO", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        });
-
-    const formatTime = (dateStr: string) =>
-        new Date(dateStr).toLocaleTimeString("no-NO", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -370,6 +384,7 @@ export default function ArrangementSide() {
                                     registration={registration}
                                     registrationPending={registrationPending}
                                     mutationPending={registrationMutation.isPending}
+                                    mutationError={registrationMutation.error}
                                     onClick={() => registrationMutation.mutate(String(id))}
                                     unregisterSheetRef={unregisterSheetRef}
                                 />
@@ -634,12 +649,21 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
     );
 }
 
+/**
+ * Påmeldingskortet.
+ *
+ * Bygger på tilstandsmaskinen i `lib/events/registrationState`, som er portert
+ * fra nettsida. Tidligere sto det en håndfull løse booleans her, og de dekket
+ * verken venteliste, betaling eller en påmelding som fortsatt behandles — så
+ * appen sa noe annet enn nettsida om det samme arrangementet.
+ */
 function RegistrationButton({
     event,
     registration,
     registrationPending,
     onClick,
     mutationPending,
+    mutationError,
     unregisterSheetRef,
 }: {
     event: Event;
@@ -647,154 +671,137 @@ function RegistrationButton({
     registrationPending?: boolean;
     onClick?: () => void;
     mutationPending?: boolean;
+    mutationError?: unknown;
     unregisterSheetRef: React.RefObject<BottomSheetModal | null>;
 }) {
     const { isDarkColorScheme } = useColorScheme();
-    const user = useQuery({
-        queryKey: ["users", "me"],
-        queryFn: me,
-    });
-
-    const hasUnansweredEvaluations = user.data?.unanswered_evaluations_count !== 0;
-    const [isDisabled, setIsDisabled] = useState<boolean>();
-    const isDestructive = registration;
-
-    const getButtonText = (event: Event) => {
-        if (isBefore(new Date(event.end_registration_at), new Date()) && !registration) {
-            return "Påmeldingsfrist utløpt";
-        }
-        if (registration) {
-            return "Meld deg av arrangementet";
-        }
-        const waitingList = Number(event.waiting_list_count);
-        if (waitingList > 0) {
-            return `Meld deg på plass ${waitingList + 1} i ventelisten`;
-        }
-        return "Meld deg på arrangementet";
-    };
-
-    const [buttonText, setButtonText] = useState<string>("");
-
+    const palette = themeColors(isDarkColorScheme);
     const eventRules = useEventRulesConsent();
 
-    const showAlert = registration || hasUnansweredEvaluations;
-    const alertType =
-        (registration?.is_on_wait && "info") ||
-        (event.paid_information && !registration?.has_paid_order && registration && "warning") ||
-        (hasUnansweredEvaluations && "error") ||
-        "success";
+    // Nedtellingene løper mens skjermen står åpen, så tilstanden må regnes fra
+    // en klokke som tikker — ikke fra tidspunktet komponenten ble tegnet.
+    const [now, setNow] = useState<Date>(() => new Date());
+    useInterval(() => setNow(new Date()), 1000);
 
-    const getAlertMessage = () => {
-        if (registration?.is_on_wait) {
-            return `Du er på plass ${registration.wait_queue_number} av ${event.waiting_list_count} på ventelisten. Vi gir deg beskjed om du får plass.`;
-        }
-        if (hasUnansweredEvaluations && user.data?.unanswered_evaluations_count) {
-            return `Du må svare på ${user.data?.unanswered_evaluations_count > 1 ? user.data?.unanswered_evaluations_count : "ett"
-                } evalueringsskjema${user.data?.unanswered_evaluations_count > 1 ? "er" : ""} før du kan melde deg på flere arrangementer. Du finner dine ubesvarte evalueringsskjemaer under "Spørreskjemaer" på profilsiden.`;
-        }
-        if (isBefore(new Date(event.start_date), new Date())) {
-            return "Du har deltatt på arrangementet!";
-        }
-        return "Du er påmeldt arrangementet.";
-    };
+    // Photon legger egen påmelding på arrangementet. `registration` er igjen
+    // fra da den måtte letes opp i påmeldingslista, og brukes som reserve.
+    const mine = event.my_registration ?? registration ?? null;
+    const state = deriveRegistrationState(event, mine, now);
 
-    const alertMessage = getAlertMessage();
+    // Bare tilstandene der medlemmet ellers kunne meldt seg på — å be noen
+    // godkjenne regler på et stengt arrangement hjelper ingen.
+    const blockedByEventRules =
+        eventRules.mustAccept &&
+        (state === "open" || state === "not-open" || state === "full");
 
-    const countdownIsForPayment = event.paid_information && !registration?.has_paid_order && registration;
-    const countdownTime =
-        (isAfter(new Date(event.start_registration_at), new Date()) && new Date(event.start_registration_at)) ||
-        (event.paid_information &&
-            registration?.payment_expiredate &&
-            isAfter(new Date(registration.payment_expiredate), new Date()) &&
-            new Date(registration.payment_expiredate));
-
-    const [showCountdown, setShowCountdown] = useState<boolean>();
-
-    useEffect(() => {
-        setIsDisabled(
-            (isBefore(new Date(event.end_registration_at), new Date()) && !registration) ||
-            isAfter(new Date(event.start_registration_at), new Date()) ||
-            registration?.has_paid_order ||
-            mutationPending ||
-            user.data?.unanswered_evaluations_count === undefined ||
-            user.data.unanswered_evaluations_count > 0 ||
-            !event.sign_up ||
-            false
-        );
-        if (countdownTime) {
-            setShowCountdown(true);
-        }
-        setButtonText(getButtonText(event));
-    }, [event, registration, user]);
-
-    if (user.isPending || registrationPending) {
+    if (registrationPending) {
         return (
             <View className="h-14 bg-muted dark:bg-secondary/40 rounded-2xl animate-pulse mb-2" />
         );
     }
 
-    const palette = themeColors(isDarkColorScheme);
+    const errorText = mutationError
+        ? registrationErrorMessage(mutationError)
+        : null;
 
-    const statusBannerStyles: Record<string, { bg: string; iconColor: string; textColor: string }> = {
-        success: { bg: 'bg-primary/10 dark:bg-primary/20', iconColor: palette.primary, textColor: 'text-primary' },
-        info: { bg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: '#ea580c', textColor: 'text-orange-600 dark:text-orange-400' },
-        warning: { bg: 'bg-orange-100 dark:bg-orange-500/20', iconColor: '#ea580c', textColor: 'text-orange-600 dark:text-orange-400' },
-        error: { bg: 'bg-destructive/10 dark:bg-destructive/20', iconColor: palette.destructive, textColor: 'text-destructive' },
-    };
-
-    const statusIcon: Record<string, React.ReactNode> = {
-        success: <CircleCheck size={18} color={statusBannerStyles.success.iconColor} />,
-        info: <Info size={18} color={statusBannerStyles.info.iconColor} />,
-        warning: <TriangleAlert size={18} color={statusBannerStyles.warning.iconColor} />,
-        error: <OctagonX size={18} color={statusBannerStyles.error.iconColor} />,
-    };
-
-    const bannerStyle = statusBannerStyles[alertType] ?? statusBannerStyles.success;
-
-    // Samme avgrensning som nettsiden: bare tilstandene der medlemmet ellers
-    // kunne ha meldt seg på. Er man allerede påmeldt, eller har arrangementet
-    // ingen påmelding, er samtykket irrelevant her.
-    const blockedByEventRules =
-        eventRules.mustAccept && event.sign_up === true && !registration;
+    const paymentCountdown = mine?.payment_expiredate
+        ? formatCountdown(mine.payment_expiredate, now)
+        : undefined;
 
     return (
         <>
-            {showAlert && (
-                <View className={`flex-row items-center px-4 py-3.5 rounded-2xl mb-4 ${bannerStyle.bg}`}>
-                    {statusIcon[alertType]}
-                    <View className="ml-3 flex-1">
-                        <Text className={`text-sm ${bannerStyle.textColor}`}>
-                            {showCountdown && countdownTime && countdownIsForPayment ? (
-                                <CountTextWrapper
-                                    interval={1000}
-                                    prefix="Du er påmeldt, men har "
-                                    suffix=" på å betale for å beholde plassen."
-                                    startCount={new Date(countdownTime.getTime() - Date.now())}
-                                />
-                            ) : (
-                                alertMessage
-                            )}
-                        </Text>
-                    </View>
-                </View>
+            {state === "no-signup" && (
+                <StatusBanner
+                    tone="info"
+                    palette={palette}
+                    message="Dette arrangementet har ikke påmelding"
+                    secondary="Bare møt opp."
+                />
             )}
 
-            {showCountdown && countdownTime && countdownIsForPayment && <PaymentButton eventId={event.id} />}
+            {state === "processing" && (
+                <StatusBanner
+                    tone="info"
+                    palette={palette}
+                    message="Behandler påmeldingen din …"
+                    secondary="Vi gir deg beskjed så snart plassen er klar."
+                />
+            )}
+
+            {state === "not-open" && (
+                <StatusBanner
+                    tone="info"
+                    palette={palette}
+                    message={`Påmelding åpner om ${formatTimeUntil(event.start_registration_at, now)}`}
+                    secondary={`${formatDate(event.start_registration_at)} kl. ${formatTime(event.start_registration_at)}.`}
+                />
+            )}
+
+            {state === "closed" && (
+                <StatusBanner
+                    tone="error"
+                    palette={palette}
+                    message="Påmelding er stengt"
+                />
+            )}
+
+            {state === "joined" && (
+                <StatusBanner
+                    tone="success"
+                    palette={palette}
+                    message="Du har plass på arrangementet!"
+                    secondary={
+                        mine?.has_paid_order
+                            ? "Du har betalt, så plassen kan ikke meldes av."
+                            : undefined
+                    }
+                />
+            )}
+
+            {state === "on-waitlist" && (
+                <StatusBanner
+                    tone="warning"
+                    palette={palette}
+                    message="Du er på venteliste"
+                    secondary={
+                        mine?.wait_queue_number
+                            ? `Posisjon ${mine.wait_queue_number}. Du får plassen om noen melder seg av.`
+                            : "Du får plassen om noen melder seg av."
+                    }
+                />
+            )}
+
+            {state === "awaiting-payment" && (
+                <StatusBanner
+                    tone="warning"
+                    palette={palette}
+                    message="Plass reservert — venter på betaling"
+                    secondary={paymentDeadlineText(mine, paymentCountdown)}
+                />
+            )}
+
+            {state === "full" && (
+                <StatusBanner
+                    tone="warning"
+                    palette={palette}
+                    message="Arrangementet er fullt"
+                    secondary={
+                        Number(event.waiting_list_count) > 0
+                            ? `${event.waiting_list_count} står på venteliste.`
+                            : "Meld deg på ventelista, så får du plassen om noen melder seg av."
+                    }
+                />
+            )}
 
             {/*
               * Reglene må godkjennes før Photon slipper noen på, så samtykket
               * står der påmeldingsknappen ellers ville stått — også før
-              * påmeldingen åpner, slik at det oppdages i god tid og ikke i
-              * sekundet plassene slippes.
-              *
-              * Bare for den som ellers kunne meldt seg på: å be noen godkjenne
-              * regler på et arrangement de allerede står på, eller som ikke har
-              * påmelding i det hele tatt, hjelper ingen.
+              * påmeldingen åpner, slik at det oppdages i god tid.
               */}
             {blockedByEventRules && (
                 <EventRulesConsent
                     message={
-                        isAfter(new Date(event.start_registration_at), new Date())
+                        state === "not-open"
                             ? "Gjør det nå, så er du klar når påmeldingen åpner."
                             : "Huk av, så kan du melde deg på med én gang."
                     }
@@ -804,64 +811,159 @@ function RegistrationButton({
                 />
             )}
 
-            {isAfter(new Date(event.end_date), new Date()) && !blockedByEventRules && (
-                isDestructive ? (
-                    /* Unregister button — matches profile logout style */
+            {/* Betaling: knappen hører til den reserverte plassen. */}
+            {state === "awaiting-payment" && <PaymentButton eventId={event.id} />}
+
+            {/* Påmelding, og venteliste — som går gjennom samme kall. */}
+            {(state === "open" || state === "full") && !blockedByEventRules && (
+                <Pressable
+                    onPress={() => onClick?.()}
+                    disabled={mutationPending}
+                    className={`min-h-14 px-4 py-3 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-80 ${
+                        mutationPending ? "bg-primary/40 dark:bg-primary/30" : "bg-primary"
+                    }`}
+                >
+                    {mutationPending ? (
+                        <ActivityIndicator color="white" />
+                    ) : (
+                        <Text
+                            className="text-white text-base font-semibold text-center"
+                            style={{ fontFamily: "Inter" }}
+                        >
+                            {state === "full"
+                                ? "Meld deg på ventelista"
+                                : "Meld deg på arrangementet"}
+                        </Text>
+                    )}
+                </Pressable>
+            )}
+
+            {/* Billetten kan ikke gis fra seg — den selges videre. */}
+            {state === "joined" && mine?.has_paid_order && (
+                <Pressable
+                    onPress={() => WebBrowser.openBrowserAsync(TICKET_RESALE_GROUP_URL)}
+                    className="h-14 rounded-2xl flex-row items-center justify-center mb-2 border border-border active:opacity-70"
+                >
+                    <Ticket size={18} color={palette.foreground} />
+                    <Text
+                        className="text-base font-semibold text-foreground ml-2"
+                        style={{ fontFamily: "Inter" }}
+                    >
+                        Selg billetten din
+                    </Text>
+                </Pressable>
+            )}
+
+            {/*
+              * Avmelding. En betalt plass kan ikke meldes av — Photon avviser
+              * det, og knappen ville bare gitt en avvisning tilbake.
+              */}
+            {(state === "joined" || state === "on-waitlist" || state === "awaiting-payment") &&
+                !mine?.has_paid_order && (
                     <Pressable
                         onPress={() => unregisterSheetRef.current?.present()}
-                        disabled={isDisabled || mutationPending}
-                        className={`h-14 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-70 ${
-                            isDisabled ? 'bg-destructive/5 dark:bg-destructive/10' : 'bg-destructive/10 dark:bg-destructive/20'
-                        }`}
+                        disabled={mutationPending}
+                        className="h-14 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-70 bg-destructive/10 dark:bg-destructive/20"
                     >
                         {mutationPending ? (
                             <ActivityIndicator />
                         ) : (
                             <>
-                                {/* 80 = 50 % opacity, samme dempning som teksten ved siden av. */}
-                                <LogOut size={18} color={isDisabled ? `${palette.destructive}80` : palette.destructive} />
-                                <Text className={`text-base font-semibold ml-2 ${isDisabled ? 'text-destructive/50' : 'text-destructive'}`} style={{ fontFamily: "Inter" }}>
-                                    {buttonText}
+                                <LogOut size={18} color={palette.destructive} />
+                                <Text
+                                    className="text-base font-semibold ml-2 text-destructive"
+                                    style={{ fontFamily: "Inter" }}
+                                >
+                                    {state === "on-waitlist"
+                                        ? "Meld deg av ventelista"
+                                        : "Meld deg av arrangementet"}
                                 </Text>
                             </>
                         )}
                     </Pressable>
-                ) : (
-                    /* Register button */
-                    <Pressable
-                        onPress={() => onClick?.()}
-                        disabled={isDisabled || mutationPending}
-                        className={`min-h-14 px-4 py-3 rounded-2xl flex-row items-center justify-center mb-2 active:opacity-80 ${
-                            isDisabled ? 'bg-primary/40 dark:bg-primary/30' : 'bg-primary'
-                        }`}
-                    >
-                        {mutationPending ? (
-                            <ActivityIndicator color="white" />
-                        ) : (
-                            <Text className="text-white text-base font-semibold text-center" style={{ fontFamily: "Inter" }}>
-                                {showCountdown && countdownTime && !countdownIsForPayment ? (
-                                    <CountTextWrapper
-                                        interval={1000}
-                                        prefix="Påmelding åpner om "
-                                        suffix=""
-                                        startCount={new Date(countdownTime.getTime() - Date.now())}
-                                        onCountdownFinished={() => {
-                                            setShowCountdown(false);
-                                            setIsDisabled(false);
-                                            setButtonText("Meld deg på arrangementet");
-                                        }}
-                                    />
-                                ) : (
-                                    buttonText
-                                )}
-                            </Text>
-                        )}
-                    </Pressable>
-                )
+                )}
+
+            {/*
+              * Uten denne så knappen ut til å ikke gjøre noe når Photon avviste
+              * påmeldingen. Her havner også avvisningene som forteller at
+              * arrangementet ikke er for deg.
+              */}
+            {errorText && (
+                <View className="flex-row items-start px-4 py-3.5 rounded-2xl mb-2 bg-destructive/10 dark:bg-destructive/20">
+                    <OctagonX size={18} color={palette.destructive} />
+                    <Text className="flex-1 text-sm text-destructive ml-3">
+                        {errorText}
+                    </Text>
+                </View>
             )}
         </>
     );
 }
+
+/** Uten frist står plassen til arrangøren rydder opp. Da er det riktigere å si
+ *  ingenting enn å dikte opp en frist. */
+function paymentDeadlineText(
+    registration: Registration | null,
+    countdown: string | null | undefined,
+): string | undefined {
+    if (!registration?.payment_expiredate) return undefined;
+    // Nedtellingen kan ha passert fristen før serveren har rukket å gi plassen
+    // videre. «Betal innen 0 sekunder» er da feil — plassen er ute av
+    // medlemmets hender, og det eneste ærlige er å si det.
+    if (countdown === null) {
+        return "Betalingsfristen er gått ut. Plassen kan ha gått videre til neste på ventelista.";
+    }
+    if (!countdown) return undefined;
+    return `${countdown} igjen å betale (innen kl. ${formatTime(registration.payment_expiredate)}), ellers gis plassen videre.`;
+}
+
+const BANNER_TONES = {
+    success: { bg: "bg-primary/10 dark:bg-primary/20", text: "text-primary" },
+    info: { bg: "bg-muted/60 dark:bg-muted/30", text: "text-foreground" },
+    warning: {
+        bg: "bg-orange-100 dark:bg-orange-500/20",
+        text: "text-orange-600 dark:text-orange-400",
+    },
+    error: {
+        bg: "bg-destructive/10 dark:bg-destructive/20",
+        text: "text-destructive",
+    },
+} as const;
+
+function StatusBanner({
+    tone,
+    palette,
+    message,
+    secondary,
+}: {
+    tone: keyof typeof BANNER_TONES;
+    palette: ReturnType<typeof themeColors>;
+    message: string;
+    secondary?: string;
+}) {
+    const styles = BANNER_TONES[tone];
+    const icon = {
+        success: <CircleCheck size={18} color={palette.primary} />,
+        info: <Info size={18} color={palette.foreground} />,
+        warning: <TriangleAlert size={18} color="#ea580c" />,
+        error: <OctagonX size={18} color={palette.destructive} />,
+    }[tone];
+
+    return (
+        <View className={`flex-row items-start px-4 py-3.5 rounded-2xl mb-4 ${styles.bg}`}>
+            {icon}
+            <View className="ml-3 flex-1">
+                <Text className={`text-sm font-semibold ${styles.text}`}>{message}</Text>
+                {secondary ? (
+                    <Text className={`text-sm mt-1 ${styles.text} opacity-80`}>
+                        {secondary}
+                    </Text>
+                ) : null}
+            </View>
+        </View>
+    );
+}
+
 
 function PaymentButton({ eventId }: { eventId: string }) {
     const queryClient = useQueryClient();
@@ -913,100 +1015,4 @@ function formatPrice(kroner: string): string {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     })} kr`;
-}
-
-function CountTextWrapper({
-    interval,
-    prefix,
-    suffix,
-    startCount,
-    onCountdownFinished,
-}: {
-    interval: number;
-    prefix: string;
-    suffix: string;
-    startCount: Date;
-    onCountdownFinished?: () => void;
-}) {
-    const [remaining, setRemaining] = useState<number>(startCount.getTime());
-
-    useInterval(() => {
-        setRemaining((prev) => prev - interval);
-    }, interval);
-
-    useEffect(() => {
-        if (remaining <= 0) {
-            onCountdownFinished?.();
-        }
-    }, [remaining, onCountdownFinished]);
-
-    if (remaining > 1000 * 60 * 60 * 24 * 2) {
-        const days = Math.ceil(remaining / (1000 * 60 * 60 * 24));
-        return (
-            <Text>
-                {prefix}
-                {days} dager
-                {suffix}
-            </Text>
-        );
-    }
-
-    if (remaining > 1000 * 60 * 60 * 24) {
-        const hours = Math.ceil(remaining / (1000 * 60 * 60));
-        return (
-            <Text>
-                {prefix}
-                {hours} timer
-                {suffix}
-            </Text>
-        );
-    }
-
-    if (remaining > 1000 * 60 * 60) {
-        const minutes = Math.ceil(remaining / (1000 * 60));
-        return (
-            <Text>
-                {prefix}
-                {minutes} minutter
-                {suffix}
-            </Text>
-        );
-    }
-
-    if (remaining > 1000 * 60) {
-        const seconds = Math.ceil(remaining / 1000);
-        return (
-            <Text>
-                {prefix}
-                {seconds} sekunder
-                {suffix}
-            </Text>
-        );
-    }
-
-    const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((remaining / (1000 * 60)) % 60);
-    const seconds = Math.floor((remaining / 1000) % 60);
-
-    // Ledd som er null tas bort. «0 timer, 0 minutter og 41 sekunder» brakk
-    // over to linjer i knappen og leste som om noe var galt — «41 sekunder»
-    // sier det samme og får plass.
-    const parts = [
-        hours > 0 && `${hours} ${hours === 1 ? "time" : "timer"}`,
-        minutes > 0 && `${minutes} ${minutes === 1 ? "minutt" : "minutter"}`,
-        seconds > 0 && `${seconds} ${seconds === 1 ? "sekund" : "sekunder"}`,
-    ].filter(Boolean) as string[];
-
-    const spelled =
-        parts.length > 1
-            ? `${parts.slice(0, -1).join(", ")} og ${parts[parts.length - 1]}`
-            : (parts[0] ?? "et øyeblikk");
-
-    return (
-        <Text>
-            {prefix}
-            {spelled}
-            {suffix}
-        </Text>
-    );
 }

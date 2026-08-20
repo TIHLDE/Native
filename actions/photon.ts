@@ -18,6 +18,7 @@ import type {
     Law,
     Membership,
     Notification,
+    Registration,
     User,
     UserSettings,
 } from "@/actions/types";
@@ -177,7 +178,58 @@ export type PhotonEvent = {
     organizer?: { name: string; slug: string } | null;
     contactPerson?: { name?: string | null } | null;
     payInfo?: { price?: number | null } | null;
+    closed?: boolean;
+    allowWaitlist?: boolean;
+    isPaidEvent?: boolean;
+    registeredCount?: number | null;
+    waitlistCount?: number | null;
+    /**
+     * Innloggedes egen påmelding. Photon legger den på arrangementet, og bare
+     * for den som spør — så den finnes kun når kallet har token.
+     *
+     * Dette er den eneste kilden som gir både status, ventelisteplass og
+     * betalingsfrist. Påmeldingslista gir det bare til arrangementsadmin.
+     */
+    registration?: PhotonOwnRegistration | null;
 };
+
+export type PhotonOwnRegistration = {
+    status:
+        | "registered"
+        | "waitlisted"
+        | "cancelled"
+        | "attended"
+        | "no_show"
+        | "pending";
+    waitlistPosition?: number | null;
+    attendedAt?: string | null;
+    hasPaid?: boolean;
+    paymentExpiresAt?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+};
+
+/**
+ * Innloggedes egen påmelding, hentet fra arrangementet.
+ *
+ * Skjermen ba tidligere om påmeldingslista og lette etter seg selv på e-post.
+ * Photon oppgir bare e-post til arrangementsadmin, så for vanlige medlemmer
+ * fant den aldri noe — appen trodde ingen var påmeldt.
+ */
+export const toOwnRegistration = (
+    registration: PhotonOwnRegistration,
+): Registration =>
+    ({
+        has_attended: registration.attendedAt != null,
+        has_paid_order: registration.hasPaid === true,
+        has_unanswered_evaluation: false,
+        is_on_wait: registration.status === "waitlisted",
+        payment_expiredate: registration.paymentExpiresAt ?? "",
+        payment_orders: [],
+        wait_queue_number: registration.waitlistPosition ?? 0,
+        registration_id: 0,
+        status: registration.status,
+    }) as unknown as Registration;
 
 /**
  * Photon holder ikke påmeldingstall på arrangementet slik Lepton gjorde.
@@ -213,9 +265,20 @@ export const toEvent = (
         paid_information: event.payInfo?.price
             ? { price: String(Math.round(event.payInfo.price) / 100) }
             : undefined,
+        closed: event.closed ?? false,
+        allow_waitlist: event.allowWaitlist ?? false,
+        is_paid_event: event.isPaidEvent ?? Boolean(event.payInfo?.price),
+        my_registration: event.registration
+            ? toOwnRegistration(event.registration)
+            : undefined,
         limit: event.capacity ?? 0,
-        list_count: String(counts?.listCount ?? 0),
-        waiting_list_count: String(counts?.waitingListCount ?? 0),
+        // Photon legger tallene på arrangementet. `counts` er igjen fra da de
+        // måtte hentes fra påmeldingslista, og brukes fortsatt når kalleren har
+        // dem — men arrangementet er kilden når det svarer.
+        list_count: String(event.registeredCount ?? counts?.listCount ?? 0),
+        waiting_list_count: String(
+            event.waitlistCount ?? counts?.waitingListCount ?? 0,
+        ),
         sign_off_deadline: event.cancellationDeadline ?? "",
         end_registration_at: event.registrationEnd ?? "",
         start_registration_at: event.registrationStart ?? "",
