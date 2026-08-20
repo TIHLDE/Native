@@ -504,33 +504,26 @@ export const toFineLeaderboardEntry = (
 });
 
 export type PhotonPayment = {
-    orderId?: string | null;
-    id?: string | null;
-    status?: string | null;
-    // Photon har navngitt lenka ulikt gjennom migrasjonen; alle formene under
-    // peker på det samme: der Vipps skal ta over.
-    paymentLink?: string | null;
-    paymentUrl?: string | null;
-    redirectUrl?: string | null;
-    url?: string | null;
+    eventId: string;
+    userId: string;
+    checkoutUrl: string;
+    amount: number;
+    currency: string;
 };
 
 /**
- * Betalingslenka fra Photon.
+ * Betalingssvaret fra Photon.
  *
- * Appen leste `payment_link` rett fra svaret, men Photon svarer i camelCase.
+ * Appen leste `payment_link` fra svaret, et felt Lepton hadde og Photon ikke
+ * har: `POST /event/<id>/payment` svarer med `checkoutUrl` — lenka til Vipps.
  * Feltet var derfor alltid undefined, og skjermen falt tilbake til
  * arrangementssida på tihlde.org — en nettleser uten innlogging, der brukeren
  * så ut til å ikke være påmeldt i det hele tatt.
  */
-export const toPayment = (payment: PhotonPayment): Payment =>
-    ({
-        order_id: payment.orderId ?? payment.id ?? "",
-        status: payment.status ?? "",
-        payment_link:
-            payment.paymentLink ??
-            payment.paymentUrl ??
-            payment.redirectUrl ??
-            payment.url ??
-            "",
-    }) as unknown as Payment;
+export const toPayment = (payment: PhotonPayment): Payment => ({
+    eventId: payment.eventId,
+    userId: payment.userId,
+    checkoutUrl: payment.checkoutUrl,
+    amount: payment.amount,
+    currency: payment.currency,
+});
