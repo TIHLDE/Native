@@ -22,6 +22,8 @@ type PermissionTypes = {
     destroy?: boolean;
     update?: boolean;
     retrieve?: boolean;
+    /** Om brukeren kan melde seg på. Alumni kan lese, men ikke melde seg på. */
+    register?: boolean;
 }
 
 export type Permissions = {

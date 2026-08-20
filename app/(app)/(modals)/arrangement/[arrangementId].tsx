@@ -23,6 +23,8 @@ import UserCard from "@/components/ui/userCard";
 import CoverImage, { COVER_IMAGE_FRAME } from "@/components/ui/coverImage";
 import useRefresh from "@/lib/useRefresh";
 import { SectionHeader } from "@/components/ui/section-header";
+import EventRulesConsent from "@/components/events/EventRulesConsent";
+import { useEventRulesConsent } from "@/lib/useEventRulesConsent";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { isBefore, isAfter } from "date-fns";
 import {
@@ -673,6 +675,8 @@ function RegistrationButton({
 
     const [buttonText, setButtonText] = useState<string>("");
 
+    const eventRules = useEventRulesConsent();
+
     const showAlert = registration || hasUnansweredEvaluations;
     const alertType =
         (registration?.is_on_wait && "info") ||
@@ -747,6 +751,12 @@ function RegistrationButton({
 
     const bannerStyle = statusBannerStyles[alertType] ?? statusBannerStyles.success;
 
+    // Samme avgrensning som nettsiden: bare tilstandene der medlemmet ellers
+    // kunne ha meldt seg på. Er man allerede påmeldt, eller har arrangementet
+    // ingen påmelding, er samtykket irrelevant her.
+    const blockedByEventRules =
+        eventRules.mustAccept && event.sign_up === true && !registration;
+
     return (
         <>
             {showAlert && (
@@ -771,7 +781,30 @@ function RegistrationButton({
 
             {showCountdown && countdownTime && countdownIsForPayment && <PaymentButton eventId={event.id} />}
 
-            {isAfter(new Date(event.end_date), new Date()) && (
+            {/*
+              * Reglene må godkjennes før Photon slipper noen på, så samtykket
+              * står der påmeldingsknappen ellers ville stått — også før
+              * påmeldingen åpner, slik at det oppdages i god tid og ikke i
+              * sekundet plassene slippes.
+              *
+              * Bare for den som ellers kunne meldt seg på: å be noen godkjenne
+              * regler på et arrangement de allerede står på, eller som ikke har
+              * påmelding i det hele tatt, hjelper ingen.
+              */}
+            {blockedByEventRules && (
+                <EventRulesConsent
+                    message={
+                        isAfter(new Date(event.start_registration_at), new Date())
+                            ? "Gjør det nå, så er du klar når påmeldingen åpner."
+                            : "Huk av, så kan du melde deg på med én gang."
+                    }
+                    onAccept={eventRules.acceptEventRules}
+                    isSubmitting={eventRules.isSubmitting}
+                    error={eventRules.error}
+                />
+            )}
+
+            {isAfter(new Date(event.end_date), new Date()) && !blockedByEventRules && (
                 isDestructive ? (
                     /* Unregister button — matches profile logout style */
                     <Pressable
