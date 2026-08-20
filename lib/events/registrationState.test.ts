@@ -163,14 +163,27 @@ describe("deriveRegistrationState", () => {
         ).toBe("processing");
     });
 
-    it("lar en kansellert påmelding falle tilbake til vinduet", () => {
+    // Tidligere falt «cancelled» ned i vinduet og ga «open» — altså en
+    // påmeldingsknapp. Photon svarer 409 «already registered» så lenge raden
+    // ligger der, så knappen kunne aldri lykkes.
+    it("holder en kansellert påmelding som avbrutt", () => {
         expect(
             deriveRegistrationState(
                 event(),
                 registration({ status: "cancelled" }),
                 NOW,
             ),
-        ).toBe("open");
+        ).toBe("cancelled");
+    });
+
+    it("holder en kansellert påmelding avbrutt også på betalte arrangementer", () => {
+        expect(
+            deriveRegistrationState(
+                event({ is_paid_event: true }),
+                registration({ status: "cancelled", has_paid_order: false }),
+                NOW,
+            ),
+        ).toBe("cancelled");
     });
 });
 

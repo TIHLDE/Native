@@ -781,6 +781,19 @@ function RegistrationButton({
                 />
             )}
 
+            {state === "cancelled" && (
+                <StatusBanner
+                    tone="error"
+                    palette={palette}
+                    message="Påmeldinga di ble avbrutt"
+                    secondary={
+                        event.is_paid_event
+                            ? "Plassen er gitt videre, som regel fordi betalingsfristen gikk ut. Ta kontakt med arrangøren om du fortsatt vil være med."
+                            : "Plassen er ikke lenger din. Ta kontakt med arrangøren om du fortsatt vil være med."
+                    }
+                />
+            )}
+
             {state === "full" && (
                 <StatusBanner
                     tone="warning"
