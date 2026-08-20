@@ -54,7 +54,7 @@ export default function Karriere() {
                 {/* Job post list */}
                 <View>
                     {jobposts.data?.results.map((jobpost: any) => (
-                        <Link href={`/(tabs)/karriere/${jobpost.id}`} key={jobpost.id}>
+                        <Link href={`/(app)/(tabs)/karriere/${jobpost.id}`} key={jobpost.id}>
                             <JobPostCard
                                 title={jobpost.title}
                                 jobType={jobpost.job_type}

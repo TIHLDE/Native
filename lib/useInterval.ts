@@ -2,7 +2,7 @@ import { EffectCallback } from "expo-router";
 import { useEffect, useRef } from "react";
 
 export default function useInterval(callback: EffectCallback, msDelay: number | null) {
-    const savedCallback = useRef<EffectCallback>();
+    const savedCallback = useRef<EffectCallback | undefined>(undefined);
 
     useEffect(() => {
         savedCallback.current = callback;
