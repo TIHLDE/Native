@@ -33,7 +33,12 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       [
         "expo-font",
         {
@@ -45,8 +50,17 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "TIHLDE bruker kameraet til å skanne QR-koder ved innsjekk på arrangementer.",
+          "cameraPermission": "TIHLDE bruker kameraet til å skanne QR-koder ved innsjekk, og til å ta bilde av kvitteringer og bøter.",
+          "microphonePermission": false,
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TIHLDE trenger tilgang til bildene dine for at du skal kunne legge ved en kvittering eller et bilde til en bot.",
+          "cameraPermission": "TIHLDE bruker kameraet til å skanne QR-koder ved innsjekk, og til å ta bilde av kvitteringer og bøter.",
+          "microphonePermission": false
         }
       ],
       "expo-web-browser",
