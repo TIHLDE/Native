@@ -117,7 +117,8 @@ export function usePermissions() {
     });
 }
 
-type MyRegistration = {
+/** Én rad fra Photons historikk: arrangementer som allerede er over. */
+type PastRegistration = {
     eventId: string;
     slug: string;
     title: string;
@@ -125,23 +126,48 @@ type MyRegistration = {
     status: string;
 };
 
-type MyRegistrations = { events: MyRegistration[]; totalCount: number };
+type MyEventHistory = { events: PastRegistration[]; totalCount: number };
 
 /**
- * Photon har ingen filtrering på utløpte arrangementer, så skillet mellom
- * kommende og tidligere gjøres her på starttidspunktet.
+ * Én rad fra Photons liste over påmeldinger som ikke er ferdige ennå. Den
+ * bærer nok om arrangementet til å tegne et kort uten flere kall.
  */
-async function myRegistrations(): Promise<MyRegistration[]> {
-    const data = await apiJson<MyRegistrations>("/event/my-registrations?pageSize=100");
-    return data.events;
-}
+type UpcomingRegistration = {
+    eventId: string;
+    slug: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    categorySlug: string;
+    location: string | null;
+    image: string | null;
+    imageAlt: string | null;
+    organizer: string | null;
+    status: "registered" | "waitlisted" | "pending";
+    waitlistPosition: number | null;
+};
 
-const asEvent = (registration: MyRegistration): Event =>
+const asEvent = (registration: {
+    eventId: string;
+    title: string;
+    startTime: string;
+    endTime?: string;
+    location?: string | null;
+    image?: string | null;
+    organizer?: string | null;
+}): Event =>
     ({
         id: registration.eventId,
         title: registration.title,
         start_date: registration.startTime,
-        end_date: registration.startTime,
+        end_date: registration.endTime ?? registration.startTime,
+        location: registration.location ?? undefined,
+        image: registration.image ?? undefined,
+        // Photon oppgir arrangøren som navn her, ikke som gruppe. Kortet
+        // trenger en slug for merket sitt, og har ingen — navnet får stå alene.
+        organizer: registration.organizer
+            ? { name: registration.organizer, slug: "" }
+            : undefined,
         paid_information: undefined,
         limit: 0,
         list_count: "0",
@@ -151,24 +177,26 @@ const asEvent = (registration: MyRegistration): Event =>
         start_registration_at: "",
     }) as unknown as Event;
 
+/**
+ * Kommende påmeldinger.
+ *
+ * `/event/my-registrations` er historikk — den svarer bare med arrangementer
+ * som allerede er over, uansett hvor mange man er påmeldt framover. Kommende
+ * påmeldinger har sitt eget endepunkt, og det er dette profilen skal vise.
+ */
 export async function myEvents(): Promise<{ results: Event[] }> {
-    const now = Date.now();
-    const events = await myRegistrations();
-    return {
-        results: events
-            .filter((event) => new Date(event.startTime).getTime() >= now)
-            .map(asEvent),
-    };
+    const events = await apiJson<UpcomingRegistration[]>(
+        "/event/my-upcoming-registrations",
+    );
+    return { results: events.map(asEvent) };
 }
 
+/** Tidligere påmeldinger. Photon sorterer nyeste først. */
 export async function myPreviousEvents(): Promise<{ results: Event[] }> {
-    const now = Date.now();
-    const events = await myRegistrations();
-    return {
-        results: events
-            .filter((event) => new Date(event.startTime).getTime() < now)
-            .map(asEvent),
-    };
+    const data = await apiJson<MyEventHistory>(
+        "/event/my-registrations?pageSize=100",
+    );
+    return { results: data.events.map(asEvent) };
 }
 
 export async function myMemberships(): Promise<Membership["group"][]> {
