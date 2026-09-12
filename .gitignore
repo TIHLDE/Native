@@ -42,3 +42,7 @@ app-example
 
 # Google Cloud Platform
 service-account-file.json
+
+# EAS lokale signeringsnokler
+credentials.json
+/credentials
