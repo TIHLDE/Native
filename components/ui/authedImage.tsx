@@ -14,8 +14,24 @@ import { getValidAccessToken } from "@/lib/auth/photon";
  * det åpne virket.
  *
  * Tokenet hentes med `getValidAccessToken`, samme som `apiFetch`, så et utløpt
- * token fornyes før bildet lastes.
+ * token fornyes før bildet lastes. Kontekstens `authState.token` duger ikke: den
+ * settes ved innlogging og oppdateres ikke når tokenet roteres, så bildene ville
+ * blitt tomme igjen etter første fornyelse.
+ *
+ * Ett oppslag deles av alle bildene som monteres samtidig: hvert kall til
+ * `getValidAccessToken` er tre keychain-lesninger, og en bøteliste monterer et
+ * titalls avatarer i samme render. En rad som ruller inn senere leser på nytt,
+ * og får dermed et fornyet token.
  */
+let pendingToken: Promise<string | null> | null = null;
+
+function sharedAccessToken(): Promise<string | null> {
+    pendingToken ??= getValidAccessToken().finally(() => {
+        pendingToken = null;
+    });
+    return pendingToken;
+}
+
 function useAuthorizedSource(
     uri: string | null | undefined,
 ): ImageURISource | undefined {
@@ -28,7 +44,7 @@ function useAuthorizedSource(
         if (!needsToken) return;
 
         let active = true;
-        getValidAccessToken().then((fresh) => {
+        sharedAccessToken().then((fresh) => {
             if (active) setToken(fresh);
         });
         return () => {
