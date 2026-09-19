@@ -456,9 +456,11 @@ export const toFinePerson = (person: PhotonFinePerson): FinePerson => ({
  * `Fine`, men en oversettelse ingen har bruk for skal ikke finnes opp.
  *
  * Mapperen gjør likevel tre ting svaret ikke gjør selv: smalner statusen til
- * unionen, dropper feltene appen ikke bruker, og lar bildene stå rå. Bevisbildet
- * og avataren er samme felttype i to helt ulike bredder, så `avatarImageUrl`
- * hører til skjermen — som i `toGroup`.
+ * unionen, dropper feltene appen ikke bruker, og lar bildene stå rå. Avataren
+ * skaleres av skjermen, som i `toGroup`, og `image` er ikke en URL skjermen kan
+ * vise: bevisbildet er privat og leses gjennom
+ * `GET /groups/:groupSlug/fines/:fineId/image`, så feltet sier bare om boten
+ * har et bilde.
  */
 export const toFine = (fine: PhotonFine): Fine => ({
     id: fine.id,

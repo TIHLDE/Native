@@ -1,4 +1,5 @@
-import { Image, View } from "react-native";
+import { View } from "react-native";
+import { AuthedImage } from "@/components/ui/authedImage";
 import { Text } from "@/components/ui/text";
 import { avatarImageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
@@ -38,8 +39,8 @@ export function PersonAvatar({
 }) {
     if (image) {
         return (
-            <Image
-                source={{ uri: avatarImageUrl(image) }}
+            <AuthedImage
+                uri={avatarImageUrl(image)}
                 className={cn("w-10 h-10 rounded-full", className)}
                 resizeMode="cover"
             />

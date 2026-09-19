@@ -3,7 +3,6 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import {
     ActivityIndicator,
     FlatList,
-    Image,
     LayoutAnimation,
     Pressable,
     View,
@@ -11,8 +10,9 @@ import {
 import { ChevronDown, ChevronUp, Gavel } from "lucide-react-native";
 import { fetchFines } from "@/actions/fines/fines";
 import { Fine, FineStatus } from "@/actions/types";
+import { AuthedImage } from "@/components/ui/authedImage";
 import { Text } from "@/components/ui/text";
-import { coverImageUrl } from "@/lib/images";
+import { fineImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -158,8 +158,8 @@ function FineCard({ fine }: { fine: Fine }) {
                         // dødplass ved siden av, fordi bildet beholdt full
                         // bredde mens innholdet krympet.
                         <View className="items-center mb-3">
-                            <Image
-                                source={{ uri: coverImageUrl(fine.image) }}
+                            <AuthedImage
+                                uri={fineImageUrl(fine.groupSlug, fine.id)}
                                 onLoad={(event) => {
                                     const { width, height } =
                                         event.nativeEvent.source;

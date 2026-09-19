@@ -12,6 +12,8 @@
  */
 import { Dimensions, PixelRatio } from "react-native";
 
+import { API_URL } from "@/actions/constant";
+
 /**
  * Breddene `GET /api/assets/:key?w=` godtar. Må holdes i takt med
  * `IMAGE_VARIANT_WIDTHS` i Photon-APIet — en bredde utenfor listen er en 400,
@@ -67,4 +69,15 @@ export function avatarImageUrl(url: string): string;
 export function avatarImageUrl(url: string | undefined): string | undefined;
 export function avatarImageUrl(url: string | undefined): string | undefined {
     return url === undefined ? undefined : assetImageUrl(url, 160);
+}
+
+/**
+ * Bevisbildet på en bot.
+ *
+ * `fine.image` peker på et privat asset `/api/assets` nekter å servere, så
+ * feltet sier bare om boten har et bilde. Denne ruta er den eneste veien til
+ * selve bildet, og den kjenner ingen `?w=` — svaret er originalen.
+ */
+export function fineImageUrl(groupSlug: string, fineId: string): string {
+    return `${API_URL}/groups/${encodeURIComponent(groupSlug)}/fines/${fineId}/image`;
 }

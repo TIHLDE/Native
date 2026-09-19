@@ -1,3 +1,4 @@
+import { AuthedImage } from "@/components/ui/authedImage";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
@@ -214,10 +215,8 @@ export default function ConfirmFine() {
                                     className="items-center w-16"
                                 >
                                     {user.image ? (
-                                        <Image
-                                            source={{
-                                                uri: avatarImageUrl(user.image),
-                                            }}
+                                        <AuthedImage
+                                            uri={avatarImageUrl(user.image)}
                                             className="w-12 h-12 rounded-full"
                                             resizeMode="cover"
                                         />

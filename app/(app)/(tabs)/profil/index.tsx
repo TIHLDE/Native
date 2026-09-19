@@ -8,6 +8,7 @@ import PageWrapper, { TAB_SCREEN_EDGES } from "@/components/ui/pagewrapper";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
+import { AuthedImage } from "@/components/ui/authedImage";
 import { avatarImageUrl } from "@/lib/images";
 import { classYearLabel, parseStartYear } from "@/lib/study";
 import { themeColors } from "@/lib/theme/colors";
@@ -17,7 +18,7 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Settings } from "lucide-react-native";
 import { useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
 /** Fanene under profilen. Rekkefølgen styrer `SegmentedControl`. */
@@ -128,9 +129,9 @@ export default function Profil() {
                 {/* Profilhode: bilde til venstre, opplysningene til høyre */}
                 <View className="flex-row items-center px-5 pt-6 pb-7">
                     {user.data.image ? (
-                        <Image
+                        <AuthedImage
                             className="w-20 h-20 rounded-full"
-                            source={{ uri: avatarImageUrl(user.data.image) }}
+                            uri={avatarImageUrl(user.data.image)}
                             resizeMode="cover"
                         />
                     ) : (
