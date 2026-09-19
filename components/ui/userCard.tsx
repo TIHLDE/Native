@@ -1,6 +1,7 @@
 import { User } from "@/actions/types";
 import { avatarImageUrl } from "@/lib/images";
-import { Image, View } from "react-native";
+import { View } from "react-native";
+import { AuthedImage } from "./authedImage";
 import { Text } from "./text";
 
 export default function UserCard({ user }: { user: User }) {
@@ -9,9 +10,9 @@ export default function UserCard({ user }: { user: User }) {
     return (
         <View className="flex-row items-center px-4 py-3">
             {user.image ? (
-                <Image
+                <AuthedImage
                     className="w-10 h-10 rounded-full"
-                    source={{ uri: avatarImageUrl(user.image) }}
+                    uri={avatarImageUrl(user.image)}
                     resizeMode="cover"
                 />
             ) : (

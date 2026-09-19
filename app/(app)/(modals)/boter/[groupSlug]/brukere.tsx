@@ -1,3 +1,4 @@
+import { AuthedImage } from "@/components/ui/authedImage";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
@@ -12,7 +13,6 @@ import { useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
-    Image,
     Pressable,
     TextInput,
     View,
@@ -168,8 +168,8 @@ export default function UserSelection() {
                             }`}
                         >
                             {user.image ? (
-                                <Image
-                                    source={{ uri: avatarImageUrl(user.image) }}
+                                <AuthedImage
+                                    uri={avatarImageUrl(user.image)}
                                     className="w-10 h-10 rounded-full"
                                     resizeMode="cover"
                                 />
