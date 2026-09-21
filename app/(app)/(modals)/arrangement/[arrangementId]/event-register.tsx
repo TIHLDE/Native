@@ -2,7 +2,7 @@ import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused } from "expo-router";
 import PageWrapper from "@/components/ui/pagewrapper";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
 import { useEffect, useRef, useState } from "react";
