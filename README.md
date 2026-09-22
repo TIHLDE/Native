@@ -6,7 +6,7 @@ The app lets members browse events, register for events, view career postings, a
 
 ## Tech Stack
 
-- **Framework:** React Native + Expo (SDK 52)
+- **Framework:** React Native + Expo (SDK 57)
 - **Routing:** Expo Router (file-based)
 - **Styling:** NativeWind (TailwindCSS for React Native)
 - **State:** React Query for server state, React Context for auth
@@ -23,13 +23,13 @@ The app lets members browse events, register for events, view career postings, a
 ### Installation
 
 ```bash
-npm install
+bun install
 ```
 
 ### Development
 
 ```bash
-npx expo start        # Start the Expo dev server
+bun x expo start        # Start the Expo dev server
 ```
 
 From the dev server, press `i` for iOS simulator or `a` for Android emulator.
@@ -37,21 +37,21 @@ From the dev server, press `i` for iOS simulator or `a` for Android emulator.
 ### Run on Device/Simulator Directly
 
 ```bash
-npm run ios            # Build and run on iOS simulator
-npm run android        # Build and run on Android emulator
-npm run web            # Start for web
+bun run ios            # Build and run on iOS simulator
+bun run android        # Build and run on Android emulator
+bun run web            # Start for web
 ```
 
 ### Testing
 
 ```bash
-npm test               # Run tests in watch mode
+bun test               # Run tests in watch mode
 ```
 
 ### Linting
 
 ```bash
-npm run lint           # Run ESLint via Expo
+bun run lint           # Run ESLint via Expo
 ```
 
 ## Building and Submitting to App Stores
@@ -63,7 +63,7 @@ We use [EAS Build](https://docs.expo.dev/build/introduction/) and [EAS Submit](h
 Install EAS CLI globally:
 
 ```bash
-npm install -g eas-cli
+bun install -g eas-cli
 ```
 
 Log in to the TIHLDE Expo account:
