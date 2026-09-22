@@ -13,7 +13,7 @@
 .claude/
 
 # Git-historikken er 246 MB og utgjorde mesteparten av de 622 MB-ene.
-# Byggeren pakker bare ut arkivet og kjører `npm ci` og prebuild — den rører
+# Byggeren pakker bare ut arkivet og kjører `bun ci` og prebuild — den rører
 # aldri historikken. Commit-en bygget kommer fra leses lokalt av eas-cli før
 # opplasting, så den blir med uansett.
 #

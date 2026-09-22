@@ -45,7 +45,7 @@ bun run web            # Start for web
 ### Testing
 
 ```bash
-bun test               # Run tests in watch mode
+bun run test           # Run tests in watch mode (`bun test` would run Bun's own runner, not Jest)
 ```
 
 ### Linting
