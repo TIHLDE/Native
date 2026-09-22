@@ -73,10 +73,10 @@ export default function ConfirmFine() {
 
     useEffect(() => {
         if (isSuccess) {
-            const timeout = setTimeout(goBackToStart, 5000);
+            const timeout = setTimeout(() => router.dismissAll(), 5000);
             return () => clearTimeout(timeout);
         }
-    }, [isSuccess]);
+    }, [isSuccess, router]);
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({

@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import type { Event, Registration } from "@/actions/types";
 import {
     deriveRegistrationState,

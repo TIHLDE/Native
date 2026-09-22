@@ -2,12 +2,11 @@ import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useIsFocused } from "expo-router";
+import { useIsFocused, useLocalSearchParams } from "expo-router";
 import PageWrapper from "@/components/ui/pagewrapper";
 import AnimatedPagerView from "@/components/ui/AnimatedPagerView";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Icon from "@/lib/icons/Icon";
-import { useLocalSearchParams } from "expo-router";
 import { Registration, User } from "@/actions/types";
 import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -336,7 +335,8 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
     const [checked, setChecked] = useState(registration.has_attended);
     const queryClient = useQueryClient();
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setChecked(registration.has_attended);
     }, [registration.has_attended]);
 

@@ -1,6 +1,6 @@
 import { themeColors } from "@/lib/theme/colors";
 import { Stack, useRouter } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { useColorScheme } from '@/lib/useColorScheme';
