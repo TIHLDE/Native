@@ -9,15 +9,15 @@ React Native + Expo mobile app for the TIHLDE student organization. Handles even
 ## Commands
 
 ```bash
-npm install              # Install dependencies
-npx expo start           # Start development server
-npx expo start --clear   # Start with cleared Metro cache (use after package upgrades)
-expo run:ios             # Run on iOS simulator
-expo run:android         # Run on Android emulator
-npx jest --watchAll      # Run tests (watch mode)
-npx jest path/to/test    # Run a single test
-expo lint                # Lint
-npx expo-doctor@latest   # Check project health and dependency compatibility
+bun install                  # Install dependencies
+bun expo start               # Start development server
+bun expo start --clear       # Start with cleared Metro cache (use after package upgrades or .env changes)
+bun run ios                  # Build and run on iOS simulator
+bun run android              # Build and run on Android emulator
+bun run test                 # Run tests (watch mode) — not `bun test`, which skips Jest
+bun run test path/to/test    # Run a single test
+bun run lint                 # Lint
+bun x expo-doctor@latest     # Check project health and dependency compatibility
 ```
 
 ## Architecture

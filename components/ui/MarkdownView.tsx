@@ -1,6 +1,6 @@
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import Markdown, { MarkdownIt, renderRules } from "react-native-markdown-display";
 import { Text } from "./text";
 import FitImage from 'react-native-fit-image';

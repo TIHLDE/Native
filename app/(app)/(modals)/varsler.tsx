@@ -15,7 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 import { nb } from "date-fns/locale";
 import { useRouter } from "expo-router";
 import { BellOff } from "lucide-react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -63,9 +63,11 @@ export default function Varsler() {
      * neste gang lista åpnes.
      */
     const unreadAtOpen = useRef(new Set<string>());
-    for (const notification of notifications) {
-        if (!notification.isRead) unreadAtOpen.current.add(notification.id);
-    }
+    useLayoutEffect(() => {
+        for (const notification of notifications) {
+            if (!notification.isRead) unreadAtOpen.current.add(notification.id);
+        }
+    });
 
     /** Varsler vi allerede har sendt lesekvittering for, så det skjer én gang. */
     const marked = useRef(new Set<string>());
@@ -85,18 +87,14 @@ export default function Varsler() {
         [queryClient],
     );
 
-    // FlatList godtar ikke at `onViewableItemsChanged` bytter identitet, så
-    // den stabile funksjonen leser den ferske handleren gjennom en ref.
-    const handleViewable = useRef<(items: ViewToken[]) => void>(() => {});
-    handleViewable.current = (viewableItems) => {
-        for (const entry of viewableItems) {
-            if (entry.item) markSeen(entry.item as Notification);
-        }
-    };
-    const onViewableItemsChanged = useRef(
-        ({ viewableItems }: { viewableItems: ViewToken[] }) =>
-            handleViewable.current(viewableItems),
-    ).current;
+    const onViewableItemsChanged = useCallback(
+        ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+            for (const entry of viewableItems) {
+                if (entry.item) markSeen(entry.item as Notification);
+            }
+        },
+        [markSeen],
+    );
 
     // Lista holdes urørt mens skjermen er åpen (se `unreadAtOpen`). Sannheten
     // hentes når brukeren går ut igjen.

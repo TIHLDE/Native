@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import {
     ActivityIndicator,
     Image,
@@ -141,8 +141,9 @@ export default function NyttUtlegg() {
     // Kontaktfeltene er nesten alltid innsenderen selv, så de fylles ut på
     // forhånd — men de kan overstyres, siden pengene ikke alltid skal til den
     // som sender inn.
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!user.data) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setContactName((current) =>
             current || `${user.data.first_name} ${user.data.last_name}`.trim(),
         );
@@ -424,7 +425,7 @@ export default function NyttUtlegg() {
                                         <View
                                             pointerEvents="none"
                                             style={{
-                                                ...StyleSheet.absoluteFillObject,
+                                                ...StyleSheet.absoluteFill,
                                                 backgroundColor: solidFieldColor(
                                                     colors,
                                                     isDarkColorScheme,

@@ -1,4 +1,5 @@
-import { NativeTabs, Icon, Label, VectorIcon } from "expo-router/unstable-native-tabs";
+import { Icon, Label, VectorIcon } from "expo-router";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 /**
@@ -13,7 +14,7 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="grupper">
         <Icon
           sf={{ default: "person.3", selected: "person.3.fill" }}
-          androidSrc={{
+          src={{
             default: <VectorIcon family={MaterialCommunityIcons} name="account-group-outline" />,
             selected: <VectorIcon family={MaterialCommunityIcons} name="account-group" />,
           }}
@@ -24,7 +25,7 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="karriere">
         <Icon
           sf={{ default: "briefcase", selected: "briefcase.fill" }}
-          androidSrc={{
+          src={{
             default: <VectorIcon family={MaterialCommunityIcons} name="briefcase-outline" />,
             selected: <VectorIcon family={MaterialCommunityIcons} name="briefcase" />,
           }}
@@ -35,7 +36,7 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="bot">
         <Icon
           sf={{ default: "plus.circle", selected: "plus.circle.fill" }}
-          androidSrc={{
+          src={{
             default: <VectorIcon family={MaterialCommunityIcons} name="plus-circle-outline" />,
             selected: <VectorIcon family={MaterialCommunityIcons} name="plus-circle" />,
           }}
@@ -46,7 +47,7 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="arrangementer">
         <Icon
           sf={{ default: "calendar", selected: "calendar" }}
-          androidSrc={{
+          src={{
             default: <VectorIcon family={MaterialCommunityIcons} name="calendar-blank-outline" />,
             selected: <VectorIcon family={MaterialCommunityIcons} name="calendar" />,
           }}
@@ -57,7 +58,7 @@ export default function TabsLayout() {
       <NativeTabs.Trigger name="profil">
         <Icon
           sf={{ default: "person.crop.circle", selected: "person.crop.circle.fill" }}
-          androidSrc={{
+          src={{
             default: <VectorIcon family={MaterialCommunityIcons} name="account-circle-outline" />,
             selected: <VectorIcon family={MaterialCommunityIcons} name="account-circle" />,
           }}

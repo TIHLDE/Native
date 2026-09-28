@@ -1,5 +1,5 @@
 import { themeColors } from "@/lib/theme/colors";
-import { cn } from 'lib/utils';
+import { cn } from '@/lib/utils';
 import Svg, { ClipPath, Defs, G, Path } from 'react-native-svg';
 import { iconWithClassName } from './iconWithClassName';
 import React from 'react';
