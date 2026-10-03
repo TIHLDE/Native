@@ -73,8 +73,8 @@ export async function fetchFavoriteEvents(options: {
 
     const results = events.filter((event): event is Event => event !== null);
     results.sort((a, b) => {
-        const left = new Date(a.start_date).getTime();
-        const right = new Date(b.start_date).getTime();
+        const left = new Date(a.startDate).getTime();
+        const right = new Date(b.startDate).getTime();
         // Kommende: det som skjer først øverst. Tidligere: sist avholdte først.
         return options.expired ? right - left : left - right;
     });

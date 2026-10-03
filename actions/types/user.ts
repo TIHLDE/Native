@@ -1,9 +1,9 @@
 import { Group } from "./group";
 
 export type User = {
-    user_id: string;
-    first_name: string;
-    last_name: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
     image?: string;
     email: string;
     gender: number;
@@ -13,7 +13,7 @@ export type User = {
     studyyear: {
         group: Group;
     },
-    unanswered_evaluations_count: number,
+    unansweredEvaluationsCount: number,
 }
 
 type PermissionTypes = {

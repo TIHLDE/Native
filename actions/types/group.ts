@@ -1,11 +1,11 @@
 
 export type Group = {
-    fines_activated?: boolean;
+    finesActivated?: boolean;
     image?: string;
-    image_alt?: string;
+    imageAlt?: string;
     name: string;
     slug: string;
     type: string;
-    viewer_is_member: boolean;
-    membership_type: string;
+    description?: string;
+    contactEmail?: string;
 }

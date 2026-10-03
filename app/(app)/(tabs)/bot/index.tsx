@@ -36,7 +36,7 @@ export default function MembershipSelection() {
     const refreshControl = useRefresh("memberships");
 
     const finesGroups =
-        memberships.data?.filter((m: Membership) => m.group.fines_activated) ?? [];
+        memberships.data?.filter((m: Membership) => m.group.finesActivated) ?? [];
 
     return (
         <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
@@ -79,7 +79,7 @@ export default function MembershipSelection() {
                                 {membership.group.name}
                             </Text>
                             <Text className="text-sm text-muted-foreground mt-0.5">
-                                {membership.membership_type === "LEADER"
+                                {membership.membershipType === "LEADER"
                                     ? "Leder"
                                     : "Medlem"}
                             </Text>

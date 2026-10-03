@@ -56,7 +56,7 @@ export default function GruppeSide() {
         (item) => item.group.slug === groupSlug
     );
     const group = membership?.group;
-    const finesActivated = group?.fines_activated ?? false;
+    const finesActivated = group?.finesActivated ?? false;
 
     const statistics = useQuery({
         queryKey: ["fines", groupSlug, "statistics"],
@@ -90,7 +90,7 @@ export default function GruppeSide() {
                         </Text>
                         {membership ? (
                             <Text className="text-sm text-muted-foreground mt-0.5">
-                                {membership.membership_type === "LEADER"
+                                {membership.membershipType === "LEADER"
                                     ? "Leder"
                                     : "Medlem"}
                             </Text>

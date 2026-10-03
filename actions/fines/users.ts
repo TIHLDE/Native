@@ -25,7 +25,7 @@ export async function fetchGroupUsers(
     const needle = search.trim().toLowerCase();
     const matched = needle
         ? users.filter((user) =>
-              `${user.first_name} ${user.last_name} ${user.user_id}`
+              `${user.firstName} ${user.lastName} ${user.userId}`
                   .toLowerCase()
                   .includes(needle)
           )

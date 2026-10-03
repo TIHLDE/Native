@@ -14,6 +14,7 @@ import type {
     FinePerson,
     FineStatistics,
     FineStatus,
+    Group,
     GroupUser,
     Law,
     Membership,
@@ -41,22 +42,21 @@ export type PhotonUser = {
  */
 export const splitName = (name?: string | null) => {
     const [first, ...rest] = (name ?? "").trim().split(/\s+/);
-    return { first_name: first ?? "", last_name: rest.join(" ") };
+    return { firstName: first ?? "", lastName: rest.join(" ") };
 };
 
-export const toUser = (user: PhotonUser | null | undefined): User =>
-    ({
-        ...splitName(user?.name),
-        // Brukernavnet er nøkkelen appen viser og sammenligner på; Photons
-        // interne id brukes bare når brukernavnet mangler.
-        user_id: user?.username ?? user?.id ?? "",
-        email: user?.email ?? "",
-        image: user?.image ?? undefined,
-        gender: 0,
-        study: { group: { name: user?.studyProgram ?? "", slug: "" } },
-        studyyear: { group: { name: String(user?.studyStartYear ?? ""), slug: "" } },
-        unanswered_evaluations_count: 0,
-    }) as unknown as User;
+export const toUser = (user: PhotonUser | null | undefined): User => ({
+    // Brukernavnet er nøkkelen appen viser og sammenligner på; Photons
+    // interne id brukes bare når brukernavnet mangler.
+    userId: user?.username ?? user?.id ?? "",
+    ...splitName(user?.name),
+    email: user?.email ?? "",
+    image: user?.image ?? undefined,
+    gender: 0,
+    study: { group: { name: user?.studyProgram ?? "", slug: "", type: "" } },
+    studyyear: { group: { name: String(user?.studyStartYear ?? ""), slug: "", type: "" } },
+    unansweredEvaluationsCount: 0,
+});
 
 export type PhotonUserSettings = {
     gender?: "male" | "female" | "other";
@@ -99,12 +99,12 @@ export const toAllergy = (allergy: PhotonAllergy): Allergy => ({
 });
 
 export const toGroupUser = (user: PhotonUser | null | undefined): GroupUser => ({
-    ...splitName(user?.name),
     // Photons id og brukernavnet er to forskjellige ting. Begge trengs: id-en
     // er det API-et godtar når en bot opprettes, brukernavnet er det folk
     // kjenner igjen og søker på.
     id: user?.id ?? "",
-    user_id: user?.username ?? user?.id ?? "",
+    userId: user?.username ?? user?.id ?? "",
+    ...splitName(user?.name),
     email: user?.email ?? "",
     image: user?.image ?? undefined,
     gender: 0,
@@ -126,22 +126,21 @@ export type PhotonGroup = {
  * `logoUrl` er den kvadratiske merket Leptons `image` holdt. `imageUrl` er en
  * bred banner og ville sprengt avatar-oppsettet.
  */
-export const toGroup = (group: PhotonGroup) =>
-    ({
-        name: group.name,
-        slug: group.slug,
-        image: group.logoUrl ?? undefined,
-        contact_email: group.contactEmail ?? undefined,
-        description: group.description ?? undefined,
-        type: group.type,
-        fines_activated: group.finesActivated ?? false,
-    }) as unknown as Membership["group"];
+export const toGroup = (group: PhotonGroup): Group => ({
+    name: group.name,
+    slug: group.slug,
+    image: group.logoUrl ?? undefined,
+    contactEmail: group.contactEmail ?? undefined,
+    description: group.description ?? undefined,
+    type: group.type ?? "",
+    finesActivated: group.finesActivated ?? false,
+});
 
 export const toMembership = (group: PhotonGroup): Membership => ({
-    created_at: group.membership?.joinedAt ?? "",
-    expiration_date: null,
+    createdAt: group.membership?.joinedAt ?? "",
+    expirationDate: null,
     group: toGroup(group),
-    membership_type: group.membership?.role === "leader" ? "LEADER" : "MEMBER",
+    membershipType: group.membership?.role === "leader" ? "LEADER" : "MEMBER",
     user: toUser(null),
 });
 
@@ -219,18 +218,18 @@ export type PhotonOwnRegistration = {
  */
 export const toOwnRegistration = (
     registration: PhotonOwnRegistration,
-): Registration =>
-    ({
-        has_attended: registration.attendedAt != null,
-        has_paid_order: registration.hasPaid === true,
-        has_unanswered_evaluation: false,
-        is_on_wait: registration.status === "waitlisted",
-        payment_expiredate: registration.paymentExpiresAt ?? "",
-        payment_orders: [],
-        wait_queue_number: registration.waitlistPosition ?? 0,
-        registration_id: 0,
-        status: registration.status,
-    }) as unknown as Registration;
+): Registration => ({
+    hasAttended: registration.attendedAt != null,
+    hasPaidOrder: registration.hasPaid === true,
+    hasUnansweredEvaluation: false,
+    isOnWait: registration.status === "waitlisted",
+    paymentExpireDate: registration.paymentExpiresAt ?? "",
+    paymentOrders: [],
+    waitQueueNumber: registration.waitlistPosition ?? 0,
+    registrationId: 0,
+    status: registration.status,
+    userInfo: toUser(null),
+});
 
 /**
  * Photon holder ikke påmeldingstall på arrangementet slik Lepton gjorde.
@@ -240,51 +239,52 @@ export const toOwnRegistration = (
 export const toEvent = (
     event: PhotonEvent,
     counts?: { listCount?: number; waitingListCount?: number },
-): Event =>
-    ({
-        id: event.id,
-        title: event.title,
-        start_date: event.startTime,
-        end_date: event.endTime,
-        location: event.location ?? undefined,
-        description: event.description ?? undefined,
-        image: event.image ?? undefined,
-        category: event.category
-            ? { id: 0, text: event.category.label }
-            : undefined,
-        organizer: event.organizer ?? undefined,
-        contact_person: event.contactPerson
-            ? splitName(event.contactPerson.name)
-            : undefined,
-        // Photon oppgir prisen i øre («Event price in minor units»), mens
-        // skjermen viser hele kroner. Uten delingen ble 150 kr til «15000».
-        //
-        // Feltet må være undefined for gratis arrangementer: skjermen bruker
-        // `event.paid_information` som «koster dette noe?», og et objekt som
-        // alltid er satt er alltid truthy — da fikk påmeldte på gratis
-        // arrangementer betalingsvarsel.
-        paid_information: event.payInfo?.price
-            ? { price: String(Math.round(event.payInfo.price) / 100) }
-            : undefined,
-        closed: event.closed ?? false,
-        allow_waitlist: event.allowWaitlist ?? false,
-        is_paid_event: event.isPaidEvent ?? Boolean(event.payInfo?.price),
-        my_registration: event.registration
-            ? toOwnRegistration(event.registration)
-            : undefined,
-        limit: event.capacity ?? 0,
-        // Photon legger tallene på arrangementet. `counts` er igjen fra da de
-        // måtte hentes fra påmeldingslista, og brukes fortsatt når kalleren har
-        // dem — men arrangementet er kilden når det svarer.
-        list_count: String(event.registeredCount ?? counts?.listCount ?? 0),
-        waiting_list_count: String(
-            event.waitlistCount ?? counts?.waitingListCount ?? 0,
-        ),
-        sign_off_deadline: event.cancellationDeadline ?? "",
-        end_registration_at: event.registrationEnd ?? "",
-        start_registration_at: event.registrationStart ?? "",
-        sign_up: event.requiresSigningUp ?? false,
-    }) as unknown as Event;
+): Event => ({
+    id: event.id,
+    title: event.title,
+    startDate: event.startTime,
+    endDate: event.endTime,
+    location: event.location ?? undefined,
+    description: event.description ?? undefined,
+    image: event.image ?? undefined,
+    category: event.category
+        ? { id: 0, text: event.category.label }
+        : undefined,
+    organizer: event.organizer ?? undefined,
+    contactPerson: event.contactPerson
+        ? {
+              ...splitName(event.contactPerson.name),
+          }
+        : undefined,
+    // Photon oppgir prisen i øre («Event price in minor units»), mens
+    // skjermen viser hele kroner. Uten delingen ble 150 kr til «15000».
+    //
+    // Feltet må være undefined for gratis arrangementer: skjermen bruker
+    // `event.paidInformation` som «koster dette noe?», og et objekt som
+    // alltid er satt er alltid truthy — da fikk påmeldte på gratis
+    // arrangementer betalingsvarsel.
+    paidInformation: event.payInfo?.price
+        ? { price: String(Math.round(event.payInfo.price) / 100) }
+        : undefined,
+    closed: event.closed ?? false,
+    allowWaitlist: event.allowWaitlist ?? false,
+    isPaidEvent: event.isPaidEvent ?? Boolean(event.payInfo?.price),
+    myRegistration: event.registration
+        ? toOwnRegistration(event.registration)
+        : undefined,
+    limit: event.capacity ?? 0,
+    // Photon legger tallene på arrangementet. `counts` er igjen fra da de
+    // måtte hentes fra påmeldingslista, og brukes fortsatt når kalleren har
+    // dem — men arrangementet er kilden når det svarer.
+    listCount: String(event.registeredCount ?? counts?.listCount ?? 0),
+    waitingListCount: String(
+        event.waitlistCount ?? counts?.waitingListCount ?? 0,
+    ),
+    signOffDeadline: event.cancellationDeadline ?? "",
+    endRegistrationAt: event.registrationEnd ?? "",
+    startRegistrationAt: event.registrationStart ?? "",
+    signUp: event.requiresSigningUp ?? false,
+});
 
 export type PhotonRegisteredUser = {
     id: string;
@@ -303,23 +303,22 @@ export type PhotonRegisteredUser = {
  * flagg. Ventelisteplassen er nullbar, og 0 er en gyldig plass, så den kan
  * ikke brukes til å avgjøre om noen står på venteliste.
  */
-export const toRegistration = (registered: PhotonRegisteredUser) =>
-    ({
-        has_attended: registered.attendedAt !== null,
-        has_paid_order: registered.payment !== null,
-        has_unanswered_evaluation: false,
-        is_on_wait: registered.status === "waitlist",
-        payment_expiredate: "",
-        payment_orders: [],
-        wait_queue_number: registered.waitlistPosition ?? 0,
-        registration_id: registered.id,
-        user_info: toUser({
-            id: registered.id,
-            name: registered.name,
-            email: registered.email,
-            image: registered.image,
-        }),
-    }) as unknown as import("@/actions/types").Registration;
+export const toRegistration = (registered: PhotonRegisteredUser): Registration => ({
+    hasAttended: registered.attendedAt !== null,
+    hasPaidOrder: registered.payment !== null,
+    hasUnansweredEvaluation: false,
+    isOnWait: registered.status === "waitlist",
+    paymentExpireDate: "",
+    paymentOrders: [],
+    waitQueueNumber: registered.waitlistPosition ?? 0,
+    registrationId: Number(registered.id),
+    userInfo: toUser({
+        id: registered.id,
+        name: registered.name,
+        email: registered.email,
+        image: registered.image,
+    }),
+});
 
 /**
  * Photon navngir stillingstypene med små bokstaver og understrek

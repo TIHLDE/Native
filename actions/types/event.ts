@@ -4,8 +4,8 @@ export type Event = {
     // Photon bruker UUID der Lepton hadde løpenummer.
     id: string;
     title: string;
-    start_date: string;
-    end_date: string;
+    startDate: string;
+    endDate: string;
     location?: string;
     description?: string;
     image?: string;
@@ -17,12 +17,12 @@ export type Event = {
         name: string;
         slug: string;
     };
-    contact_person?: {
-        first_name: string;
-        last_name: string;
+    contactPerson?: {
+        firstName: string;
+        lastName: string;
     };
     /** Bare satt for arrangementer som faktisk koster noe. */
-    paid_information?: {
+    paidInformation?: {
         /** Hele kroner. Photon oppgir øre — omregningen skjer i `toEvent`. */
         price: string;
     };
@@ -30,16 +30,16 @@ export type Event = {
     /** Arrangøren har stengt påmeldingen manuelt. */
     closed?: boolean;
     /** Om fulle arrangementer har venteliste. Uten den er fullt endestasjon. */
-    allow_waitlist?: boolean;
-    is_paid_event?: boolean;
+    allowWaitlist?: boolean;
+    isPaidEvent?: boolean;
     /** Innloggedes egen påmelding. Bare satt når kallet hadde token. */
-    my_registration?: Registration;
-    list_count: string;
-    waiting_list_count: string;
-    sign_off_deadline: string;
-    end_registration_at: string;
-    start_registration_at: string;
-    sign_up?: boolean;
+    myRegistration?: Registration;
+    listCount: string;
+    waitingListCount: string;
+    signOffDeadline: string;
+    endRegistrationAt: string;
+    startRegistrationAt: string;
+    signUp?: boolean;
 };
 /**
  * Stillingsannonse i den formen skjermene leser. Photons felter er camelCase

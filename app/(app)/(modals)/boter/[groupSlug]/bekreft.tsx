@@ -30,9 +30,9 @@ import Toast from "react-native-toast-message";
 type SelectedUser = {
     /** Photons bruker-id — det API-et slår opp på. */
     id: string;
-    user_id: string;
-    first_name: string;
-    last_name: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
     image?: string;
 };
 
@@ -211,7 +211,7 @@ export default function ConfirmFine() {
                         <View className="flex-row gap-3">
                             {selectedUsers.map((user) => (
                                 <View
-                                    key={user.user_id}
+                                    key={user.userId}
                                     className="items-center w-16"
                                 >
                                     {user.image ? (
@@ -223,8 +223,8 @@ export default function ConfirmFine() {
                                     ) : (
                                         <View className="w-12 h-12 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
                                             <Text className="text-sm font-bold text-primary">
-                                                {user.first_name[0]}
-                                                {user.last_name[0]}
+                                                {user.firstName[0]}
+                                                {user.lastName[0]}
                                             </Text>
                                         </View>
                                     )}
@@ -232,7 +232,7 @@ export default function ConfirmFine() {
                                         className="text-xs text-muted-foreground mt-1 text-center"
                                         numberOfLines={1}
                                     >
-                                        {user.first_name}
+                                        {user.firstName}
                                     </Text>
                                 </View>
                             ))}

@@ -52,7 +52,7 @@ Modals use `router.push("/(modals)/...")` with `presentation: "card"` and `anima
 
 - **API calls** live in `actions/` and go against Photon — `BASE_URL` is `https://photon.tihlde.org` (override with `EXPO_PUBLIC_PHOTON_URL`), and every REST route lives under `API_URL = ${BASE_URL}/api` (see `actions/constant.ts`)
 - **Types** in `actions/types/` with barrel export from `index.ts` (Event, User, Registration, LoginData, etc.)
-- **Photon translation layer** in `actions/photon.ts` — Photon answers in camelCase with partly different shapes, while the screens were written against the old snake_case forms. `toUser`, `toGroup`, `toEvent`, `toRegistration`, `toLaw`, `toJobTypeKey` and friends convert in this one place so the screens stay untouched. New actions should map Photon responses here rather than reshaping data in the screen.
+- **Photon translation layer** in `actions/photon.ts` — Photon answers in camelCase, but with partly different shapes than the domain types in `actions/types/` (which are camelCase too, the old Lepton snake_case names are gone). `toUser`, `toGroup`, `toEvent`, `toRegistration`, `toLaw`, `toJobTypeKey` and friends convert in this one place, and return the domain types without casts, so the compiler checks every mapper. New actions should map Photon responses here rather than reshaping data in the screen.
 - **Server state** via `@tanstack/react-query` (infinite queries for lists, standard queries for details)
 - **Auth state** via React Context (`context/auth.tsx`); OAuth session (access token, refresh token, expiry) in `expo-secure-store` via `lib/storage/tokenStore.ts`
 

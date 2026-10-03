@@ -62,16 +62,16 @@ export default function UserSelection() {
 
     const toggleUser = (user: GroupUser) => {
         setSelectedUsers((prev) => {
-            const exists = prev.find((u) => u.user_id === user.user_id);
+            const exists = prev.find((u) => u.userId === user.userId);
             if (exists) {
-                return prev.filter((u) => u.user_id !== user.user_id);
+                return prev.filter((u) => u.userId !== user.userId);
             }
             return [...prev, user];
         });
     };
 
     const isSelected = (userId: string) =>
-        selectedUsers.some((u) => u.user_id === userId);
+        selectedUsers.some((u) => u.userId === userId);
 
     const handleNext = () => {
         router.push({
@@ -86,9 +86,9 @@ export default function UserSelection() {
                 selectedUsers: JSON.stringify(
                     selectedUsers.map((u) => ({
                         id: u.id,
-                        user_id: u.user_id,
-                        first_name: u.first_name,
-                        last_name: u.last_name,
+                        userId: u.userId,
+                        firstName: u.firstName,
+                        lastName: u.lastName,
                         image: u.image,
                     }))
                 ),
@@ -103,7 +103,7 @@ export default function UserSelection() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 100 }}
                 keyboardDismissMode="on-drag"
-                keyExtractor={(item) => item.user_id}
+                keyExtractor={(item) => item.userId}
                 ListHeaderComponent={
                     <View>
                         {/* Search bar */}
@@ -157,7 +157,7 @@ export default function UserSelection() {
                     </View>
                 }
                 renderItem={({ item: user }) => {
-                    const selected = isSelected(user.user_id);
+                    const selected = isSelected(user.userId);
                     return (
                         <Pressable
                             onPress={() => toggleUser(user)}
@@ -176,13 +176,13 @@ export default function UserSelection() {
                             ) : (
                                 <View className="w-10 h-10 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
                                     <Text className="text-sm font-bold text-primary">
-                                        {user.first_name[0]}
-                                        {user.last_name[0]}
+                                        {user.firstName[0]}
+                                        {user.lastName[0]}
                                     </Text>
                                 </View>
                             )}
                             <Text className="flex-1 ml-3 text-base text-foreground">
-                                {user.first_name} {user.last_name}
+                                {user.firstName} {user.lastName}
                             </Text>
                             {selected && (
                                 <View className="w-7 h-7 rounded-full bg-primary items-center justify-center">

@@ -41,10 +41,10 @@ export function deriveRegistrationState(
     now: Date = new Date(),
 ): EventRegistrationState {
     // Arrangementer uten påmelding har ingenting å melde seg på.
-    if (event.sign_up !== true) return "no-signup";
+    if (event.signUp !== true) return "no-signup";
 
     const isPaidEvent =
-        event.is_paid_event === true || Boolean(event.paid_information?.price);
+        event.isPaidEvent === true || Boolean(event.paidInformation?.price);
 
     switch (registration?.status) {
         // En plass på et betalt arrangement er reservert, ikke sikret, før den
@@ -52,7 +52,7 @@ export function deriveRegistrationState(
         // medlemmet «Du har plass» og ingen måte å betale på — og plassen ble
         // tatt tilbake da fristen gikk ut.
         case "registered":
-            return isPaidEvent && registration.has_paid_order !== true
+            return isPaidEvent && registration.hasPaidOrder !== true
                 ? "awaiting-payment"
                 : "joined";
         // Møtt opp betyr at arrangementet er i gang. Da er betalingen et
@@ -75,16 +75,16 @@ export function deriveRegistrationState(
             return "processing";
         default: {
             if (event.closed === true) return "closed";
-            if (event.end_date && new Date(event.end_date) < now) return "closed";
+            if (event.endDate && new Date(event.endDate) < now) return "closed";
             if (
-                event.end_registration_at &&
-                new Date(event.end_registration_at) < now
+                event.endRegistrationAt &&
+                new Date(event.endRegistrationAt) < now
             ) {
                 return "closed";
             }
             if (
-                event.start_registration_at &&
-                new Date(event.start_registration_at) > now
+                event.startRegistrationAt &&
+                new Date(event.startRegistrationAt) > now
             ) {
                 return "not-open";
             }
@@ -92,7 +92,7 @@ export function deriveRegistrationState(
             // lenge påmeldingen er stengt eller ikke åpnet — da er det det som
             // skal stå.
             const capacity = event.limit ?? 0;
-            const registered = Number(event.list_count ?? 0);
+            const registered = Number(event.listCount ?? 0);
             if (capacity > 0 && registered >= capacity) return "full";
             return "open";
         }
