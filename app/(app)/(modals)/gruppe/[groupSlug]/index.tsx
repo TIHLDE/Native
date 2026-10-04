@@ -2,67 +2,74 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Image, View } from "react-native";
-import { Users } from "lucide-react-native";
+import { Crown, Users } from "lucide-react-native";
 import { fetchMemberships } from "@/actions/fines/memberships";
-import { fetchFineStatistics } from "@/actions/fines/statistics";
+import { fetchGroup } from "@/actions/groups/group";
+import { fetchGroupMembers } from "@/actions/groups/members";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { GroupFinesList } from "@/components/grupper/GroupFinesList";
+import { GroupFinesTab } from "@/components/grupper/GroupFinesTab";
+import { GroupInfoTab } from "@/components/grupper/GroupInfoTab";
 import { GroupLawsList } from "@/components/grupper/GroupLawsList";
-import { GroupLeaderboardList } from "@/components/grupper/GroupLeaderboardList";
+import { GroupMembersList } from "@/components/grupper/GroupMembersList";
+import { GroupTabKey, groupTabs } from "@/lib/groups/groupPage";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 
-const TABS = ["Bøter", "Lovverk", "Toppliste"];
-
-function StatisticTile({ label, value }: { label: string; value: string }) {
-    return (
-        <View className="flex-1 items-center">
-            <Text className="text-lg font-bold text-foreground">{value}</Text>
-            <Text
-                className="text-xs text-muted-foreground mt-0.5"
-                numberOfLines={1}
-            >
-                {label}
-            </Text>
-        </View>
-    );
-}
-
 /**
- * Én gruppe: bøtene som er gitt, lovverket de er gitt under, og hvem som leder.
+ * Én gruppe: om den, hvem som er med, og — når bøter er skrudd på — bøtene og
+ * lovverket de er gitt under.
  *
- * Gruppa leses ut av `["memberships"]` framfor et eget kall — cachen er varm
- * fra grupper-lista brukeren nettopp sto i, og medlemskapet er det eneste som
- * forteller om bøter er skrudd på.
+ * Medlemskapet leses ut av `["memberships"]` framfor å vente på gruppekallet —
+ * cachen er varm fra grupper-lista brukeren nettopp sto i, så fanene og hodet
+ * står klare med en gang. `GET /groups/:slug` hentes i tillegg for det bare
+ * den har: hva gruppa kaller lederen sin.
  *
- * Bryteren og gruppehodet ligger fast over lista, ikke som `ListHeaderComponent`.
- * Ellers ville bryteren rullet vekk, og et segmentbytte midt i en lang liste
- * ville hoppet.
+ * Fanene identifiseres med nøkkel, ikke indeks, fordi settet endrer seg med
+ * `finesActivated`. Bryteren og gruppehodet ligger fast over innholdet, ikke
+ * som `ListHeaderComponent`. Ellers ville bryteren rullet vekk, og et
+ * fanebytte midt i en lang liste ville hoppet.
  */
 export default function GruppeSide() {
     const { groupSlug } = useLocalSearchParams<{ groupSlug: string }>();
     const { isDarkColorScheme } = useColorScheme();
-    const [tab, setTab] = useState(0);
+    const colors = themeColors(isDarkColorScheme);
+    const [tab, setTab] = useState<GroupTabKey>("info");
 
     const memberships = useQuery({
         queryKey: ["memberships"],
         queryFn: fetchMemberships,
     });
 
+    const groupDetail = useQuery({
+        queryKey: ["group", groupSlug],
+        queryFn: () => fetchGroup(groupSlug),
+    });
+
+    const members = useQuery({
+        queryKey: ["group", groupSlug, "members"],
+        queryFn: () => fetchGroupMembers(groupSlug),
+    });
+
     const membership = memberships.data?.find(
         (item) => item.group.slug === groupSlug
     );
-    const group = membership?.group;
+    const group = groupDetail.data ?? membership?.group;
     const finesActivated = group?.finesActivated ?? false;
 
-    const statistics = useQuery({
-        queryKey: ["fines", groupSlug, "statistics"],
-        queryFn: () => fetchFineStatistics(groupSlug),
-        enabled: finesActivated,
-    });
+    const tabs = groupTabs(finesActivated);
+    // En nøkkel som ikke finnes i settet — «Bøter» i en gruppe uten bøter —
+    // faller tilbake til Om framfor å vise ingenting.
+    const activeTab = tabs.some((item) => item.key === tab) ? tab : "info";
+
+    const leader = members.data?.find(
+        (member) => member.membershipType === "LEADER"
+    );
+    const leaderName = leader
+        ? `${leader.user.firstName} ${leader.user.lastName}`.trim()
+        : null;
 
     return (
         <PageWrapper className="flex-1 bg-background">
@@ -78,10 +85,7 @@ export default function GruppeSide() {
                         />
                     ) : (
                         <View className="w-14 h-14 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                            <Users
-                                size={24}
-                                color={themeColors(isDarkColorScheme).primary}
-                            />
+                            <Users size={24} color={colors.primary} />
                         </View>
                     )}
                     <View className="flex-1 ml-3">
@@ -98,45 +102,46 @@ export default function GruppeSide() {
                     </View>
                 </View>
 
-                {finesActivated && statistics.data ? (
-                    <View className="flex-row bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 mt-4">
-                        <StatisticTile
-                            label="Til godkjenning"
-                            value={String(statistics.data.notApproved)}
-                        />
-                        <StatisticTile
-                            label="Ubetalt"
-                            value={String(statistics.data.approvedNotPaid)}
-                        />
-                        <StatisticTile
-                            label="Betalt"
-                            value={String(statistics.data.paid)}
-                        />
+                {leaderName ? (
+                    <View className="self-start flex-row items-center mt-3 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-secondary/30">
+                        <Crown size={14} color={colors.primary} />
+                        <Text
+                            className="ml-1.5 text-sm text-foreground"
+                            numberOfLines={1}
+                        >
+                            {/* `leaderTitle` er null når gruppa bare kaller
+                                det «Leder». */}
+                            {`${groupDetail.data?.leaderTitle ?? "Leder"} · ${leaderName}`}
+                        </Text>
                     </View>
                 ) : null}
 
                 <SegmentedControl
-                    options={TABS}
-                    value={tab}
-                    onChange={setTab}
+                    options={tabs.map((item) => item.label)}
+                    value={tabs.findIndex((item) => item.key === activeTab)}
+                    onChange={(index) => setTab(tabs[index].key)}
+                    scrollable
                     className="mt-4"
                 />
             </View>
 
-            {/* Bare den valgte lista er montert. Det holder antallet kall nede
-                ved åpning, og hvert segment starter på topp. */}
-            {tab === 0 ? (
-                <GroupFinesList
+            {/* Bare den valgte fanen er montert. Det holder antallet kall nede
+                ved åpning, og hver fane starter på topp. */}
+            {activeTab === "info" ? (
+                <GroupInfoTab
                     groupSlug={groupSlug}
-                    finesActivated={finesActivated}
+                    group={group}
+                    isPending={groupDetail.isPending}
                 />
-            ) : tab === 1 ? (
-                <GroupLawsList groupSlug={groupSlug} />
+            ) : activeTab === "members" ? (
+                <GroupMembersList
+                    groupSlug={groupSlug}
+                    leaderTitle={groupDetail.data?.leaderTitle}
+                />
+            ) : activeTab === "fines" ? (
+                <GroupFinesTab groupSlug={groupSlug} />
             ) : (
-                <GroupLeaderboardList
-                    groupSlug={groupSlug}
-                    finesActivated={finesActivated}
-                />
+                <GroupLawsList groupSlug={groupSlug} />
             )}
         </PageWrapper>
     );

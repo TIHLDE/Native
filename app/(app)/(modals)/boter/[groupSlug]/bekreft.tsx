@@ -6,6 +6,7 @@ import PageWrapper from "@/components/ui/pagewrapper";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { createFine } from "@/actions/fines/fines";
 import { uploadImage } from "@/actions/fines/upload";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -38,6 +39,7 @@ type SelectedUser = {
 
 export default function ConfirmFine() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { isDarkColorScheme } = useColorScheme();
     const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
@@ -135,6 +137,12 @@ export default function ConfirmFine() {
                 user: selectedUsers.map((u) => u.id),
                 image: uploadedUrl,
             });
+
+            // Uten denne viste gruppesida de gamle summene og lista til noen
+            // dro ned for å oppdatere. Prefikset treffer alle utvalgene,
+            // summene og «Per medlem». Ikke ventet på — kvitteringen skal
+            // ikke holdes igjen av en ny henting.
+            queryClient.invalidateQueries({ queryKey: ["fines", groupSlug] });
 
             setIsSuccess(true);
         } catch (error: any) {

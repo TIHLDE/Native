@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactElement, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
     ActivityIndicator,
@@ -234,12 +234,24 @@ function FineCard({ fine }: { fine: Fine }) {
     );
 }
 
+/**
+ * Bøtene i gruppa, nyeste først, eventuelt avgrenset til én status eller én
+ * person.
+ *
+ * Lista vises bare for grupper med bøter aktivert — Photon svarer 404 ellers —
+ * og den porten ligger hos fanen som monterer den, ikke her.
+ */
 export function GroupFinesList({
     groupSlug,
-    finesActivated,
+    status,
+    userId,
+    ListHeaderComponent,
 }: {
     groupSlug: string;
-    finesActivated: boolean;
+    status?: FineStatus;
+    userId?: string;
+    /** Ruller med lista, over bøtene. Bøtefanen legger summene her. */
+    ListHeaderComponent?: ReactElement;
 }) {
     const { isDarkColorScheme } = useColorScheme();
     const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
@@ -253,29 +265,25 @@ export function GroupFinesList({
         isError,
         isFetchingNextPage,
     } = useInfiniteQuery({
-        queryKey: ["fines", groupSlug],
-        queryFn: ({ pageParam }) => fetchFines(groupSlug, { page: pageParam }),
+        // Filteret står i nøkkelen, så hvert utvalg har sin egen cache og et
+        // bytte tilbake er umiddelbart. `["fines", groupSlug]` foran gjør at
+        // én invalidering treffer alle utvalgene.
+        queryKey: ["fines", groupSlug, { status, userId }],
+        queryFn: ({ pageParam }) =>
+            fetchFines(groupSlug, { page: pageParam, status, userId }),
         initialPageParam: 0,
         // Sidene er 0-baserte og `next` er null på siste side.
         getNextPageParam: (lastPage) => lastPage.next ?? undefined,
-        // Photon svarer 404 når gruppa ikke har bøter aktivert. Uten denne
-        // porten ville hver slik gruppe gitt et garantert mislykket kall som
-        // react-query så prøver på nytt.
-        enabled: finesActivated,
     });
 
-    const refreshControl = useRefresh(["fines", groupSlug]);
+    // Gruppa med, ikke bare bøtene: summene over lista regner snitt per
+    // medlem, og de to skal ikke vise tall fra hvert sitt tidspunkt.
+    const refreshControl = useRefresh([
+        ["group", groupSlug],
+        ["fines", groupSlug],
+    ]);
     const fines = data?.pages.flatMap((page) => page.results) ?? [];
-
-    if (!finesActivated) {
-        return (
-            <GroupEmptyState
-                icon={Gavel}
-                title="Bøter er ikke aktivert"
-                description="Denne gruppen bruker ikke bøtesystemet."
-            />
-        );
-    }
+    const isFiltered = Boolean(status || userId);
 
     return (
         <FlatList
@@ -285,6 +293,7 @@ export function GroupFinesList({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
             refreshControl={refreshControl}
+            ListHeaderComponent={ListHeaderComponent}
             renderItem={({ item }) => <FineCard fine={item} />}
             onEndReachedThreshold={0.5}
             onEndReached={() => {
@@ -308,6 +317,12 @@ export function GroupFinesList({
                             {error.message}
                         </Text>
                     </View>
+                ) : isFiltered ? (
+                    <GroupEmptyState
+                        icon={Gavel}
+                        title="Fant ingen bøter"
+                        description="Du finner kanskje bøter med en annen filtrering."
+                    />
                 ) : (
                     <GroupEmptyState
                         icon={Gavel}

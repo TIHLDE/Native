@@ -32,6 +32,19 @@ export type GroupUser = {
     gender: number;
 };
 
+/**
+ * Én rad i gruppas medlemsliste.
+ *
+ * Rollen følger `Membership.membershipType`, sånn at «er dette lederen?» er
+ * samme sammenligning overalt i appen. Photon har ingen styrerolle — bare
+ * leder og medlem.
+ */
+export type GroupMember = {
+    membershipType: "LEADER" | "MEMBER";
+    joinedAt: string;
+    user: GroupUser;
+};
+
 export type CreateFinePayload = {
     description: string;
     amount: number;

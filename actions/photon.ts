@@ -15,6 +15,7 @@ import type {
     FineStatistics,
     FineStatus,
     Group,
+    GroupMember,
     GroupUser,
     Law,
     Membership,
@@ -122,11 +123,20 @@ export type PhotonGroup = {
     membership?: { role: "member" | "leader"; joinedAt?: string } | null;
 };
 
+/** `GET /groups/:slug` — gruppa slik den står på egen side. */
+export type PhotonGroupDetail = PhotonGroup & {
+    leaderTitle?: string | null;
+    finesInfo?: string | null;
+};
+
 /**
  * `logoUrl` er den kvadratiske merket Leptons `image` holdt. `imageUrl` er en
  * bred banner og ville sprengt avatar-oppsettet.
+ *
+ * `leaderTitle` og `finesInfo` finnes bare i detaljsvaret, så de står tomme
+ * når gruppa kommer fra `/groups/mine`.
  */
-export const toGroup = (group: PhotonGroup): Group => ({
+export const toGroup = (group: PhotonGroup | PhotonGroupDetail): Group => ({
     name: group.name,
     slug: group.slug,
     image: group.logoUrl ?? undefined,
@@ -134,6 +144,30 @@ export const toGroup = (group: PhotonGroup): Group => ({
     description: group.description ?? undefined,
     type: group.type ?? "",
     finesActivated: group.finesActivated ?? false,
+    leaderTitle: "leaderTitle" in group ? (group.leaderTitle ?? null) : undefined,
+    finesInfo:
+        "finesInfo" in group ? (group.finesInfo ?? undefined) : undefined,
+});
+
+export type PhotonGroupMember = {
+    userId: string;
+    groupSlug: string;
+    role: string;
+    createdAt: string;
+    user: PhotonUser | null;
+};
+
+/**
+ * Photon typer `role` som fri streng i skjemaet, men bruker bare `leader` og
+ * `member`. Alt som ikke er `leader` blir medlem, samme regel som
+ * `toMembership` rett under.
+ */
+export const toGroupMember = (member: PhotonGroupMember): GroupMember => ({
+    membershipType: member.role === "leader" ? "LEADER" : "MEMBER",
+    joinedAt: member.createdAt,
+    // Raden har sin egen `userId`. Uten den ville et medlem uten brukerobjekt
+    // fått tom id, og både listenøkkelen og bot-mottakeren ville vært tomme.
+    user: toGroupUser(member.user ?? { id: member.userId }),
 });
 
 export const toMembership = (group: PhotonGroup): Membership => ({
