@@ -8,7 +8,7 @@ export type Registration = {
     paymentExpireDate: string;
     paymentOrders: string[];
     waitQueueNumber: number;
-    registrationId: number;
+    registrationId: string;
     /** Photons egen status. Avgjør hvilken tilstand påmeldingskortet viser. */
     status?:
         | "registered"

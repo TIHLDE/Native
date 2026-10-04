@@ -298,7 +298,7 @@ function ManualRegistration() {
                     )}
                 </>
             )}
-            keyExtractor={(item) => item.registrationId.toString()}
+            keyExtractor={(item) => item.registrationId}
             onEndReached={() => {
                 if (!hasNextPage) return;
                 fetchNextPage();

@@ -226,7 +226,7 @@ export const toOwnRegistration = (
     paymentExpireDate: registration.paymentExpiresAt ?? "",
     paymentOrders: [],
     waitQueueNumber: registration.waitlistPosition ?? 0,
-    registrationId: 0,
+    registrationId: "",
     status: registration.status,
     userInfo: toUser(null),
 });
@@ -311,7 +311,7 @@ export const toRegistration = (registered: PhotonRegisteredUser): Registration =
     paymentExpireDate: "",
     paymentOrders: [],
     waitQueueNumber: registered.waitlistPosition ?? 0,
-    registrationId: Number(registered.id),
+    registrationId: registered.id,
     userInfo: toUser({
         id: registered.id,
         name: registered.name,

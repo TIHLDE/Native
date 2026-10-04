@@ -37,7 +37,7 @@ const registration = (overrides: Partial<Registration> = {}): Registration => ({
     paymentExpireDate: "",
     paymentOrders: [],
     waitQueueNumber: 0,
-    registrationId: 0,
+    registrationId: "",
     userInfo: { userId: "", firstName: "", lastName: "", email: "", gender: 0, study: { group: { name: "", slug: "", type: "" } }, studyyear: { group: { name: "", slug: "", type: "" } }, unansweredEvaluationsCount: 0 },
     status: "registered",
     ...overrides,
