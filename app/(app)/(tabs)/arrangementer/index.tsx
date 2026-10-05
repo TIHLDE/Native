@@ -232,7 +232,7 @@ export default function Arrangementer() {
                             key={event.id}
                             id={event.id}
                             title={event.title}
-                            date={new Date(event.start_date)}
+                            date={new Date(event.startDate)}
                             image={event.image ?? null}
                             location={event.location}
                             onPress={() => router.push(`/(app)/(modals)/arrangement/${event.id}`)}

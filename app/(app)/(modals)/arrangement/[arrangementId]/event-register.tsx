@@ -70,7 +70,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                 Toast.show({
                     type: "error",
                     text1: "Feil",
-                    text2: `${userToRegister?.first_name} er ikke påmeldt arrangementet`,
+                    text2: `${userToRegister?.firstName} er ikke påmeldt arrangementet`,
                 });
                 return;
             }
@@ -174,7 +174,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                                 Registrert!
                             </Text>
                             <Text className="text-sm text-muted-foreground text-center mt-1">
-                                {userToRegister?.first_name} er registrert
+                                {userToRegister?.firstName} er registrert
                             </Text>
                         </View>
                     ) : updateRegistrationMutation.isPending ? (
@@ -194,13 +194,13 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                                     Registrer oppmøte
                                 </Text>
                                 <Text className="text-sm text-muted-foreground text-center mt-1">
-                                    Vil du registrere {userToRegister?.first_name} {userToRegister?.last_name}?
+                                    Vil du registrere {userToRegister?.firstName} {userToRegister?.lastName}?
                                 </Text>
                             </View>
                             <View className="gap-y-2">
                                 <Pressable
                                     onPress={() => {
-                                        updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.user_id ?? "" });
+                                        updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.userId ?? "" });
                                     }}
                                     className="h-14 rounded-2xl bg-primary items-center justify-center active:opacity-80"
                                 >
@@ -254,7 +254,7 @@ function ManualRegistration() {
 
     const participants = data?.pages.flatMap((page) => {
         if (!page) return [];
-        return page.results.filter((registration) => !registration.is_on_wait);
+        return page.results.filter((registration) => !registration.isOnWait);
     }) ?? [];
 
     return (
@@ -298,7 +298,7 @@ function ManualRegistration() {
                     )}
                 </>
             )}
-            keyExtractor={(item) => item.registration_id.toString()}
+            keyExtractor={(item) => item.registrationId}
             onEndReached={() => {
                 if (!hasNextPage) return;
                 fetchNextPage();
@@ -332,17 +332,17 @@ function ManualRegistration() {
 }
 
 function EventRegistration({ registration, eventId }: { registration: Registration, eventId: string }) {
-    const [checked, setChecked] = useState(registration.has_attended);
+    const [checked, setChecked] = useState(registration.hasAttended);
     const queryClient = useQueryClient();
 
     useLayoutEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setChecked(registration.has_attended);
-    }, [registration.has_attended]);
+        setChecked(registration.hasAttended);
+    }, [registration.hasAttended]);
 
     const updateRegistrationMutation = useMutation({
         mutationFn: async (newValue: boolean) => {
-            await updateEventParticipation(eventId, registration.user_info.user_id, newValue);
+            await updateEventParticipation(eventId, registration.userInfo.userId, newValue);
             queryClient.invalidateQueries({ queryKey: ["event", eventId, "participants"] });
             return true;
         },
@@ -352,7 +352,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
                 text1: "Feil",
                 text2: error.message,
             });
-            setChecked(registration.has_attended);
+            setChecked(registration.hasAttended);
         }
     });
 
@@ -367,7 +367,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
         setChecked(!checked);
     };
 
-    const initials = `${registration.user_info.first_name[0]}${registration.user_info.last_name[0]}`;
+    const initials = `${registration.userInfo.firstName[0]}${registration.userInfo.lastName[0]}`;
 
     return (
         <Pressable
@@ -381,13 +381,13 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
                 </Text>
             </View>
             <Text className="flex-1 text-base text-foreground" style={{ fontFamily: "Inter" }}>
-                {registration.user_info.first_name} {registration.user_info.last_name}
+                {registration.userInfo.firstName} {registration.userInfo.lastName}
             </Text>
             <Switch
                 disabled={updateRegistrationMutation.isPending}
                 checked={checked}
                 onCheckedChange={handleCheckedChange}
-                nativeID={`switch-${registration.registration_id}`}
+                nativeID={`switch-${registration.registrationId}`}
             />
         </Pressable>
     );

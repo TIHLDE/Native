@@ -5,7 +5,7 @@ import { AuthedImage } from "./authedImage";
 import { Text } from "./text";
 
 export default function UserCard({ user }: { user: User }) {
-    const initials = `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`;
+    const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`;
 
     return (
         <View className="flex-row items-center px-4 py-3">
@@ -24,7 +24,7 @@ export default function UserCard({ user }: { user: User }) {
             )}
             <View className="ml-3 flex-1">
                 <Text className="text-base text-foreground" numberOfLines={1}>
-                    {user.first_name} {user.last_name}
+                    {user.firstName} {user.lastName}
                 </Text>
             </View>
         </View>

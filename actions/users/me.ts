@@ -159,8 +159,8 @@ const asEvent = (registration: {
     ({
         id: registration.eventId,
         title: registration.title,
-        start_date: registration.startTime,
-        end_date: registration.endTime ?? registration.startTime,
+        startDate: registration.startTime,
+        endDate: registration.endTime ?? registration.startTime,
         location: registration.location ?? undefined,
         image: registration.image ?? undefined,
         // Photon oppgir arrangøren som navn her, ikke som gruppe. Kortet
@@ -168,14 +168,14 @@ const asEvent = (registration: {
         organizer: registration.organizer
             ? { name: registration.organizer, slug: "" }
             : undefined,
-        paid_information: undefined,
+        paidInformation: undefined,
         limit: 0,
-        list_count: "0",
-        waiting_list_count: "0",
-        sign_off_deadline: "",
-        end_registration_at: "",
-        start_registration_at: "",
-    }) as unknown as Event;
+        listCount: "0",
+        waitingListCount: "0",
+        signOffDeadline: "",
+        endRegistrationAt: "",
+        startRegistrationAt: "",
+    });
 
 /**
  * Kommende påmeldinger.

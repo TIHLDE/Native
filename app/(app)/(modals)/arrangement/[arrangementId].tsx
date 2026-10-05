@@ -260,7 +260,7 @@ export default function ArrangementSide() {
     const isValidDate = (dateStr: string) =>
         Boolean(dateStr) && !Number.isNaN(new Date(dateStr).getTime());
 
-    const hasSignOffDeadline = isValidDate(event.data.sign_off_deadline);
+    const hasSignOffDeadline = isValidDate(event.data.signOffDeadline);
 
 
     return (
@@ -299,12 +299,12 @@ export default function ArrangementSide() {
                             <DetailRow
                                 icon={<CalendarDays size={18} color={mutedColor} />}
                                 label="Dato"
-                                value={formatDate(event.data.start_date)}
+                                value={formatDate(event.data.startDate)}
                             />
                             <DetailRow
                                 icon={<Clock size={18} color={mutedColor} />}
                                 label="Tid"
-                                value={`${formatTime(event.data.start_date)} – ${formatTime(event.data.end_date)}`}
+                                value={`${formatTime(event.data.startDate)} – ${formatTime(event.data.endDate)}`}
                             />
                             <DetailRow
                                 icon={<MapPin size={18} color={mutedColor} />}
@@ -315,23 +315,23 @@ export default function ArrangementSide() {
                                 icon={<UserRound size={18} color={mutedColor} />}
                                 label="Kontaktperson"
                                 value={
-                                    event.data.contact_person
-                                        ? `${event.data.contact_person.first_name} ${event.data.contact_person.last_name}`
+                                    event.data.contactPerson
+                                        ? `${event.data.contactPerson.firstName} ${event.data.contactPerson.lastName}`
                                         : "Ikke oppgitt"
                                 }
                             />
-                            {event.data.paid_information?.price && (
+                            {event.data.paidInformation?.price && (
                                 <DetailRow
                                     icon={<CreditCard size={18} color={mutedColor} />}
                                     label="Pris"
-                                    value={formatPrice(event.data.paid_information.price)}
+                                    value={formatPrice(event.data.paidInformation.price)}
                                     isLast
                                 />
                             )}
                         </View>
 
                         {/* Admin: register attendance button */}
-                        {permissions.data?.event?.write && event.data.sign_up && (
+                        {permissions.data?.event?.write && event.data.signUp && (
                             <Pressable
                                 onPress={() => router.push({
                                     pathname: "/(app)/(modals)/arrangement/[arrangementId]/event-register",
@@ -347,7 +347,7 @@ export default function ArrangementSide() {
                         )}
 
                         {/* Registration section */}
-                        {event.data.sign_up && (
+                        {event.data.signUp && (
                             <>
                                 <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-4">
                                     <DetailRow
@@ -373,7 +373,7 @@ export default function ArrangementSide() {
                                         <DetailRow
                                             icon={<CalendarOff size={18} color={mutedColor} />}
                                             label="Avmeldingsfrist"
-                                            value={`${formatDate(event.data.sign_off_deadline)} kl. ${formatTime(event.data.sign_off_deadline)}`}
+                                            value={`${formatDate(event.data.signOffDeadline)} kl. ${formatTime(event.data.signOffDeadline)}`}
                                             isLast
                                         />
                                     )}
@@ -441,7 +441,7 @@ export default function ArrangementSide() {
                             // Uten frist er det aldri for sent å melde seg av.
                             isPastDeadline={
                                 hasSignOffDeadline &&
-                                isBefore(new Date(event.data.sign_off_deadline), new Date())
+                                isBefore(new Date(event.data.signOffDeadline), new Date())
                             }
                             sheetRef={unregisterSheetRef}
                         />
@@ -608,7 +608,7 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
     }
 
     const participants = data?.pages.flatMap((page) =>
-        page ? page.results.filter((registration) => registration.user_info !== null) : []
+        page ? page.results.filter((registration) => registration.userInfo !== null) : []
     ) ?? [];
 
     return (
@@ -618,11 +618,11 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
             stickyHeaderIndices={[0]}
             renderItem={({ item: registration }: { item: Registration }) => (
                 <>
-                    <UserCard user={registration.user_info} />
+                    <UserCard user={registration.userInfo} />
                     <View className="h-px bg-border dark:bg-muted" />
                 </>
             )}
-            keyExtractor={(item: Registration, index: number) => item.user_info?.user_id?.toString() ?? index.toString()}
+            keyExtractor={(item: Registration, index: number) => item.userInfo?.userId?.toString() ?? index.toString()}
             onEndReached={() => {
                 if (!hasNextPage) return;
                 fetchNextPage();
@@ -681,7 +681,7 @@ function RegistrationButton({
     // med medlemmets egen rad uansett status, med betaling og frist. Lista over
     // påmeldte kan ikke brukes til dette — den skjuler status, e-post og
     // betaling for alle uten arrangementstilgang.
-    const mine = event.my_registration ?? null;
+    const mine = event.myRegistration ?? null;
     const state = deriveRegistrationState(event, mine, now);
 
     // Bare tilstandene der medlemmet ellers kunne meldt seg på — å be noen
@@ -694,8 +694,8 @@ function RegistrationButton({
         ? registrationErrorMessage(mutationError)
         : null;
 
-    const paymentCountdown = mine?.payment_expiredate
-        ? formatCountdown(mine.payment_expiredate, now)
+    const paymentCountdown = mine?.paymentExpireDate
+        ? formatCountdown(mine.paymentExpireDate, now)
         : undefined;
 
     return (
@@ -722,8 +722,8 @@ function RegistrationButton({
                 <StatusBanner
                     tone="info"
                     palette={palette}
-                    message={`Påmelding åpner om ${formatTimeUntil(event.start_registration_at, now)}`}
-                    secondary={`${formatDate(event.start_registration_at)} kl. ${formatTime(event.start_registration_at)}.`}
+                    message={`Påmelding åpner om ${formatTimeUntil(event.startRegistrationAt, now)}`}
+                    secondary={`${formatDate(event.startRegistrationAt)} kl. ${formatTime(event.startRegistrationAt)}.`}
                 />
             )}
 
@@ -741,7 +741,7 @@ function RegistrationButton({
                     palette={palette}
                     message="Du har plass på arrangementet!"
                     secondary={
-                        mine?.has_paid_order
+                        mine?.hasPaidOrder
                             ? "Du har betalt, så plassen kan ikke meldes av."
                             : undefined
                     }
@@ -754,8 +754,8 @@ function RegistrationButton({
                     palette={palette}
                     message="Du er på venteliste"
                     secondary={
-                        mine?.wait_queue_number
-                            ? `Posisjon ${mine.wait_queue_number}. Du får plassen om noen melder seg av.`
+                        mine?.waitQueueNumber
+                            ? `Posisjon ${mine.waitQueueNumber}. Du får plassen om noen melder seg av.`
                             : "Du får plassen om noen melder seg av."
                     }
                 />
@@ -776,7 +776,7 @@ function RegistrationButton({
                     palette={palette}
                     message="Påmeldinga di ble avbrutt"
                     secondary={
-                        event.is_paid_event
+                        event.isPaidEvent
                             ? "Plassen er gitt videre, som regel fordi betalingsfristen gikk ut. Ta kontakt med arrangøren om du fortsatt vil være med."
                             : "Plassen er ikke lenger din. Ta kontakt med arrangøren om du fortsatt vil være med."
                     }
@@ -789,8 +789,8 @@ function RegistrationButton({
                     palette={palette}
                     message="Arrangementet er fullt"
                     secondary={
-                        Number(event.waiting_list_count) > 0
-                            ? `${event.waiting_list_count} står på venteliste.`
+                        Number(event.waitingListCount) > 0
+                            ? `${event.waitingListCount} står på venteliste.`
                             : "Meld deg på ventelista, så får du plassen om noen melder seg av."
                     }
                 />
@@ -842,7 +842,7 @@ function RegistrationButton({
             )}
 
             {/* Billetten kan ikke gis fra seg — den selges videre. */}
-            {state === "joined" && mine?.has_paid_order && (
+            {state === "joined" && mine?.hasPaidOrder && (
                 <Pressable
                     onPress={() => WebBrowser.openBrowserAsync(TICKET_RESALE_GROUP_URL)}
                     className="h-14 rounded-2xl flex-row items-center justify-center mb-2 border border-border active:opacity-70"
@@ -862,7 +862,7 @@ function RegistrationButton({
               * det, og knappen ville bare gitt en avvisning tilbake.
               */}
             {(state === "joined" || state === "on-waitlist" || state === "awaiting-payment") &&
-                !mine?.has_paid_order && (
+                !mine?.hasPaidOrder && (
                     <Pressable
                         onPress={() => unregisterSheetRef.current?.present()}
                         disabled={mutationPending}
@@ -909,7 +909,7 @@ function paymentDeadlineText(
     registration: Registration | null,
     countdown: string | null | undefined,
 ): string | undefined {
-    if (!registration?.payment_expiredate) return undefined;
+    if (!registration?.paymentExpireDate) return undefined;
     // Nedtellingen kan ha passert fristen før serveren har rukket å gi plassen
     // videre. «Betal innen 0 sekunder» er da feil — plassen er ute av
     // medlemmets hender, og det eneste ærlige er å si det.
@@ -917,7 +917,7 @@ function paymentDeadlineText(
         return "Betalingsfristen er gått ut. Plassen kan ha gått videre til neste på ventelista.";
     }
     if (!countdown) return undefined;
-    return `${countdown} igjen å betale (innen kl. ${formatTime(registration.payment_expiredate)}), ellers gis plassen videre.`;
+    return `${countdown} igjen å betale (innen kl. ${formatTime(registration.paymentExpireDate)}), ellers gis plassen videre.`;
 }
 
 const BANNER_TONES = {

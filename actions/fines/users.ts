@@ -1,8 +1,5 @@
-import { apiJson } from "@/lib/api/client";
 import { GroupUser } from "@/actions/types";
-import { PhotonUser, toGroupUser } from "@/actions/photon";
-
-type PhotonMember = { userId: string; role: string; user: PhotonUser | null };
+import { fetchGroupMembers } from "@/actions/groups/members";
 
 /**
  * Medlemmene i en gruppe, til bruk når man skal gi bot.
@@ -17,15 +14,13 @@ export async function fetchGroupUsers(
     search: string = "",
     page: number = 1
 ): Promise<{ count: number; results: GroupUser[] }> {
-    const members = await apiJson<PhotonMember[]>(
-        `/groups/${encodeURIComponent(groupSlug)}/members`
-    );
+    const members = await fetchGroupMembers(groupSlug);
 
-    const users = members.map((member) => toGroupUser(member.user));
+    const users = members.map((member) => member.user);
     const needle = search.trim().toLowerCase();
     const matched = needle
         ? users.filter((user) =>
-              `${user.first_name} ${user.last_name} ${user.user_id}`
+              `${user.firstName} ${user.lastName} ${user.userId}`
                   .toLowerCase()
                   .includes(needle)
           )

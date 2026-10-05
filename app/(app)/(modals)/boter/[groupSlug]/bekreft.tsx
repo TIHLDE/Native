@@ -6,6 +6,7 @@ import PageWrapper from "@/components/ui/pagewrapper";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { createFine } from "@/actions/fines/fines";
 import { uploadImage } from "@/actions/fines/upload";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -30,14 +31,15 @@ import Toast from "react-native-toast-message";
 type SelectedUser = {
     /** Photons bruker-id — det API-et slår opp på. */
     id: string;
-    user_id: string;
-    first_name: string;
-    last_name: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
     image?: string;
 };
 
 export default function ConfirmFine() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { isDarkColorScheme } = useColorScheme();
     const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
@@ -136,6 +138,12 @@ export default function ConfirmFine() {
                 image: uploadedUrl,
             });
 
+            // Uten denne viste gruppesida de gamle summene og lista til noen
+            // dro ned for å oppdatere. Prefikset treffer alle utvalgene,
+            // summene og «Per medlem». Ikke ventet på — kvitteringen skal
+            // ikke holdes igjen av en ny henting.
+            queryClient.invalidateQueries({ queryKey: ["fines", groupSlug] });
+
             setIsSuccess(true);
         } catch (error: any) {
             Toast.show({
@@ -211,7 +219,7 @@ export default function ConfirmFine() {
                         <View className="flex-row gap-3">
                             {selectedUsers.map((user) => (
                                 <View
-                                    key={user.user_id}
+                                    key={user.userId}
                                     className="items-center w-16"
                                 >
                                     {user.image ? (
@@ -223,8 +231,8 @@ export default function ConfirmFine() {
                                     ) : (
                                         <View className="w-12 h-12 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
                                             <Text className="text-sm font-bold text-primary">
-                                                {user.first_name[0]}
-                                                {user.last_name[0]}
+                                                {user.firstName[0]}
+                                                {user.lastName[0]}
                                             </Text>
                                         </View>
                                     )}
@@ -232,7 +240,7 @@ export default function ConfirmFine() {
                                         className="text-xs text-muted-foreground mt-1 text-center"
                                         numberOfLines={1}
                                     >
-                                        {user.first_name}
+                                        {user.firstName}
                                     </Text>
                                 </View>
                             ))}

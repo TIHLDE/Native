@@ -13,38 +13,40 @@ const past = (hours: number) =>
 const future = (hours: number) =>
     new Date(NOW.getTime() + hours * 3600_000).toISOString();
 
-const event = (overrides: Partial<Event> = {}): Event =>
-    ({
-        id: "e1",
-        title: "Test",
-        start_date: future(48),
-        end_date: future(50),
-        sign_up: true,
-        closed: false,
-        limit: 0,
-        list_count: "0",
-        waiting_list_count: "0",
-        start_registration_at: past(1),
-        end_registration_at: future(24),
-        sign_off_deadline: future(20),
-        ...overrides,
-    }) as unknown as Event;
+const event = (overrides: Partial<Event> = {}): Event => ({
+    id: "e1",
+    title: "Test",
+    startDate: future(48),
+    endDate: future(50),
+    signUp: true,
+    closed: false,
+    limit: 0,
+    listCount: "0",
+    waitingListCount: "0",
+    startRegistrationAt: past(1),
+    endRegistrationAt: future(24),
+    signOffDeadline: future(20),
+    ...overrides,
+});
 
-const registration = (overrides: Partial<Registration> = {}): Registration =>
-    ({
-        has_attended: false,
-        has_paid_order: false,
-        is_on_wait: false,
-        payment_expiredate: "",
-        wait_queue_number: 0,
-        status: "registered",
-        ...overrides,
-    }) as unknown as Registration;
+const registration = (overrides: Partial<Registration> = {}): Registration => ({
+    hasAttended: false,
+    hasPaidOrder: false,
+    hasUnansweredEvaluation: false,
+    isOnWait: false,
+    paymentExpireDate: "",
+    paymentOrders: [],
+    waitQueueNumber: 0,
+    registrationId: "",
+    userInfo: { userId: "", firstName: "", lastName: "", email: "", gender: 0, study: { group: { name: "", slug: "", type: "" } }, studyyear: { group: { name: "", slug: "", type: "" } }, unansweredEvaluationsCount: 0 },
+    status: "registered",
+    ...overrides,
+});
 
 describe("deriveRegistrationState", () => {
     it("sier fra når arrangementet ikke har påmelding", () => {
         expect(
-            deriveRegistrationState(event({ sign_up: false }), null, NOW),
+            deriveRegistrationState(event({ signUp: false }), null, NOW),
         ).toBe("no-signup");
     });
 
@@ -55,7 +57,7 @@ describe("deriveRegistrationState", () => {
     it("er ikke åpnet før påmeldingen starter", () => {
         expect(
             deriveRegistrationState(
-                event({ start_registration_at: future(2) }),
+                event({ startRegistrationAt: future(2) }),
                 null,
                 NOW,
             ),
@@ -65,7 +67,7 @@ describe("deriveRegistrationState", () => {
     it("er stengt etter påmeldingsfristen", () => {
         expect(
             deriveRegistrationState(
-                event({ end_registration_at: past(1) }),
+                event({ endRegistrationAt: past(1) }),
                 null,
                 NOW,
             ),
@@ -75,7 +77,7 @@ describe("deriveRegistrationState", () => {
     it("er stengt når arrangementet er over, selv om flagget ikke er satt", () => {
         expect(
             deriveRegistrationState(
-                event({ start_date: past(5), end_date: past(3) }),
+                event({ startDate: past(5), endDate: past(3) }),
                 null,
                 NOW,
             ),
@@ -91,7 +93,7 @@ describe("deriveRegistrationState", () => {
     it("er fullt når plassene er tatt", () => {
         expect(
             deriveRegistrationState(
-                event({ limit: 2, list_count: "2" }),
+                event({ limit: 2, listCount: "2" }),
                 null,
                 NOW,
             ),
@@ -101,7 +103,7 @@ describe("deriveRegistrationState", () => {
     it("lar stengt gå foran fullt", () => {
         expect(
             deriveRegistrationState(
-                event({ limit: 2, list_count: "2", closed: true }),
+                event({ limit: 2, listCount: "2", closed: true }),
                 null,
                 NOW,
             ),
@@ -117,7 +119,7 @@ describe("deriveRegistrationState", () => {
     it("venter på betaling når plassen ikke er betalt", () => {
         expect(
             deriveRegistrationState(
-                event({ is_paid_event: true }),
+                event({ isPaidEvent: true }),
                 registration(),
                 NOW,
             ),
@@ -127,8 +129,8 @@ describe("deriveRegistrationState", () => {
     it("er påmeldt når den betalte plassen er gjort opp", () => {
         expect(
             deriveRegistrationState(
-                event({ is_paid_event: true }),
-                registration({ has_paid_order: true }),
+                event({ isPaidEvent: true }),
+                registration({ hasPaidOrder: true }),
                 NOW,
             ),
         ).toBe("joined");
@@ -137,7 +139,7 @@ describe("deriveRegistrationState", () => {
     it("viser oppmøtt som påmeldt, ikke som ubetalt", () => {
         expect(
             deriveRegistrationState(
-                event({ is_paid_event: true }),
+                event({ isPaidEvent: true }),
                 registration({ status: "attended" }),
                 NOW,
             ),
@@ -157,7 +159,7 @@ describe("deriveRegistrationState", () => {
     it("behandler en påmelding som ikke er avgjort", () => {
         expect(
             deriveRegistrationState(
-                event({ is_paid_event: true }),
+                event({ isPaidEvent: true }),
                 registration({ status: "pending" }),
                 NOW,
             ),
@@ -180,8 +182,8 @@ describe("deriveRegistrationState", () => {
     it("holder en kansellert påmelding avbrutt også på betalte arrangementer", () => {
         expect(
             deriveRegistrationState(
-                event({ is_paid_event: true }),
-                registration({ status: "cancelled", has_paid_order: false }),
+                event({ isPaidEvent: true }),
+                registration({ status: "cancelled", hasPaidOrder: false }),
                 NOW,
             ),
         ).toBe("cancelled");

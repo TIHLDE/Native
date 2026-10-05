@@ -57,11 +57,11 @@ export async function publicEventParticipants(
  */
 export async function updateEventParticipation(
     eventId: string,
-    user_id: string,
+    userId: string,
     value: boolean
 ): Promise<boolean> {
     const response = await apiFetch(
-        `/event/${encodeURIComponent(String(eventId))}/registration/${encodeURIComponent(user_id)}/attendance`,
+        `/event/${encodeURIComponent(String(eventId))}/registration/${encodeURIComponent(userId)}/attendance`,
         {
             method: "PATCH",
             body: JSON.stringify({ attended: value }),

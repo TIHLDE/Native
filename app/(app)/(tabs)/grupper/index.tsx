@@ -37,7 +37,7 @@ const AUTOMATIC_GROUP_TYPES = ["tihlde", "study", "studyyear"];
 /**
  * Gruppene brukeren er med i.
  *
- * Til forskjell fra bot-fanen filtreres det ikke på `fines_activated` — «Grupper»
+ * Til forskjell fra bot-fanen filtreres det ikke på `finesActivated` — «Grupper»
  * lover gruppene dine, og komiteer og undergrupper uten bøtesystem hører med. De
  * som mangler bøter merkes i stedet, sånn at det ikke overrasker at
  * bøtefanen inne på gruppa er tom.
@@ -105,11 +105,11 @@ export default function Grupper() {
                             </Text>
                             <View className="flex-row items-center mt-0.5">
                                 <Text className="text-sm text-muted-foreground">
-                                    {membership.membership_type === "LEADER"
+                                    {membership.membershipType === "LEADER"
                                         ? "Leder"
                                         : "Medlem"}
                                 </Text>
-                                {!membership.group.fines_activated ? (
+                                {!membership.group.finesActivated ? (
                                     <Text className="text-sm text-muted-foreground">
                                         {" · Uten bøter"}
                                     </Text>

@@ -1,7 +1,9 @@
+import { ReactElement } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ActivityIndicator, FlatList, View } from "react-native";
-import { Trophy } from "lucide-react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { ChevronRight, Users } from "lucide-react-native";
 import { fetchFineLeaderboard } from "@/actions/fines/leaderboard";
+import { FineStatus } from "@/actions/types";
 import { Text } from "@/components/ui/text";
 import { themeColors } from "@/lib/theme/colors";
 import useRefresh from "@/lib/useRefresh";
@@ -21,12 +23,25 @@ function LeaderboardRowSkeleton() {
     );
 }
 
+/**
+ * «Per medlem» i bøtefanen: hvert medlem med summen av bøtene sine, høyest
+ * først. Var en egen «Toppliste»-fane før den ble flyttet inn under Bøter, slik
+ * nettsida har den.
+ *
+ * Uten `status` teller Photon bare de aktive bøtene. Et trykk på en rad viser
+ * bøtene til den personen i «Alle bøter».
+ */
 export function GroupLeaderboardList({
     groupSlug,
-    finesActivated,
+    status,
+    onSelectUser,
+    ListHeaderComponent,
 }: {
     groupSlug: string;
-    finesActivated: boolean;
+    status?: FineStatus;
+    onSelectUser: (user: { id: string; name: string }) => void;
+    /** Ruller med lista, over medlemmene. Bøtefanen legger summene her. */
+    ListHeaderComponent?: ReactElement;
 }) {
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
@@ -40,26 +55,19 @@ export function GroupLeaderboardList({
         isError,
         isFetchingNextPage,
     } = useInfiniteQuery({
-        queryKey: ["fines", groupSlug, "leaderboard"],
-        queryFn: ({ pageParam }) => fetchFineLeaderboard(groupSlug, pageParam),
+        queryKey: ["fines", groupSlug, "leaderboard", { status }],
+        queryFn: ({ pageParam }) =>
+            fetchFineLeaderboard(groupSlug, pageParam, status),
         initialPageParam: 0,
         getNextPageParam: (lastPage) => lastPage.next ?? undefined,
-        // Samme 404 som bøtelista — se kommentaren der.
-        enabled: finesActivated,
     });
 
-    const refreshControl = useRefresh(["fines", groupSlug, "leaderboard"]);
+    // Samme par som bøtelista — se kommentaren der.
+    const refreshControl = useRefresh([
+        ["group", groupSlug],
+        ["fines", groupSlug],
+    ]);
     const entries = data?.pages.flatMap((page) => page.results) ?? [];
-
-    if (!finesActivated) {
-        return (
-            <GroupEmptyState
-                icon={Trophy}
-                title="Bøter er ikke aktivert"
-                description="Denne gruppen bruker ikke bøtesystemet."
-            />
-        );
-    }
 
     return (
         <FlatList
@@ -69,8 +77,14 @@ export function GroupLeaderboardList({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
             refreshControl={refreshControl}
+            ListHeaderComponent={ListHeaderComponent}
             renderItem={({ item, index }) => (
-                <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center">
+                <Pressable
+                    onPress={() => onSelectUser({ id: item.id, name: item.name })}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Vis bøtene til ${item.name}`}
+                    className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
+                >
                     {/* Photon sorterer høyest først, så plasseringen er
                         listeindeksen — den regnes ikke ut på nytt her. */}
                     <Text className="w-6 text-base font-bold text-muted-foreground">
@@ -81,21 +95,26 @@ export function GroupLeaderboardList({
                         image={item.image}
                         className="ml-3"
                     />
-                    <Text
-                        className="flex-1 ml-3 text-base font-semibold text-foreground"
-                        numberOfLines={1}
-                    >
-                        {item.name}
-                    </Text>
-                    <View className="items-end ml-2">
-                        <Text className="text-base font-semibold text-foreground">
-                            {`${item.finesAmount} ${item.finesAmount === 1 ? "bot" : "bøter"}`}
+                    <View className="flex-1 ml-3">
+                        <Text
+                            className="text-base font-semibold text-foreground"
+                            numberOfLines={1}
+                        >
+                            {item.name}
                         </Text>
-                        <Text className="text-xs text-muted-foreground mt-0.5">
-                            {`${item.finesCount} ${item.finesCount === 1 ? "gang" : "ganger"}`}
+                        <Text
+                            className="text-sm text-muted-foreground mt-0.5"
+                            numberOfLines={1}
+                        >
+                            {`${item.finesAmount} ${item.finesAmount === 1 ? "bot" : "bøter"} fordelt på ${item.finesCount} ${item.finesCount === 1 ? "hendelse" : "hendelser"}`}
                         </Text>
                     </View>
-                </View>
+                    <ChevronRight
+                        size={18}
+                        color={colors.mutedForeground}
+                        style={{ marginLeft: 8 }}
+                    />
+                </Pressable>
             )}
             onEndReachedThreshold={0.5}
             onEndReached={() => {
@@ -124,9 +143,9 @@ export function GroupLeaderboardList({
                     </View>
                 ) : (
                     <GroupEmptyState
-                        icon={Trophy}
-                        title="Ingen på topplisten"
-                        description="Denne gruppen har ingen medlemmer å vise."
+                        icon={Users}
+                        title="Ingen medlemmer"
+                        description="Gruppen har ingen medlemmer å vise bøter for."
                     />
                 )
             }

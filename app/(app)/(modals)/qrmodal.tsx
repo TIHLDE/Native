@@ -33,17 +33,17 @@ export default function QrModal() {
     return (
         <View className="w-full flex flex-col p-2 mt-20 justify-center items-center">
             <View className="m-auto">
-                <QRCode value={user.data.user_id}
+                <QRCode value={user.data.userId}
                     backgroundColor="transparent"
                     color={isDarkColorScheme ? NAV_THEME.dark.text : NAV_THEME.light.text}
                     size={300}
                 />
             </View>
             <Text className="text-2xl mt-12">
-                {user.data.first_name} {user.data.last_name}
+                {user.data.firstName} {user.data.lastName}
             </Text>
             <Text className="text-xl text-muted-foreground">
-                @{user.data.user_id}
+                @{user.data.userId}
             </Text>
         </View>
     )

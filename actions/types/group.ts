@@ -1,11 +1,19 @@
 
 export type Group = {
-    fines_activated?: boolean;
+    finesActivated?: boolean;
     image?: string;
-    image_alt?: string;
+    imageAlt?: string;
     name: string;
     slug: string;
     type: string;
-    viewer_is_member: boolean;
-    membership_type: string;
+    description?: string;
+    contactEmail?: string;
+    /**
+     * Hva gruppa kaller lederen sin, f.eks. «Teknologiminister». Null betyr
+     * vanlig «Leder». Bare `GET /groups/:slug` svarer med den — ikke
+     * `/groups/mine` — så den er tom for grupper som er lest fra medlemskapene.
+     */
+    leaderTitle?: string | null;
+    /** Markdown om hvordan gruppa praktiserer bøtesystemet. */
+    finesInfo?: string;
 }

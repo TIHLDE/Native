@@ -5,11 +5,11 @@ import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 /**
- * Den tomme tilstanden gruppesidens tre lister deler.
+ * Den tomme tilstanden gruppesidens lister deler.
  *
  * Samme oppsett som resten av appen bruker (bot-fanen, lovlista), men trukket ut
- * fordi tre lister på samme skjerm som ser ulike ut når de er tomme, ser ut som
- * tre feil framfor én ryddig beskjed.
+ * fordi flere lister på samme skjerm som ser ulike ut når de er tomme, ser ut
+ * som flere feil framfor én ryddig beskjed.
  */
 export function GroupEmptyState({
     icon: Icon,

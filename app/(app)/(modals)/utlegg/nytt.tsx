@@ -145,7 +145,7 @@ export default function NyttUtlegg() {
         if (!user.data) return;
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setContactName((current) =>
-            current || `${user.data.first_name} ${user.data.last_name}`.trim(),
+            current || `${user.data.firstName} ${user.data.lastName}`.trim(),
         );
         setContactEmail((current) => current || user.data.email);
     }, [user.data]);

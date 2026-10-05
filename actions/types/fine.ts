@@ -2,10 +2,10 @@ import { Group } from "./group";
 import { User } from "./user";
 
 export type Membership = {
-    created_at: string;
-    expiration_date: string | null;
+    createdAt: string;
+    expirationDate: string | null;
     group: Group;
-    membership_type: string;
+    membershipType: string;
     user: User;
 };
 
@@ -20,16 +20,29 @@ export type Law = {
 export type GroupUser = {
     /**
      * Photons interne bruker-id. Den er nøkkelen API-et slår opp på, og er
-     * ikke det samme som brukernavnet — `user_id` under er brukernavnet, som
+     * ikke det samme som brukernavnet — `userId` under er brukernavnet, som
      * er det appen viser og søker på.
      */
     id: string;
-    user_id: string;
-    first_name: string;
-    last_name: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
     image?: string;
     email: string;
     gender: number;
+};
+
+/**
+ * Én rad i gruppas medlemsliste.
+ *
+ * Rollen følger `Membership.membershipType`, sånn at «er dette lederen?» er
+ * samme sammenligning overalt i appen. Photon har ingen styrerolle — bare
+ * leder og medlem.
+ */
+export type GroupMember = {
+    membershipType: "LEADER" | "MEMBER";
+    joinedAt: string;
+    user: GroupUser;
 };
 
 export type CreateFinePayload = {

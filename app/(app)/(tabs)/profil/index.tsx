@@ -110,7 +110,7 @@ export default function Profil() {
         );
     }
 
-    const initials = `${user.data.first_name[0] ?? ""}${user.data.last_name[0] ?? ""}`;
+    const initials = `${user.data.firstName[0] ?? ""}${user.data.lastName[0] ?? ""}`;
     const studyProgram = user.data.study.group.name || null;
     const classLabel = classYearLabel(
         studyProgram ?? undefined,
@@ -147,10 +147,10 @@ export default function Profil() {
                             className="text-xl font-bold text-foreground"
                             numberOfLines={2}
                         >
-                            {user.data.first_name} {user.data.last_name}
+                            {user.data.firstName} {user.data.lastName}
                         </Text>
                         <MetaRow
-                            left={`@${user.data.user_id}`}
+                            left={`@${user.data.userId}`}
                             right={user.data.email || null}
                         />
                         <MetaRow left={studyProgram} right={classLabel} />
@@ -274,7 +274,7 @@ function DisplayUserEvents({
             key={event.id}
             id={event.id.toString()}
             title={event.title}
-            date={new Date(event.start_date)}
+            date={new Date(event.startDate)}
             image={event.image ?? null}
             location={event.location ?? null}
             organizer={event.organizer ?? { name: "Ukjent", slug: null }}
