@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Image, View } from "react-native";
 import { Crown, Users } from "lucide-react-native";
 import { fetchMemberships } from "@/actions/fines/memberships";
@@ -13,7 +13,7 @@ import { GroupFinesTab } from "@/components/grupper/GroupFinesTab";
 import { GroupInfoTab } from "@/components/grupper/GroupInfoTab";
 import { GroupLawsList } from "@/components/grupper/GroupLawsList";
 import { GroupMembersList } from "@/components/grupper/GroupMembersList";
-import { GroupTabKey, groupTabs } from "@/lib/groups/groupPage";
+import { GroupTabKey, groupTabs, groupTypeLabel } from "@/lib/groups/groupPage";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -58,6 +58,7 @@ export default function GruppeSide() {
     );
     const group = groupDetail.data ?? membership?.group;
     const finesActivated = group?.finesActivated ?? false;
+    const typeLabel = group ? groupTypeLabel(group.type) : "";
 
     const tabs = groupTabs(finesActivated);
     // En nøkkel som ikke finnes i settet — «Bøter» i en gruppe uten bøter —
@@ -73,8 +74,6 @@ export default function GruppeSide() {
 
     return (
         <PageWrapper className="flex-1 bg-background">
-            <Stack.Screen options={{ title: group?.name ?? "" }} />
-
             <View className="px-4 pt-2">
                 <View className="flex-row items-center">
                     {group?.image ? (
@@ -92,12 +91,12 @@ export default function GruppeSide() {
                         <Text className="text-xl font-bold text-foreground">
                             {group?.name ?? ""}
                         </Text>
-                        {membership ? (
-                            <Text className="text-sm text-muted-foreground mt-0.5">
-                                {membership.membershipType === "LEADER"
-                                    ? "Leder"
-                                    : "Medlem"}
-                            </Text>
+                        {typeLabel ? (
+                            <View className="self-start px-3 py-1 rounded-full bg-primary/15 dark:bg-primary/25 mt-1">
+                                <Text className="text-xs font-semibold text-foreground">
+                                    {typeLabel}
+                                </Text>
+                            </View>
                         ) : null}
                     </View>
                 </View>

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { X } from "lucide-react-native";
 import { fetchFineStatistics } from "@/actions/fines/statistics";
 import { fetchGroupMembers } from "@/actions/groups/members";
+import { Dropdown } from "@/components/ui/dropdown";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import {
@@ -15,7 +16,6 @@ import {
 } from "@/lib/groups/groupPage";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { cn } from "@/lib/utils";
 import { FineStatCard, FineStatCardSkeleton } from "./FineStatCard";
 import { GroupFinesList } from "./GroupFinesList";
 import { GroupLeaderboardList } from "./GroupLeaderboardList";
@@ -102,55 +102,32 @@ export function GroupFinesTab({ groupSlug }: { groupSlug: string }) {
     >();
 
     const statusFilter = status === "alle" ? undefined : status;
+    const statusOptions = STATUS_OPTIONS.map((option) => ({
+        value: option.value,
+        label: statusLabel(option, grouping),
+    }));
     const summary = <FineSummary groupSlug={groupSlug} />;
 
     return (
         <View className="flex-1">
             <View className="pt-3">
-                <SegmentedControl
-                    options={GROUPINGS.map((option) => option.label)}
-                    value={GROUPINGS.findIndex(
-                        (option) => option.key === grouping
-                    )}
-                    onChange={(index) => setGrouping(GROUPINGS[index].key)}
-                    className="mx-4"
-                />
-
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    className="flex-grow-0 mt-3"
-                    contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
-                >
-                    {STATUS_OPTIONS.map((option) => {
-                        const isActive = option.value === status;
-                        return (
-                            <Pressable
-                                key={option.value}
-                                onPress={() => setStatus(option.value)}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: isActive }}
-                                className={cn(
-                                    "px-3 py-1.5 rounded-full border",
-                                    isActive
-                                        ? "bg-primary border-primary"
-                                        : "border-border bg-background"
-                                )}
-                            >
-                                <Text
-                                    className={cn(
-                                        "text-sm font-medium",
-                                        isActive
-                                            ? "text-white"
-                                            : "text-muted-foreground"
-                                    )}
-                                >
-                                    {statusLabel(option, grouping)}
-                                </Text>
-                            </Pressable>
-                        );
-                    })}
-                </ScrollView>
+                <View className="flex-row items-center gap-2 mx-4">
+                    <SegmentedControl
+                        options={GROUPINGS.map((option) => option.label)}
+                        value={GROUPINGS.findIndex(
+                            (option) => option.key === grouping
+                        )}
+                        onChange={(index) => setGrouping(GROUPINGS[index].key)}
+                        className="flex-1"
+                    />
+                    <Dropdown
+                        options={statusOptions}
+                        value={status}
+                        onChange={setStatus}
+                        accessibilityLabel="Filtrer på status"
+                        className="max-w-[45%] self-stretch"
+                    />
+                </View>
 
                 {selectedUser && grouping === "alle" ? (
                     <View className="flex-row items-center mx-4 mt-3">

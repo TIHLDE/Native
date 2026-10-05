@@ -58,8 +58,7 @@ export default function ModalsLayout() {
                 name="gruppe/[groupSlug]/index"
                 options={{
                     ...modalScreenOptions,
-                    // Gruppenavnet settes av skjermen selv når medlemskapet er
-                    // lastet.
+                    // Gruppenavnet står i skjermens eget hode, ikke i tittelen.
                     title: "",
                     headerShown: true,
                     // Første skjerm i modalstacken — får ingen tilbakeknapp selv.
