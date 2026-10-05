@@ -1,5 +1,6 @@
 import * as AuthSession from "expo-auth-session";
 import { BASE_URL } from "@/actions/constant";
+import { request } from "@/lib/api/network";
 import { emitSessionLost } from "@/lib/auth/session-events";
 import { deleteToken, getSession, setSession } from "@/lib/storage/tokenStore";
 
@@ -90,7 +91,7 @@ export async function exchangeCode(
         resource: RESOURCE,
     });
 
-    const res = await fetch(discovery.tokenEndpoint as string, {
+    const res = await request(discovery.tokenEndpoint as string, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),
@@ -157,7 +158,7 @@ async function performRefresh(): Promise<string | null> {
         resource: RESOURCE,
     });
 
-    const res = await fetch(discovery.tokenEndpoint as string, {
+    const res = await request(discovery.tokenEndpoint as string, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),

@@ -1,4 +1,5 @@
 import { API_URL } from "@/actions/constant";
+import { request } from "@/lib/api/network";
 import { getValidAccessToken } from "@/lib/auth/photon";
 import { UnauthorizedError } from "@/lib/api/client";
 
@@ -26,7 +27,7 @@ export async function uploadImage(uri: string): Promise<string> {
         type,
     } as any);
 
-    const response = await fetch(`${API_URL}/assets`, {
+    const response = await request(`${API_URL}/assets`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
