@@ -4,7 +4,6 @@ import Toast from "react-native-toast-message";
 import { Group } from "@/actions/types";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { Text } from "@/components/ui/text";
-import { groupTypeLabel } from "@/lib/groups/groupPage";
 import { themeColors } from "@/lib/theme/colors";
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -23,7 +22,7 @@ function GroupInfoSkeleton() {
 }
 
 /**
- * Om gruppa: hva slags gruppe det er, beskrivelsen og hvem man kontakter.
+ * Om gruppa: beskrivelsen og hvem man kontakter.
  *
  * Beskrivelsen er Markdown i Photon og vises som det, slik nettsida gjør.
  */
@@ -46,8 +45,6 @@ export function GroupInfoTab({
         ["fines", groupSlug],
     ]);
 
-    const typeLabel = group ? groupTypeLabel(group.type) : "";
-
     return (
         <ScrollView
             className="flex-1"
@@ -59,30 +56,9 @@ export function GroupInfoTab({
                 <GroupInfoSkeleton />
             ) : group ? (
                 <View className="mx-4">
-                    {typeLabel ? (
-                        <View className="self-start px-3 py-1 rounded-full bg-primary/15 dark:bg-primary/25 mb-4">
-                            <Text className="text-xs font-semibold text-foreground">
-                                {typeLabel}
-                            </Text>
-                        </View>
-                    ) : null}
-
-                    <Text className="text-xs font-semibold text-muted-foreground uppercase mb-2">
-                        Beskrivelse
-                    </Text>
-                    <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4">
-                        {group.description ? (
-                            <MarkdownView content={group.description} />
-                        ) : (
-                            <Text className="text-sm text-muted-foreground italic">
-                                Gruppen har ingen beskrivelse.
-                            </Text>
-                        )}
-                    </View>
-
                     {group.contactEmail ? (
                         <>
-                            <Text className="text-xs font-semibold text-muted-foreground uppercase mt-6 mb-2">
+                            <Text className="text-xs font-semibold text-muted-foreground uppercase mb-2">
                                 Kontakt
                             </Text>
                             <Pressable
@@ -100,7 +76,7 @@ export function GroupInfoTab({
                                 }
                                 accessibilityRole="link"
                                 accessibilityLabel={`Send e-post til ${group.contactEmail}`}
-                                className="flex-row items-center bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 active:opacity-70"
+                                className="flex-row items-center bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 mb-6 active:opacity-70"
                             >
                                 <Mail size={20} color={colors.primary} />
                                 <Text
@@ -116,6 +92,19 @@ export function GroupInfoTab({
                             </Pressable>
                         </>
                     ) : null}
+
+                    <Text className="text-xs font-semibold text-muted-foreground uppercase mb-2">
+                        Beskrivelse
+                    </Text>
+                    <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4">
+                        {group.description ? (
+                            <MarkdownView content={group.description} />
+                        ) : (
+                            <Text className="text-sm text-muted-foreground italic">
+                                Gruppen har ingen beskrivelse.
+                            </Text>
+                        )}
+                    </View>
                 </View>
             ) : null}
         </ScrollView>
