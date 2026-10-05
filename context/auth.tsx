@@ -11,7 +11,7 @@ import {
 import { onSessionLost } from "@/lib/auth/session-events";
 import { queryClient } from "@/lib/queryClient";
 import { unregisterForPushNotifications } from "@/lib/notifications/push";
-import { deleteToken } from "@/lib/storage/tokenStore";
+import { deleteToken, getSession } from "@/lib/storage/tokenStore";
 
 
 type AuthState = {
@@ -52,13 +52,28 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         const checkAuth = async () => {
             // Refreshes on the way out when the stored token has expired, so a
             // returning user lands logged in rather than bounced to /login.
-            const accessToken = await getValidAccessToken();
+            try {
+                const accessToken = await getValidAccessToken();
 
-            setAuthState({
-                token: accessToken,
-                auhtenticated: Boolean(accessToken),
-                isLoading: false,
-            });
+                setAuthState({
+                    token: accessToken,
+                    auhtenticated: Boolean(accessToken),
+                    isLoading: false,
+                });
+            } catch {
+                // Fornyelsen nådde ikke fram — typisk uten nett, eller mens
+                // Photon er nede. Serveren har ikke avvist sesjonen, så den
+                // beholdes: brukeren slipper inn, og neste kall prøver å fornye
+                // igjen. Uten denne grenen ble isLoading aldri false, og appen
+                // ble stående på splashen for godt.
+                const stored = await getSession().catch(() => null);
+
+                setAuthState({
+                    token: stored?.accessToken ?? null,
+                    auhtenticated: Boolean(stored),
+                    isLoading: false,
+                });
+            }
         };
 
         checkAuth();
