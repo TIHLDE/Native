@@ -2,7 +2,7 @@
 
 Mobile app for TIHLDE built with React Native, Expo, and TypeScript. Supports iOS and Android.
 
-The app lets members browse events, register for events, view career postings, and check in via QR codes.
+The app lets members browse and register for events, view career postings, check in via QR codes, see their groups, give and view fines, and submit expenses.
 
 ## Tech Stack
 
@@ -16,9 +16,12 @@ The app lets members browse events, register for events, view career postings, a
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/)
-- [Expo CLI](https://docs.expo.dev/get-started/installation/)
-- iOS Simulator (macOS) or Android Emulator
+- [Bun](https://bun.sh/) 1.4.2 or newer
+- [Node.js](https://nodejs.org/) 20.19.4+, 22.13+ or 24.3+ (`.nvmrc` pins 24)
+- **iOS** (macOS only): Xcode, selected with `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`. Keep the repo out of iCloud-synced folders, or code signing fails.
+- **Android**: Android Studio with an emulator, JDK 17 or 21, and `ANDROID_HOME` and `JAVA_HOME` set
+
+Expo CLI comes with the project, and `bun run ios` tries to install CocoaPods if it's missing.
 
 ### Installation
 
@@ -26,21 +29,37 @@ The app lets members browse events, register for events, view career postings, a
 bun install
 ```
 
+### Building the Development App
+
+The app uses native code, so it does not run in Expo Go. Build and install the development app on the simulator or emulator the first time, and again after adding a package with native code, changing `app.json`, or upgrading the Expo SDK:
+
+```bash
+bun run ios            # Build and run on iOS simulator (the first build is slow)
+bun run android        # Build and run on Android emulator
+```
+
+Both also start the dev server, so you can start working right away.
+
+If an iOS build fails with error 65, the real error is in `.expo/xcodebuild.log`.
+
 ### Development
 
-```bash
-bun x expo start        # Start the Expo dev server
-```
-
-From the dev server, press `i` for iOS simulator or `a` for Android emulator.
-
-### Run on Device/Simulator Directly
+When the development app is already installed, start only the dev server instead of rebuilding:
 
 ```bash
-bun run ios            # Build and run on iOS simulator
-bun run android        # Build and run on Android emulator
-bun run web            # Start for web
+bun x expo start       # Start the Expo dev server
 ```
+
+From the dev server, press `i` for the iOS simulator or `a` for the Android emulator. Changes appear when you save.
+
+### Local Photon
+
+The app uses production Photon by default. To use a local Photon instead:
+
+1. Start Photon with `bun dev` in the Photon repo.
+   For the Android emulator, run `bun dev --filter=@photon/api` instead, start Kvark separately with `bun run dev --host 127.0.0.1` in `Photon/apps/kvark` (`adb reverse` can't reach Vite's default IPv6 address), and run `adb reverse tcp:4000 tcp:4000 && adb reverse tcp:3000 tcp:3000` after each emulator start.
+2. In Kvark (`localhost:3000`, Admin → OAuth-klienter), create a client with redirect URI `tihlde://oauth` and "Offentlig klient" checked.
+3. Copy `.env.example` to `.env.local`, uncomment both lines, set the client id, and restart with `bun x expo start --clear`.
 
 ### Testing
 
@@ -131,9 +150,9 @@ This uses the service account key (`service-account-file.json`) configured in `e
 app/                   # Expo Router file-based routes
 ├── (auth)/            # Login screen
 ├── (app)/
-│   ├── (tabs)/        # Bottom tab navigator (events, career)
-│   ├── profil/        # User profile
-│   └── (modals)/      # Modal screens (slide-from-right)
+│   ├── (tabs)/        # Bottom tabs: arrangementer, karriere, bot, grupper, profil
+│   └── (modals)/      # Slide-from-right screens: event details, group page,
+│                      #   give-a-fine flow, expenses, notifications, QR
 actions/               # API calls and TypeScript types
 components/            # UI and feature-specific components
 context/               # React Context providers (auth)
