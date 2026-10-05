@@ -1,5 +1,6 @@
 import { apiFetch, apiJson } from "@/lib/api/client";
 import { API_URL } from "@/actions/constant";
+import { request } from "@/lib/api/network";
 import { getToken } from "@/lib/storage/tokenStore";
 import { Event, JobPost } from "../types";
 import { PhotonEvent, toEvent, toJobTypeKey } from "@/actions/photon";
@@ -16,7 +17,7 @@ type PhotonEventList = { items: PhotonEvent[]; totalCount: number; nextPage: num
  */
 export async function fetchEvents(params?: URLSearchParams): Promise<{ results: Event[]; next: string | null }> {
     const query = params ? `?${params}` : "";
-    const response = await fetch(`${API_URL}/event${query}`);
+    const response = await request(`${API_URL}/event${query}`);
 
     if (!response.ok) {
         throw new Error(`Kunne ikke hente arrangementer (${response.status})`);
@@ -96,7 +97,7 @@ export async function fetchEvent(eventId: string): Promise<Event> {
 
     const response = token
         ? await apiFetch(path)
-        : await fetch(`${API_URL}${path}`);
+        : await request(`${API_URL}${path}`);
 
     if (!response.ok) {
         throw new Error(`Kunne ikke hente arrangementet (${response.status})`);
@@ -173,7 +174,7 @@ const toJobPost = (job: PhotonJobPost): JobPost => ({
 
 /** Stillingsannonser. Åpne data, samme mønster. */
 export async function fetchJobPosts(): Promise<{ results: JobPost[] }> {
-    const response = await fetch(`${API_URL}/jobs`);
+    const response = await request(`${API_URL}/jobs`);
     if (!response.ok) throw new Error(`Kunne ikke hente annonser (${response.status})`);
     const data = await response.json();
     const items: PhotonJobPost[] = Array.isArray(data) ? data : (data.items ?? []);
@@ -181,7 +182,7 @@ export async function fetchJobPosts(): Promise<{ results: JobPost[] }> {
 }
 
 export async function fetchJobPost(id: string): Promise<JobPost> {
-    const response = await fetch(`${API_URL}/jobs/${encodeURIComponent(id)}`);
+    const response = await request(`${API_URL}/jobs/${encodeURIComponent(id)}`);
     if (!response.ok) throw new Error(`Kunne ikke hente annonsen (${response.status})`);
     return toJobPost((await response.json()) as PhotonJobPost);
 }

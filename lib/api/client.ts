@@ -1,6 +1,7 @@
 import { API_URL } from "@/actions/constant";
 import { getValidAccessToken, ISSUER, refreshSession } from "@/lib/auth/photon";
 import { emitSessionLost } from "@/lib/auth/session-events";
+import { request } from "@/lib/api/network";
 
 export class UnauthorizedError extends Error {
     constructor() {
@@ -48,7 +49,7 @@ export async function apiFetch(
 
     const url = path.startsWith("http") ? path : `${API_URL}${path}`;
     const send = (bearer: string) =>
-        fetch(url, {
+        request(url, {
             ...init,
             headers: {
                 "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import * as AuthSession from "expo-auth-session";
 import { BASE_URL } from "@/actions/constant";
+import { request } from "@/lib/api/network";
 import { emitSessionLost } from "@/lib/auth/session-events";
 import { deleteToken, getSession, setSession } from "@/lib/storage/tokenStore";
 
@@ -90,7 +91,7 @@ export async function exchangeCode(
         resource: RESOURCE,
     });
 
-    const res = await fetch(discovery.tokenEndpoint as string, {
+    const res = await request(discovery.tokenEndpoint as string, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),
@@ -136,7 +137,8 @@ export function refreshSession(): Promise<string | null> {
  *
  * Returns null when the session cannot be renewed — a revoked or expired
  * refresh token — and clears the stored one so the app stops retrying with a
- * token the server has already rejected.
+ * token the server has already rejected. Throws when the server could not
+ * answer, and leaves the session alone: it has not been rejected.
  */
 async function performRefresh(): Promise<string | null> {
     const stored = await getSession();
@@ -157,16 +159,25 @@ async function performRefresh(): Promise<string | null> {
         resource: RESOURCE,
     });
 
-    const res = await fetch(discovery.tokenEndpoint as string, {
+    const res = await request(discovery.tokenEndpoint as string, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),
     });
 
-    if (!res.ok) {
+    // Bare 400 og 401 betyr at Photon har avvist tokenet (`invalid_grant`,
+    // `invalid_client`). En 5xx eller 429 sier ingenting om sesjonen — å
+    // slette den da ville logget ut alle som åpnet appen under en driftsstans.
+    if (res.status === 400 || res.status === 401) {
         await deleteToken();
         emitSessionLost();
         return null;
+    }
+
+    if (!res.ok) {
+        throw new Error(
+            `Innloggingen svarer ikke akkurat nå (${res.status}). Prøv igjen om litt.`,
+        );
     }
 
     const data = (await res.json()) as TokenResponse;

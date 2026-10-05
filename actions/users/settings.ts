@@ -1,4 +1,5 @@
 import { API_URL } from "@/actions/constant";
+import { request } from "@/lib/api/network";
 import {
     PhotonAllergy,
     PhotonUserSettings,
@@ -74,7 +75,7 @@ export async function updateMySettings(
  * navn som ikke står her kan ikke lagres.
  */
 export async function fetchAllergies(): Promise<Allergy[]> {
-    const response = await fetch(`${API_URL}/user/allergy`);
+    const response = await request(`${API_URL}/user/allergy`);
 
     if (!response.ok) {
         throw new Error(`Kunne ikke hente allergier (${response.status})`);
