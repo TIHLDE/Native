@@ -61,11 +61,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
                     isLoading: false,
                 });
             } catch {
-                // Fornyelsen nådde ikke fram — typisk uten nett, eller mens
-                // Photon er nede. Serveren har ikke avvist sesjonen, så den
-                // beholdes: brukeren slipper inn, og neste kall prøver å fornye
-                // igjen. Uten denne grenen ble isLoading aldri false, og appen
-                // ble stående på splashen for godt.
+                // En avvist sesjon gir null, ikke en feil. Havner vi her, feilet
+                // fornyelsen av en annen grunn — uten nett, Photon nede, eller
+                // et svar som ikke lot seg lese — og sesjonen beholdes:
+                // brukeren slipper inn, og neste kall prøver å fornye igjen.
+                // Uten denne grenen ble isLoading aldri false, og appen ble
+                // stående på splashen for godt.
                 const stored = await getSession().catch(() => null);
 
                 setAuthState({
