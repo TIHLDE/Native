@@ -1,8 +1,8 @@
 /**
  * Kallet nådde aldri serveren: ingen nett, DNS som feiler, eller Photon nede.
  *
- * Eget navn fordi det er noe annet enn at serveren svarte med en feil — da
- * er sesjonen fortsatt gyldig, og brukeren skal ikke sendes til innloggingen.
+ * Noe annet enn at serveren svarte med en feil — sesjonen er ikke avvist, og
+ * brukeren skal ikke sendes til innloggingen.
  */
 export class NetworkError extends Error {
     constructor() {
@@ -25,7 +25,9 @@ export async function request(
 ): Promise<Response> {
     try {
         return await fetch(input, init);
-    } catch {
+    } catch (error) {
+        // Et avbrutt kall er ikke et nettproblem, og skal ikke se ut som et.
+        if (init?.signal?.aborted) throw error;
         throw new NetworkError();
     }
 }
