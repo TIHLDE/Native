@@ -26,6 +26,7 @@
     "@rn-primitives/alert-dialog": "^1.5.2",
     "@rn-primitives/label": "^1.5.2",
     "@rn-primitives/portal": "^1.5.3",
+    "@rn-primitives/select": "^1.5.2",
     "@rn-primitives/slot": "^1.5.2",
     "@rn-primitives/switch": "^1.5.2",
     "@rn-primitives/types": "^1.5.2",
