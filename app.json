@@ -72,7 +72,8 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-splash-screen",
-      "expo-status-bar"
+      "expo-status-bar",
+      "./plugins/withSceneLifecycle"
     ],
     "experiments": {
       "typedRoutes": true
