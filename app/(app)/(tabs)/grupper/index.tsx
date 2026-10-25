@@ -6,6 +6,7 @@ import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { fetchMemberships } from "@/actions/fines/memberships";
 import { Membership } from "@/actions/types";
+import { isAutomaticGroupType } from "@/lib/groups/groupPage";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { FlatList, Image, Pressable, View } from "react-native";
@@ -22,17 +23,6 @@ function MembershipCardSkeleton() {
         </View>
     );
 }
-
-/**
- * Medlemskap alle får automatisk, og som ikke er grupper i den forstand folk
- * mener «gruppe»: selve TIHLDE, studieprogrammet og kullet. Ingen har meldt seg
- * inn i dem, de har ingen aktivitet, og de fylte lista med tre rader støy.
- *
- * Filteret går på type og ikke på navn — en skjult interessegruppe kan hete det
- * samme som studieprogrammet sitt, og den er reell og skal vises for dem som er
- * med. `private` og `interestgroup` slipper derfor gjennom.
- */
-const AUTOMATIC_GROUP_TYPES = ["tihlde", "study", "studyyear"];
 
 /**
  * Gruppene brukeren er med i.
@@ -58,9 +48,7 @@ export default function Grupper() {
     // dukke opp i lista, ikke forsvinne stille.
     const groups =
         memberships.data?.filter(
-            (item) =>
-                !item.group.type ||
-                !AUTOMATIC_GROUP_TYPES.includes(item.group.type.toLowerCase())
+            (item) => !isAutomaticGroupType(item.group.type)
         ) ?? [];
 
     return (

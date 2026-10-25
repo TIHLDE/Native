@@ -99,3 +99,19 @@ export function groupTypeLabel(type: string): string {
         type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()
     );
 }
+
+const AUTOMATIC_GROUP_TYPES = ["tihlde", "study", "studyyear"];
+
+/**
+ * Medlemskap alle får automatisk, og som ikke er grupper i den forstand folk
+ * mener «gruppe»: selve TIHLDE, studieprogrammet og kullet. Ingen har meldt seg
+ * inn i dem, de har ingen aktivitet, og de fylte lista med tre rader støy.
+ *
+ * Filteret går på type og ikke på navn — en skjult interessegruppe kan hete det
+ * samme som studieprogrammet sitt, og den er reell og skal vises for dem som er
+ * med. `private` og `interestgroup` slipper derfor gjennom, og det gjør også en
+ * gruppe uten type.
+ */
+export function isAutomaticGroupType(type: string | null | undefined): boolean {
+    return type ? AUTOMATIC_GROUP_TYPES.includes(type.toLowerCase()) : false;
+}

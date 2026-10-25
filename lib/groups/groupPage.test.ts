@@ -4,6 +4,7 @@ import {
     STATUS_OPTIONS,
     groupTabs,
     groupTypeLabel,
+    isAutomaticGroupType,
     perMember,
     sortMembers,
     statusLabel,
@@ -93,5 +94,20 @@ describe("groupTypeLabel", () => {
 
     it("faller tilbake til typen selv", () => {
         expect(groupTypeLabel("ukjent")).toBe("Ukjent");
+    });
+});
+
+describe("isAutomaticGroupType", () => {
+    it("kjenner igjen de automatiske gruppene uavhengig av store og små bokstaver", () => {
+        expect(isAutomaticGroupType("TIHLDE")).toBe(true);
+        expect(isAutomaticGroupType("study")).toBe(true);
+        expect(isAutomaticGroupType("STUDYYEAR")).toBe(true);
+    });
+
+    it("slipper gjennom ekte grupper og grupper uten type", () => {
+        expect(isAutomaticGroupType("PRIVATE")).toBe(false);
+        expect(isAutomaticGroupType("COMMITTEE")).toBe(false);
+        expect(isAutomaticGroupType("")).toBe(false);
+        expect(isAutomaticGroupType(null)).toBe(false);
     });
 });
