@@ -422,7 +422,19 @@ export default function ArrangementSide() {
                                 {...props}
                             />
                         )} >
-                        <EventParticipantsModal eventId={String(id)} totalCount={String(counts?.listCount ?? 0)} />
+                        <EventParticipantsModal
+                            eventId={String(id)}
+                            totalCount={String(counts?.listCount ?? 0)}
+                            onSelectUser={(userId) => {
+                                // Arket ligger i en portal over navigasjonen, og
+                                // ville dekket profilen om det ble stående.
+                                bottomSheetModalRef.current?.dismiss();
+                                router.push({
+                                    pathname: "/(app)/(modals)/bruker/[userId]",
+                                    params: { userId },
+                                });
+                            }}
+                        />
                     </InteropBottomSheetModal>
 
                     <InteropBottomSheetModal ref={unregisterSheetRef}
@@ -561,7 +573,15 @@ function UnregisterDrawer({
     );
 }
 
-function EventParticipantsModal({ eventId, totalCount }: { eventId: string; totalCount: string }) {
+function EventParticipantsModal({
+    eventId,
+    totalCount,
+    onSelectUser,
+}: {
+    eventId: string;
+    totalCount: string;
+    onSelectUser: (userId: string) => void;
+}) {
     const {
         data,
         fetchNextPage,
@@ -618,7 +638,12 @@ function EventParticipantsModal({ eventId, totalCount }: { eventId: string; tota
             stickyHeaderIndices={[0]}
             renderItem={({ item: registration }: { item: Registration }) => (
                 <>
-                    <UserCard user={registration.userInfo} />
+                    {/* `userId` er Photons id her — påmeldingslista har ikke
+                        brukernavnet — og profilruta godtar begge. */}
+                    <UserCard
+                        user={registration.userInfo}
+                        onPress={() => onSelectUser(registration.userInfo.userId)}
+                    />
                     <View className="h-px bg-border dark:bg-muted" />
                 </>
             )}

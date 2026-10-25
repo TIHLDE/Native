@@ -1,13 +1,13 @@
 import { User } from "@/actions/types";
 import { avatarImageUrl } from "@/lib/images";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { AuthedImage } from "./authedImage";
 import { Text } from "./text";
 
-export default function UserCard({ user }: { user: User }) {
+export default function UserCard({ user, onPress }: { user: User; onPress?: () => void }) {
     const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`;
 
-    return (
+    const card = (
         <View className="flex-row items-center px-4 py-3">
             {user.image ? (
                 <AuthedImage
@@ -28,5 +28,18 @@ export default function UserCard({ user }: { user: User }) {
                 </Text>
             </View>
         </View>
+    );
+
+    if (!onPress) return card;
+
+    return (
+        <Pressable
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityLabel={`Åpne profilen til ${user.firstName} ${user.lastName}`}
+            className="active:opacity-70"
+        >
+            {card}
+        </Pressable>
     );
 }
