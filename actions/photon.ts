@@ -112,6 +112,7 @@ export type PhotonUserSettings = {
     receiveMailCommunication: boolean;
     publicEventRegistrations?: boolean;
     allergies?: string[];
+    customAllergies?: string[];
     bioDescription?: string;
     githubUrl?: string;
     linkedinUrl?: string;
@@ -120,8 +121,8 @@ export type PhotonUserSettings = {
 };
 
 /**
- * `publicEventRegistrations` og `allergies` kom til etter at feltene ble tatt i
- * bruk, og er valgfrie i svaret. Standardene her er Photons egne: å stå
+ * `publicEventRegistrations` og allergifeltene kom til etter at feltene ble tatt
+ * i bruk, og er valgfrie i svaret. Standardene her er Photons egne: å stå
  * oppført med navn er slik påmeldinger alltid har virket, og ingen allergier
  * er en tom liste — ikke «ukjent».
  */
@@ -131,6 +132,7 @@ export const toUserSettings = (settings: PhotonUserSettings): UserSettings => ({
     publicEventRegistrations: settings.publicEventRegistrations ?? true,
     receiveMailCommunication: settings.receiveMailCommunication,
     allergies: settings.allergies ?? [],
+    customAllergies: settings.customAllergies ?? [],
 });
 
 export type PhotonAllergy = {

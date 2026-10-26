@@ -42,8 +42,8 @@ export default function Allergier() {
     });
 
     const allergies = useQuery({
-        queryKey: settingsKeys.allergies,
-        queryFn: fetchAllergies,
+        queryKey: settingsKeys.allergies(false),
+        queryFn: () => fetchAllergies({ curated: false }),
         // Katalogen er den samme for alle og endres nesten aldri.
         staleTime: 60 * 60 * 1000,
     });
