@@ -10,7 +10,7 @@ import { Text } from "@/components/ui/text";
 import { useAuth } from "@/context/auth";
 import { AuthedImage } from "@/components/ui/authedImage";
 import { avatarImageUrl } from "@/lib/images";
-import { classYearLabel, parseStartYear } from "@/lib/study";
+import { formatStudyLabel } from "@/lib/study";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 import useRefresh from "@/lib/useRefresh";
@@ -111,10 +111,9 @@ export default function Profil() {
     }
 
     const initials = `${user.data.firstName[0] ?? ""}${user.data.lastName[0] ?? ""}`;
-    const studyProgram = user.data.study.group.name || null;
-    const classLabel = classYearLabel(
-        studyProgram ?? undefined,
-        parseStartYear(user.data.studyyear.group.name),
+    const studyLabel = formatStudyLabel(
+        user.data.study.group.name,
+        user.data.classYear,
     );
 
     const events = tab === 0 ? registered : favorites;
@@ -153,7 +152,7 @@ export default function Profil() {
                             left={`@${user.data.userId}`}
                             right={user.data.email || null}
                         />
-                        <MetaRow left={studyProgram} right={classLabel} />
+                        <MetaRow left={studyLabel} right={null} />
                     </View>
 
                     {/*

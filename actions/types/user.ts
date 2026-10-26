@@ -13,8 +13,40 @@ export type User = {
     studyyear: {
         group: Group;
     },
+    /**
+     * Klassetrinnet slik Photon regner det: første år på master er 4. klasse,
+     * og det er null for alumni og for den som ikke kan plasseres.
+     */
+    classYear: number | null;
     unansweredEvaluationsCount: number,
 }
+
+/** En gruppe på profilen til et medlem. */
+export type ProfileGroup = {
+    slug: string;
+    name: string;
+    type: string;
+};
+
+/**
+ * Det ett medlem kan se om et annet — `GET /user/:id`. Kjønn, allergier og
+ * varslingsinnstillinger hører til sesjonen og er ikke med.
+ */
+export type UserProfile = {
+    id: string;
+    username: string | null;
+    name: string;
+    image: string | null;
+    /** Bare satt på egen profil og for en admin med `users:view`. */
+    email: string | null;
+    bio: string | null;
+    githubUrl: string | null;
+    linkedinUrl: string | null;
+    studyProgram: string | null;
+    classYear: number | null;
+    /** Ekte medlemskap, uten TIHLDE, studieprogrammet og kullet. */
+    groups: ProfileGroup[];
+};
 
 type PermissionTypes = {
     read: boolean;

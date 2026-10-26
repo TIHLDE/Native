@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { FlatList, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
+import { useRouter } from "expo-router";
 import { Users } from "lucide-react-native";
 import { fetchGroupMembers } from "@/actions/groups/members";
 import { Text } from "@/components/ui/text";
@@ -35,6 +36,7 @@ export function GroupMembersList({
     /** Hva gruppa kaller lederen sin. Null eller tom gir «Leder». */
     leaderTitle?: string | null;
 }) {
+    const router = useRouter();
     const { data, error, isPending, isError } = useQuery({
         queryKey: ["group", groupSlug, "members"],
         queryFn: () => fetchGroupMembers(groupSlug),
@@ -68,7 +70,17 @@ export function GroupMembersList({
                 const isLeader = item.membershipType === "LEADER";
 
                 return (
-                    <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center">
+                    <Pressable
+                        onPress={() =>
+                            router.push({
+                                pathname: "/(app)/(modals)/bruker/[userId]",
+                                params: { userId: item.user.id },
+                            })
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel={`Åpne profilen til ${name}`}
+                        className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
+                    >
                         <PersonAvatar name={name} image={item.user.image ?? null} />
                         <View className="flex-1 ml-3">
                             <Text
@@ -96,7 +108,7 @@ export function GroupMembersList({
                                 </Text>
                             </View>
                         ) : null}
-                    </View>
+                    </Pressable>
                 );
             }}
             ListEmptyComponent={

@@ -2,7 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { apiJson } from "@/lib/api/client";
 import { ISSUER } from "@/lib/auth/photon";
 import { Event, Permissions, Membership, User } from "@/actions/types";
-import { PhotonGroup, toMembership, toUser } from "@/actions/photon";
+import {
+    PhotonGroup,
+    PhotonUserProfile,
+    toMembership,
+    toUser,
+} from "@/actions/photon";
 
 /**
  * Standardkravene fra OIDC-userinfo, pluss brukernavnet og rettighetene Photon
@@ -27,16 +32,6 @@ type PhotonUserInfo = {
 function userinfo(): Promise<PhotonUserInfo> {
     return apiJson<PhotonUserInfo>(`${ISSUER}/oauth2/userinfo`);
 }
-
-/** Delen av `/user/:id` appen viser. */
-type PhotonUserProfile = {
-    id: string;
-    name: string;
-    username: string | null;
-    image: string | null;
-    studyProgram: string | null;
-    studyStartYear: number | null;
-};
 
 /**
  * Brukeren bak tokenet.
@@ -63,6 +58,7 @@ export default async function me(): Promise<User> {
         image: profile.image ?? info.picture,
         studyProgram: profile.studyProgram,
         studyStartYear: profile.studyStartYear,
+        classYear: profile.classYear,
     });
 }
 

@@ -117,6 +117,15 @@ export default function ModalsLayout() {
                 }}
             />
             <Stack.Screen
+                name="bruker/[userId]"
+                options={{
+                    ...modalScreenOptions,
+                    // Navnet står i skjermens eget hode, ikke i tittelen.
+                    title: "",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
                 name="boter/[groupSlug]/index"
                 options={{
                     ...modalScreenOptions,

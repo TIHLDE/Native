@@ -1,64 +1,27 @@
 /**
- * Klassetrinn ut fra kullet.
+ * Studieetiketten på profilene: «Digital forretningsutvikling · 2. klasse».
  *
- * Speiler `computeClassYear`, `programmeLength` og `formatStudyLabel` i
- * `apps/kvark/src/lib/utils.ts` i Photon-monorepoet, så profilen i appen og på
- * nettsiden sier det samme om samme bruker.
+ * Klassetrinnet regnes ikke ut her. Photon serverer det som `classYear`, fordi
+ * regelen trenger mer enn klienten ser: første år på master er 4. klasse, og
+ * det holder bare hvis man vet at året hører til masteren og ikke bachelorgraden
+ * før den. Appen regnet det ut fra kullet før, og ga både feil trinn for
+ * masterstudenter og feil program for dem som hadde byttet studie.
+ *
+ * Formatet er det samme som `formatStudyLabel` i `apps/kvark/src/lib/utils.ts`,
+ * så profilen sier det samme i appen og på nettsiden.
  */
 
 /**
- * Det norske studieåret starter i august, så fra og med august teller man ett
- * trinn opp. Måned er 0-indeksert, så `>= 7` er august og senere.
- */
-export function computeClassYear(startYear: number, now = new Date()): number {
-    return now.getFullYear() - startYear + (now.getMonth() >= 7 ? 1 : 0);
-}
-
-/**
- * Masterprogrammene ved TIHLDE. Alt annet (Dataingeniør, Digital
- * forretningsutvikling, Digital infrastruktur og cybersikkerhet, Drift,
- * Informasjonsbehandling) er treårig bachelor. Programnavnene har variert
- * mellom Lepton-importen og Feide, så vi matcher på det særegne ordet.
- */
-const MASTER_PROGRAMME_MARKERS = ["samhandling", "transformasjon", "master"];
-
-/** Antall år programmet varer — brukes til å avgjøre når noen er alumni. */
-export function programmeLength(programme: string | undefined): number {
-    if (!programme) return 3;
-    const name = programme.toLowerCase();
-    return MASTER_PROGRAMME_MARKERS.some((marker) => name.includes(marker))
-        ? 5
-        : 3;
-}
-
-/**
- * «3. klasse» mens man går på studiet, «kull 2022» etterpå.
+ * Programmet og klassetrinnet, med prikk imellom. Mangler den ene, står den
+ * andre alene; mangler begge, gir den `null`.
  *
- * Klassetrinnet vises bare så lenge man faktisk studerer — til og med 3. klasse
- * på bachelor, 5. på master. Er man forbi det, er man alumni, og da er kullet
- * det riktige å vise framfor et trinn som ikke finnes.
- *
- * Gir `null` når vi ikke vet oppstartsåret. Photon lar det stå tomt for
- * medlemmer som aldri har koblet Feide.
+ * Photon gir `null` for alumni, så de får bare programmet — ikke et trinn som
+ * ikke finnes.
  */
-export function classYearLabel(
-    programme: string | undefined,
-    startYear: number | undefined,
-    now = new Date(),
+export function formatStudyLabel(
+    programme: string | null | undefined,
+    classYear: number | null | undefined,
 ): string | null {
-    if (startYear === undefined || !Number.isFinite(startYear)) return null;
-
-    const classYear = computeClassYear(startYear, now);
-    const isStudying = classYear >= 1 && classYear <= programmeLength(programme);
-
-    return isStudying ? `${classYear}. klasse` : `kull ${startYear}`;
-}
-
-/**
- * Oppstartsåret slik `toUser` legger det: en streng, tom når Photon ikke vet.
- */
-export function parseStartYear(value: string | undefined): number | undefined {
-    if (!value) return undefined;
-    const year = Number.parseInt(value, 10);
-    return Number.isFinite(year) ? year : undefined;
+    const detail = classYear ? `${classYear}. klasse` : null;
+    return [programme, detail].filter(Boolean).join(" · ") || null;
 }

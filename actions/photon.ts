@@ -23,8 +23,10 @@ import type {
     Payment,
     Registration,
     User,
+    UserProfile,
     UserSettings,
 } from "@/actions/types";
+import { isAutomaticGroupType } from "@/lib/groups/groupPage";
 
 export type PhotonUser = {
     id: string;
@@ -34,6 +36,7 @@ export type PhotonUser = {
     image?: string | null;
     studyProgram?: string | null;
     studyStartYear?: number | null;
+    classYear?: number | null;
 };
 
 /**
@@ -56,7 +59,50 @@ export const toUser = (user: PhotonUser | null | undefined): User => ({
     gender: 0,
     study: { group: { name: user?.studyProgram ?? "", slug: "", type: "" } },
     studyyear: { group: { name: String(user?.studyStartYear ?? ""), slug: "", type: "" } },
+    classYear: user?.classYear ?? null,
     unansweredEvaluationsCount: 0,
+});
+
+/** Profilen til et medlem, slik `GET /user/:id` svarer. */
+export type PhotonUserProfile = {
+    id: string;
+    name: string;
+    username: string | null;
+    email: string | null;
+    image: string | null;
+    bio: string | null;
+    githubUrl: string | null;
+    linkedinUrl: string | null;
+    studyProgram: string | null;
+    studyStartYear: number | null;
+    classYear: number | null;
+    groups: {
+        slug: string;
+        name: string;
+        type: string;
+        logoUrl: string | null;
+        role: string;
+    }[];
+};
+
+/**
+ * Photon tar med de automatiske gruppene i `groups`. De er ikke medlemskap
+ * noen har valgt, så profilen viser dem ikke — samme utvalg som Kvark gjør.
+ */
+export const toUserProfile = (profile: PhotonUserProfile): UserProfile => ({
+    id: profile.id,
+    username: profile.username,
+    name: profile.name,
+    image: profile.image,
+    email: profile.email,
+    bio: profile.bio,
+    githubUrl: profile.githubUrl,
+    linkedinUrl: profile.linkedinUrl,
+    studyProgram: profile.studyProgram,
+    classYear: profile.classYear,
+    groups: profile.groups
+        .filter((group) => !isAutomaticGroupType(group.type))
+        .map((group) => ({ slug: group.slug, name: group.name, type: group.type })),
 });
 
 export type PhotonUserSettings = {

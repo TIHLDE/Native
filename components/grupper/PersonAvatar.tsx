@@ -1,3 +1,4 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import { View } from "react-native";
 import { AuthedImage } from "@/components/ui/authedImage";
 import { Text } from "@/components/ui/text";
@@ -20,6 +21,28 @@ function initials(name: string): string {
         .toUpperCase();
 }
 
+const avatarVariants = cva("rounded-full", {
+    variants: {
+        size: {
+            default: "w-10 h-10",
+            lg: "w-20 h-20",
+        },
+    },
+    defaultVariants: { size: "default" },
+});
+
+// Initialene følger sirkelen. Med fast `text-sm` ble de en prikk midt i
+// profilbildet på profilsida.
+const initialsVariants = cva("font-semibold text-muted-foreground", {
+    variants: {
+        size: {
+            default: "text-sm",
+            lg: "text-2xl",
+        },
+    },
+    defaultVariants: { size: "default" },
+});
+
 /**
  * Profilbildet til en person, med Photons reserve når bildet mangler: initialene
  * i en nøytral sirkel, ikke et ikon.
@@ -31,17 +54,18 @@ function initials(name: string): string {
 export function PersonAvatar({
     name,
     image,
+    size,
     className,
 }: {
     name: string;
     image: string | null;
     className?: string;
-}) {
+} & VariantProps<typeof avatarVariants>) {
     if (image) {
         return (
             <AuthedImage
                 uri={avatarImageUrl(image)}
-                className={cn("w-10 h-10 rounded-full", className)}
+                className={cn(avatarVariants({ size }), className)}
                 resizeMode="cover"
             />
         );
@@ -50,11 +74,12 @@ export function PersonAvatar({
     return (
         <View
             className={cn(
-                "w-10 h-10 rounded-full bg-gray-200 dark:bg-secondary/50 items-center justify-center",
+                avatarVariants({ size }),
+                "bg-gray-200 dark:bg-secondary/50 items-center justify-center",
                 className
             )}
         >
-            <Text className="text-sm font-semibold text-muted-foreground">
+            <Text className={initialsVariants({ size })}>
                 {initials(name)}
             </Text>
         </View>
