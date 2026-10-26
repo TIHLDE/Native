@@ -194,7 +194,8 @@ export default function Innstillinger() {
     );
     const channelIndex = CHANNELS.findIndex((option) => option.value === channel);
 
-    const allergyCount = current.allergies.length;
+    const allergyCount =
+        current.allergies.length + current.customAllergies.length;
 
     const handleLogoutConfirm = async () => {
         logoutSheetRef.current?.dismiss();
