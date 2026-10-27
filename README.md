@@ -6,7 +6,7 @@ The app lets members browse and register for events, view career postings, check
 
 ## Tech Stack
 
-- **Framework:** React Native + Expo (SDK 57)
+- **Framework:** React Native + Expo (SDK 58)
 - **Routing:** Expo Router (file-based)
 - **Styling:** NativeWind (TailwindCSS for React Native)
 - **State:** React Query for server state, React Context for auth
@@ -17,7 +17,7 @@ The app lets members browse and register for events, view career postings, check
 ### Prerequisites
 
 - [Bun](https://bun.sh/) 1.4.2 or newer
-- [Node.js](https://nodejs.org/) 20.19.4+, 22.13+ or 24.3+ (`.nvmrc` pins 24)
+- [Node.js](https://nodejs.org/) 22.13+, 24.3+ or 26+ (`.nvmrc` pins 24)
 - **iOS** (macOS only): Xcode, selected with `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`. Keep the repo out of iCloud-synced folders, or code signing fails.
 - **Android**: Android Studio with an emulator, JDK 17 or 21, and `ANDROID_HOME` and `JAVA_HOME` set
 
