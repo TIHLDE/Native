@@ -105,7 +105,7 @@ export default function MarkdownView({ content }: { content: string }) {
         // men får ikke css variabler til å fungere
         <Markdown rules={rules} markdownit={markdownItInstance} style={{
             body: {
-                gap: 12,
+                gap: 20,
             },
             paragraph: {
                 marginTop: 0,
