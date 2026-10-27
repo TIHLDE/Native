@@ -6,9 +6,22 @@ import { Text } from "./text";
 import FitImage from 'react-native-fit-image';
 import * as WebBrowser from 'expo-web-browser';
 
+const TEXT_NODES = ["inline", "textgroup", "text", "softbreak", "hardbreak"];
+const isBlankParagraph = (node: any): boolean =>
+    node.children.every((child: any) =>
+        TEXT_NODES.includes(child.type)
+        && (child.content ?? "").trim() === ""
+        && isBlankParagraph(child));
+
 // Legge til ekstre regler for markdown her om det trengs.
 const rules = {
     ...renderRules,
+    // Avsnitt med bare (hard) mellomrom kommer fra innlimt rik tekst og brukes som
+    // luft. Det gir allerede gap på body, så de hoppes over.
+    paragraph: (node: any, children: any, parent: any, styles: any) =>
+        isBlankParagraph(node) ? null : (
+            <View key={node.key} style={styles._VIEW_SAFE_paragraph}>{children}</View>
+        ),
     html_inline: (node: any, children: any, parent: any, styles: any) => {
         return (
             <View style={styles.html_inline} key={node.key} className="p-2" >
@@ -91,6 +104,9 @@ export default function MarkdownView({ content }: { content: string }) {
         // Burde egentlig ikke bruke NAV_THEME for å hente ut riktig farke, 
         // men får ikke css variabler til å fungere
         <Markdown rules={rules} markdownit={markdownItInstance} style={{
+            body: {
+                gap: 12,
+            },
             paragraph: {
                 marginTop: 0,
                 marginBottom: 0,
@@ -103,7 +119,7 @@ export default function MarkdownView({ content }: { content: string }) {
             list_item: {
                 color: isDarkColorScheme ? NAV_THEME.dark.text : NAV_THEME.light.text,
             },
-            Heading1: {
+            heading1: {
                 fontSize: 32,
                 fontWeight: 'bold',
             },
