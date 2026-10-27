@@ -126,7 +126,7 @@ export function GroupLeaderboardList({
                         className="my-4"
                         color={colors.mutedForeground}
                     />
-                ) : null
+                ) : undefined
             }
             ListEmptyComponent={
                 isPending ? (

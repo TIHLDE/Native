@@ -21,7 +21,7 @@ import {
     FlatList,
     Pressable,
     View,
-    type ViewToken,
+    type ListViewToken,
 } from "react-native";
 
 /** Hvor mye av raden som må være synlig, og hvor lenge, før den er «sett». */
@@ -88,7 +88,7 @@ export default function Varsler() {
     );
 
     const onViewableItemsChanged = useCallback(
-        ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+        ({ viewableItems }: { viewableItems: ListViewToken[] }) => {
             for (const entry of viewableItems) {
                 if (entry.item) markSeen(entry.item as Notification);
             }
@@ -184,7 +184,7 @@ export default function Varsler() {
                         <View className="py-6">
                             <ActivityIndicator size="small" />
                         </View>
-                    ) : null
+                    ) : undefined
                 }
                 renderItem={({ item }) => (
                     <NotificationRow
