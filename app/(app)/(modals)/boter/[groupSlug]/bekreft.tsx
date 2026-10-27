@@ -193,7 +193,7 @@ export default function ConfirmFine() {
         <PageWrapper className="flex-1 bg-background">
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 16 }}
                 keyboardDismissMode="on-drag"
             >
                 {/* Law summary */}
@@ -343,7 +343,7 @@ export default function ConfirmFine() {
             </ScrollView>
 
             {/* Submit button */}
-            <View className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 bg-background border-t border-border">
+            <View className="px-4 pt-3 pb-3 bg-background border-t border-border">
                 <Pressable
                     onPress={handleSubmit}
                     disabled={!reason.trim() || isSubmitting}
