@@ -11,7 +11,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import Toast from "react-native-toast-message";
 import { PortalHost } from '@rn-primitives/portal';
-import { getTheme } from '@/lib/storage/themeStore';
+import { getTheme, type ThemePreference } from '@/lib/storage/themeStore';
+import { useThemeGate } from '@/lib/theme/useThemeGate';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { PushNotifications } from '@/components/notifications/PushNotifications';
@@ -31,31 +32,9 @@ export {
 export default function RootLayout() {
     const hasMounted = React.useRef(false);
     const { colorScheme, isDarkColorScheme, setColorScheme } = useColorScheme();
-    const [pendingTheme, setPendingTheme] = React.useState<Awaited<ReturnType<typeof getTheme>> | null>(null);
-    const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
-
-    // NativeWind får vite om det nye temaet først når endringen fra systemet
-    // kommer tilbake, litt etter `setColorScheme`. Rendres appen før det, får
-    // komponenter som er midt i sin første render en oppdatering React avviser,
-    // og de kan bli stående med feil tema. Vent derfor til temaet faktisk er satt.
-    //
-    // Flagget settes bare én gang og aldri tilbake: når temaet byttes i
-    // innstillingene skal appen bli stående. Kommer bekreftelsen aldri, slipper
-    // tidsfristen appen fram likevel, så den ikke henger på en tom skjerm.
-    const isThemeConfirmed =
-        pendingTheme !== null && (pendingTheme === 'system' || colorScheme === pendingTheme);
-    if (isThemeConfirmed && !isColorSchemeLoaded) {
-        setIsColorSchemeLoaded(true);
-    }
-
-    React.useEffect(() => {
-        if (isColorSchemeLoaded || pendingTheme === null) return;
-        const timeout = setTimeout(() => {
-            console.warn('NativeWind bekreftet ikke temaet innen 500 ms, viser appen likevel.');
-            setIsColorSchemeLoaded(true);
-        }, 500);
-        return () => clearTimeout(timeout);
-    }, [pendingTheme, isColorSchemeLoaded]);
+    const [pendingTheme, setPendingTheme] = React.useState<ThemePreference | null>(null);
+    // Se `useThemeGate` for hvorfor appen venter på at temaet er bekreftet.
+    const isColorSchemeLoaded = useThemeGate(pendingTheme, colorScheme);
 
 
     useIsomorphicLayoutEffect(() => {
