@@ -20,6 +20,7 @@ The app lets members browse and register for events, view career postings, check
 - [Node.js](https://nodejs.org/) 22.13+, 24.3+ or 26+ (`.nvmrc` pins 24)
 - **iOS** (macOS only): Xcode, selected with `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`. Keep the repo out of iCloud-synced folders, or code signing fails.
 - **Android**: Android Studio with an emulator, JDK 17 or 21, and `ANDROID_HOME` and `JAVA_HOME` set
+- **Android on Windows**: CMake 3.31.6 from the SDK Manager (SDK Tools, with "Show Package Details" ticked), and long paths enabled (`LongPathsEnabled` in the registry). `app.config.js` selects that CMake on Windows, because the default 3.22.1 can't handle the long native paths in react-native-gesture-handler 3.
 
 Expo CLI comes with the project, and `bun run ios` tries to install CocoaPods if it's missing.
 
