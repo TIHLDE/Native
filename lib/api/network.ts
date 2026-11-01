@@ -11,13 +11,28 @@ export class NetworkError extends Error {
     }
 }
 
+/** Feilmeldingene fetch gir når kallet faktisk ikke kom fram. */
+function isTransportError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    return (
+        error.message.startsWith("fetch failed") || // expo/fetch (FetchError)
+        error.message === "Network request failed" // React Natives fetch
+    );
+}
+
 /**
- * `fetch` som kaster NetworkError i stedet for plattformens egen feil.
+ * `fetch` som skiller nettfeil fra andre feil før de når brukeren.
  *
- * Expos `fetch` er native, og på Android kommer feilen ut som
- * «fetch failed: java.net.ConnectException: …» — tekst som ellers havner
- * rett i feilmeldinger og toasts. Et svar med feilstatus kastes ikke her;
- * det er kallstedets sak, akkurat som med vanlig `fetch`.
+ * - Et avbrutt kall kaster sin egen feil videre, uendret.
+ * - En nettfeil blir NetworkError. Expos `fetch` er native, og på Android
+ *   kommer feilen ut som «fetch failed: java.net.ConnectException: …» —
+ *   tekst som ellers havner rett i feilmeldinger og toasts.
+ * - Alt annet er en feil i selve kallet, for eksempel en body `expo/fetch`
+ *   ikke klarer å kode. Den logges og kastes som en generell feil med den
+ *   opprinnelige som `cause`, så den ikke forkles som et nettproblem.
+ *
+ * Et svar med feilstatus kastes ikke her; det er kallstedets sak, akkurat
+ * som med vanlig `fetch`.
  */
 export async function request(
     input: string,
@@ -28,6 +43,13 @@ export async function request(
     } catch (error) {
         // Et avbrutt kall er ikke et nettproblem, og skal ikke se ut som et.
         if (init?.signal?.aborted) throw error;
-        throw new NetworkError();
+        if (isTransportError(error)) throw new NetworkError();
+
+        // Ikke et nettproblem, men en feil i kallet selv. Logges, så den ikke
+        // forsvinner bak «sjekk nettforbindelsen» igjen.
+        console.error("Kallet feilet før det ble sendt", input, error);
+        const wrapped = new Error("Noe gikk galt med forespørselen. Prøv igjen.");
+        (wrapped as Error & { cause?: unknown }).cause = error;
+        throw wrapped;
     }
 }
