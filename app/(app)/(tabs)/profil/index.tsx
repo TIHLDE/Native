@@ -18,8 +18,7 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Settings } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { Pressable, ScrollView, View } from "react-native";
 
 /** Fanene under profilen. Rekkefølgen styrer `SegmentedControl`. */
 const TABS = ["Påmeldte", "Favoritter"] as const;

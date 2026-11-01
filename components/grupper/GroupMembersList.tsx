@@ -63,7 +63,7 @@ export function GroupMembersList({
                     <Text className="mx-4 mb-3 text-sm text-muted-foreground">
                         {`${members.length} ${members.length === 1 ? "medlem" : "medlemmer"}`}
                     </Text>
-                ) : null
+                ) : undefined
             }
             renderItem={({ item }) => {
                 const name = `${item.user.firstName} ${item.user.lastName}`.trim();

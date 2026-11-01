@@ -392,7 +392,7 @@ export default function Allergier() {
                         <View className="h-px bg-border dark:bg-muted" />
                     )}
                     ListEmptyComponent={
-                        reachedCustomLimit ? null : (
+                        reachedCustomLimit ? undefined : (
                             <View className="py-10 items-center">
                                 <Text className="text-muted-foreground text-center">
                                     {search
@@ -407,7 +407,7 @@ export default function Allergier() {
                             <Text className="text-sm text-muted-foreground text-center py-6">
                                 Du kan legge til opptil {MAX_CUSTOM} egne allergier.
                             </Text>
-                        ) : null
+                        ) : undefined
                     }
                 />
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import type { ViewRef } from "@rn-primitives/types";
 import { Text } from "./text";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +9,7 @@ interface SectionHeaderProps {
     className?: string;
 }
 
-const SectionHeader = React.forwardRef<View, SectionHeaderProps>(
+const SectionHeader = React.forwardRef<ViewRef, SectionHeaderProps>(
     ({ title, className }, ref) => {
         return (
             <View ref={ref} className={cn("flex-row items-center mb-3", className)}>

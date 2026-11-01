@@ -302,7 +302,7 @@ export function GroupFinesList({
             ListFooterComponent={
                 isFetchingNextPage ? (
                     <ActivityIndicator className="my-4" color={mutedColor} />
-                ) : null
+                ) : undefined
             }
             ListEmptyComponent={
                 isPending ? (

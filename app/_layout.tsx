@@ -11,7 +11,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import Toast from "react-native-toast-message";
 import { PortalHost } from '@rn-primitives/portal';
-import { getTheme } from '@/lib/storage/themeStore';
+import { getTheme, type ThemePreference } from '@/lib/storage/themeStore';
+import { useThemeGate } from '@/lib/theme/useThemeGate';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { PushNotifications } from '@/components/notifications/PushNotifications';
@@ -30,8 +31,10 @@ export {
 
 export default function RootLayout() {
     const hasMounted = React.useRef(false);
-    const { isDarkColorScheme, setColorScheme } = useColorScheme();
-    const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
+    const { colorScheme, isDarkColorScheme, setColorScheme } = useColorScheme();
+    const [pendingTheme, setPendingTheme] = React.useState<ThemePreference | null>(null);
+    // Se `useThemeGate` for hvorfor appen venter på at temaet er bekreftet.
+    const isColorSchemeLoaded = useThemeGate(pendingTheme, colorScheme);
 
 
     useIsomorphicLayoutEffect(() => {
@@ -46,7 +49,7 @@ export default function RootLayout() {
 
         getTheme().then((theme) => {
             setColorScheme(theme);
-            setIsColorSchemeLoaded(true);
+            setPendingTheme(theme);
             hasMounted.current = true;
         });
     }, []);

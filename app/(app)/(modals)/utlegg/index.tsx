@@ -92,7 +92,7 @@ export default function Utlegg() {
                 ListFooterComponent={
                     isFetchingNextPage ? (
                         <ActivityIndicator className="my-4" color={mutedColor} />
-                    ) : null
+                    ) : undefined
                 }
             />
         </PageWrapper>

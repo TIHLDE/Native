@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, View } from "react-native";
+import type { ViewRef } from "@rn-primitives/types";
 import { Text } from "@/components/ui/text";
 import type { ApplicationStatus, ApplicationSummary } from "@/actions/types";
 
@@ -37,7 +38,7 @@ interface ExpenseCardProps {
     onPress?: () => void;
 }
 
-const ExpenseCard = React.forwardRef<View, ExpenseCardProps>(
+const ExpenseCard = React.forwardRef<ViewRef, ExpenseCardProps>(
     ({ expense, onPress }, ref) => {
         return (
             <Pressable

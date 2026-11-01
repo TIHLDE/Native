@@ -17,8 +17,7 @@ import {
     LucideIcon,
     Mail,
 } from "lucide-react-native";
-import { Linking, Pressable, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { Linking, Pressable, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 /**

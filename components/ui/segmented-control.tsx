@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import type { ViewRef } from "@rn-primitives/types";
 import { segmentWidth } from "@/lib/segmentedControl";
 import { cn } from "@/lib/utils";
 import { Text } from "./text";
@@ -31,7 +32,7 @@ const labelClassName = "text-base font-semibold";
  * valg ikke alltid hører til en pager — profilen bytter mellom to lister uten
  * å swipe — og de to skal se like ut.
  */
-const SegmentedControl = React.forwardRef<View, SegmentedControlProps>(
+const SegmentedControl = React.forwardRef<ViewRef, SegmentedControlProps>(
     ({ options, value, onChange, scrollable = false, className }, ref) => {
         const [containerWidth, setContainerWidth] = React.useState(0);
         const [labelWidths, setLabelWidths] = React.useState<number[]>([]);

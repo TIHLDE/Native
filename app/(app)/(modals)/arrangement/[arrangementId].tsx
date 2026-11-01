@@ -1,7 +1,7 @@
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { View, ActivityIndicator, AppState, Linking, Pressable } from "react-native";
+import { View, ActivityIndicator, AppState, Linking, Pressable, ScrollView } from "react-native";
 import MarkdownView from "@/components/ui/MarkdownView";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageWrapper from "@/components/ui/pagewrapper";
@@ -20,7 +20,7 @@ import * as WebBrowser from "expo-web-browser";
 import { usePermissions } from "@/actions/users/me";
 import Toast from "react-native-toast-message";
 import Icon from "@/lib/icons/Icon";
-import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetBackdrop, BottomSheetFlatList, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { publicEventParticipants } from "@/actions/events/participants";
 import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
