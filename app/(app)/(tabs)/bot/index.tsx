@@ -44,6 +44,8 @@ export default function MembershipSelection() {
 
     const finesGroups =
         memberships.data?.filter((m: Membership) => m.group.finesActivated) ?? [];
+    // BotBlitz trenger en gruppe å gi boten i.
+    const showBlitz = finesGroups.length > 0;
 
     // BotBlitz: bildet tas før gruppa er valgt. Det blir liggende til en bot
     // er gitt i flyten (med eller uten dette bildet), brukeren forkaster det
@@ -118,7 +120,7 @@ export default function MembershipSelection() {
                 contentContainerStyle={{
                     paddingTop: 12,
                     // Plass til BotBlitz-knappen over det nederste kortet.
-                    paddingBottom: TAB_BAR_CLEARANCE + 72,
+                    paddingBottom: TAB_BAR_CLEARANCE + (showBlitz ? 72 : 0),
                 }}
                 refreshControl={refreshControl}
                 keyExtractor={(item) => item.group.slug}
@@ -217,7 +219,7 @@ export default function MembershipSelection() {
                 }
             />
 
-            {finesGroups.length > 0 && (
+            {showBlitz && (
                 <Pressable
                     onPress={() => blitz("camera")}
                     onLongPress={() => blitz("library")}
