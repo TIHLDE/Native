@@ -18,6 +18,7 @@ import {
     View,
 } from "react-native";
 import { Check, Search, X } from "lucide-react-native";
+import { SelectedLawCard } from "@/components/boter/SelectedLawCard";
 
 function UserCardSkeleton() {
     return (
@@ -98,6 +99,16 @@ export default function UserSelection() {
 
     return (
         <PageWrapper className="flex-1 bg-background">
+            {/* Valgt paragraf står fast øverst (utenfor lista), så man hele
+                tiden ser hva boten gis for mens man søker og ruller. */}
+            <SelectedLawCard
+                paragraph={lawParagraph}
+                title={lawTitle}
+                description={lawDescription}
+                amount={lawAmount}
+                onChange={() => router.back()}
+            />
+
             <FlatList
                 className="flex-1"
                 data={users.data?.results ?? []}
