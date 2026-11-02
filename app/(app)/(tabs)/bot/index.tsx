@@ -8,8 +8,21 @@ import { fetchMemberships } from "@/actions/fines/memberships";
 import { Membership } from "@/actions/types";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { FlatList, Image, Pressable, View } from "react-native";
-import { ChevronRight, Users } from "lucide-react-native";
+import { Camera, ChevronRight, Users, X } from "lucide-react-native";
+import { PickedImage, useFineImage } from "@/components/boter/useFineImage";
+
+/** Bildet som route-params, så det følger med gjennom hele bøteflyten. */
+function imageParams(image: PickedImage | null) {
+    return image
+        ? {
+              imageUri: image.uri,
+              w: String(image.width),
+              h: String(image.height),
+          }
+        : {};
+}
 
 function MembershipCardSkeleton() {
     return (
@@ -38,21 +51,72 @@ export default function MembershipSelection() {
     const finesGroups =
         memberships.data?.filter((m: Membership) => m.group.finesActivated) ?? [];
 
+    // BotBlitz: bildet tas før gruppa er valgt. Ligger bare her til en gruppe
+    // trykkes, og tømmes da, så det ikke står igjen når flyten lukkes.
+    const [pendingImage, setPendingImage] = useState<PickedImage | null>(null);
+    const { pickImage, takePhoto } = useFineImage();
+
+    const openGroup = (groupSlug: string, image: PickedImage | null) => {
+        router.push({
+            pathname: "/(app)/(modals)/boter/[groupSlug]",
+            params: { groupSlug, ...imageParams(image) },
+        });
+        setPendingImage(null);
+    };
+
+    const blitz = async (source: "camera" | "library") => {
+        const image =
+            source === "camera" ? await takePhoto() : await pickImage();
+        if (!image) return;
+
+        if (finesGroups.length === 1) {
+            // Et push i samme tikk som velgeren lukkes kan miste overgangen
+            // på iOS.
+            const slug = finesGroups[0].group.slug;
+            setTimeout(() => openGroup(slug, image), 0);
+            return;
+        }
+        setPendingImage(image);
+    };
+
     return (
         <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <FlatList
                 data={finesGroups}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_CLEARANCE }}
+                contentContainerStyle={{
+                    paddingTop: 12,
+                    // Plass til BotBlitz-knappen over det nederste kortet.
+                    paddingBottom: TAB_BAR_CLEARANCE + 72,
+                }}
                 refreshControl={refreshControl}
                 keyExtractor={(item) => item.group.slug}
+                ListHeaderComponent={
+                    pendingImage ? (
+                        <View className="mx-4 mb-3 bg-primary/10 dark:bg-primary/20 rounded-2xl p-3 flex-row items-center">
+                            <Image
+                                source={{ uri: pendingImage.uri }}
+                                className="w-12 h-12 rounded-xl"
+                                resizeMode="cover"
+                            />
+                            <Text className="flex-1 ml-3 text-sm font-semibold text-primary">
+                                Bilde klart – velg gruppe
+                            </Text>
+                            <Pressable
+                                onPress={() => setPendingImage(null)}
+                                accessibilityLabel="Forkast bildet"
+                                hitSlop={8}
+                                className="w-8 h-8 rounded-full items-center justify-center active:opacity-70"
+                            >
+                                <X size={18} color={mutedColor} />
+                            </Pressable>
+                        </View>
+                    ) : undefined
+                }
                 renderItem={({ item: membership }) => (
                     <Pressable
                         onPress={() =>
-                            router.push({
-                                pathname: "/(app)/(modals)/boter/[groupSlug]",
-                                params: { groupSlug: membership.group.slug },
-                            })
+                            openGroup(membership.group.slug, pendingImage)
                         }
                         className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
                     >
@@ -121,6 +185,23 @@ export default function MembershipSelection() {
                     )
                 }
             />
+
+            {finesGroups.length > 0 && (
+                <Pressable
+                    onPress={() => blitz("camera")}
+                    onLongPress={() => blitz("library")}
+                    accessibilityRole="button"
+                    accessibilityLabel="BotBlitz – ta bilde til bot"
+                    accessibilityHint="Hold inne for å velge fra biblioteket"
+                    className="absolute right-4 w-14 h-14 rounded-full bg-primary items-center justify-center shadow-lg active:opacity-80"
+                    style={{ bottom: TAB_BAR_CLEARANCE }}
+                >
+                    <Camera
+                        size={24}
+                        color={themeColors(isDarkColorScheme).primaryForeground}
+                    />
+                </Pressable>
+            )}
         </PageWrapper>
     );
 }
