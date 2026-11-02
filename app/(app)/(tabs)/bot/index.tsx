@@ -80,6 +80,16 @@ export default function MembershipSelection() {
         });
     };
 
+    // Pushet etter BotBlitz venter ett tikk (se under). Går fanen bort i
+    // mellomtiden, skal det ikke navigeres fra en skjerm som ikke finnes.
+    const pushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(
+        () => () => {
+            if (pushTimer.current) clearTimeout(pushTimer.current);
+        },
+        [],
+    );
+
     const blitz = async (source: "camera" | "library") => {
         const image =
             source === "camera" ? await takePhoto() : await pickImage();
@@ -91,7 +101,11 @@ export default function MembershipSelection() {
             // Et push i samme tikk som velgeren lukkes kan miste overgangen
             // på iOS.
             const slug = finesGroups[0].group.slug;
-            setTimeout(() => openGroup(slug, image), 0);
+            if (pushTimer.current) clearTimeout(pushTimer.current);
+            pushTimer.current = setTimeout(() => {
+                pushTimer.current = null;
+                openGroup(slug, image);
+            }, 0);
         }
     };
 
