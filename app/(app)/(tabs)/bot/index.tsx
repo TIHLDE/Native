@@ -45,9 +45,10 @@ export default function MembershipSelection() {
     const finesGroups =
         memberships.data?.filter((m: Membership) => m.group.finesActivated) ?? [];
 
-    // BotBlitz: bildet tas før gruppa er valgt. Det blir liggende til boten
-    // er gitt, brukeren forkaster det eller tar et nytt, så den som går inn i
-    // feil gruppe og tilbake ikke mister bildet. Hooken eier bildet: velgerne
+    // BotBlitz: bildet tas før gruppa er valgt. Det blir liggende til en bot
+    // er gitt i flyten (med eller uten dette bildet), brukeren forkaster det
+    // eller tar et nytt, så den som går inn i feil gruppe og tilbake ikke
+    // mister bildet. Hooken eier bildet: velgerne
     // setter det, og forkast-knappen og `onFineSubmitted` nullstiller det.
     const {
         image: pendingImage,

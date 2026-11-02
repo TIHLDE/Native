@@ -128,7 +128,9 @@ export default function ConfirmFine() {
             // ikke holdes igjen av en ny henting.
             queryClient.invalidateQueries({ queryKey: ["fines", groupSlug] });
 
-            // Bot-fanen holder på BotBlitz-bildet til denne kommer.
+            // Bot-fanen forkaster BotBlitz-bildet når denne kommer, etter
+            // hver bot gitt i flyten, også om bildet ble fjernet eller byttet
+            // her og aldri ble brukt.
             emitFineSubmitted();
             setIsSuccess(true);
         } catch (error: any) {
