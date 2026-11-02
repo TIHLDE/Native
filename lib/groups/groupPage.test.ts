@@ -1,7 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
-import type { GroupMember } from "@/actions/types";
+import type { Group, GroupListItem, GroupMember, Membership } from "@/actions/types";
 import {
     STATUS_OPTIONS,
+    finesTabsVisible,
+    groupSections,
     groupTabs,
     groupTypeLabel,
     isAutomaticGroupType,
@@ -109,5 +111,164 @@ describe("isAutomaticGroupType", () => {
         expect(isAutomaticGroupType("COMMITTEE")).toBe(false);
         expect(isAutomaticGroupType("")).toBe(false);
         expect(isAutomaticGroupType(null)).toBe(false);
+    });
+});
+
+const group = (
+    slug: string,
+    type: string,
+    extra: Partial<GroupListItem> = {}
+): GroupListItem => ({
+    slug,
+    name: slug,
+    type,
+    finesActivated: false,
+    memberCount: 3,
+    ...extra,
+});
+
+const membershipOf = (
+    g: Group,
+    membershipType: Membership["membershipType"] = "MEMBER"
+): Membership => ({
+    createdAt: "",
+    expirationDate: null,
+    group: g,
+    membershipType,
+    user: {
+        userId: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        gender: 0,
+        study: { group: { name: "", slug: "", type: "" } },
+        studyyear: { group: { name: "", slug: "", type: "" } },
+        classYear: null,
+        unansweredEvaluationsCount: 0,
+    },
+});
+
+describe("groupSections", () => {
+    it("ordner seksjonene som på nett og dropper tomme", () => {
+        const sections = groupSections(
+            [
+                group("index", "committee"),
+                group("hs", "BOARD"),
+                group("drift", "subgroup"),
+                group("ny", "noeNytt"),
+            ],
+            []
+        );
+        expect(sections.map((s) => [s.key, s.title])).toEqual([
+            ["board", "Hovedorgan"],
+            ["subgroup", "Undergrupper"],
+            ["committee", "Komitéer"],
+            ["other", "Andre"],
+        ]);
+    });
+
+    it("holder private og automatiske grupper ute av typeseksjonene", () => {
+        const sections = groupSections(
+            [
+                group("hemmelig", "private"),
+                group("tihlde", "tihlde"),
+                group("dataing", "study"),
+                group("2024", "studyyear"),
+                group("index", "committee"),
+            ],
+            []
+        );
+        expect(sections.flatMap((s) => s.rows.map((r) => r.group.slug))).toEqual([
+            "index",
+        ]);
+    });
+
+    it("viser egne private grupper under Mine grupper, uten automatiske", () => {
+        const privat = group("hemmelig", "private");
+        const sections = groupSections(
+            [privat],
+            [membershipOf(privat), membershipOf(group("tihlde", "TIHLDE"))]
+        );
+        expect(sections).toHaveLength(1);
+        expect(sections[0].key).toBe("mine");
+        expect(sections[0].rows.map((r) => r.group.slug)).toEqual(["hemmelig"]);
+    });
+
+    it("setter rolle på egne grupper i typeseksjonene", () => {
+        const index = group("index", "committee");
+        const sections = groupSections(
+            [index, group("annen", "committee")],
+            [membershipOf(index, "LEADER")]
+        );
+        const committee = sections.find((s) => s.key === "committee")!;
+        expect(committee.rows.map((r) => [r.group.slug, r.role])).toEqual([
+            ["annen", undefined],
+            ["index", "LEADER"],
+        ]);
+    });
+
+    it("sorterer på norsk", () => {
+        const sections = groupSections(
+            [
+                group("Åpen", "committee", { name: "Åpen" }),
+                group("Ørn", "committee", { name: "Ørn" }),
+                group("Berg", "committee", { name: "Berg" }),
+            ],
+            []
+        );
+        expect(sections[0].rows.map((r) => r.group.name)).toEqual([
+            "Berg",
+            "Ørn",
+            "Åpen",
+        ]);
+    });
+
+    it("henter medlemstallet til Mine grupper fra lista når gruppa står der", () => {
+        const index = group("index", "committee", { memberCount: 12 });
+        const arkivert = group("gammel", "committee");
+        const sections = groupSections(
+            [index],
+            [membershipOf(index), membershipOf(arkivert)]
+        );
+        const mine = sections[0];
+        expect(mine.rows.map((r) => [r.group.slug, r.memberCount])).toEqual([
+            ["gammel", undefined],
+            ["index", 12],
+        ]);
+    });
+
+    it("gir bare typeseksjonene uten medlemskap", () => {
+        const sections = groupSections([group("hs", "board")], []);
+        expect(sections.map((s) => s.key)).toEqual(["board"]);
+    });
+});
+
+describe("finesTabsVisible", () => {
+    const withFines = group("index", "committee", { finesActivated: true });
+
+    it("lar detaljsvaret avgjøre når det er kommet", () => {
+        expect(
+            finesTabsVisible({ ...withFines, viewerCanUseFines: false }, withFines)
+        ).toBe(false);
+        expect(
+            finesTabsVisible({ ...withFines, viewerCanUseFines: true }, undefined)
+        ).toBe(true);
+    });
+
+    it("faller tilbake på medlemskapet før detaljsvaret", () => {
+        expect(finesTabsVisible(undefined, withFines)).toBe(true);
+        expect(finesTabsVisible(undefined, group("x", "committee"))).toBe(false);
+    });
+
+    it("skjuler fanene for en som ikke er med før detaljsvaret", () => {
+        expect(finesTabsVisible(undefined, undefined)).toBe(false);
+    });
+
+    it("blaffer for et studiegruppemedlem som ikke lenger er innskrevet", () => {
+        const study = group("dataing", "study", { finesActivated: true });
+        expect(finesTabsVisible(undefined, study)).toBe(true);
+        expect(
+            finesTabsVisible({ ...study, viewerCanUseFines: false }, study)
+        ).toBe(false);
     });
 });

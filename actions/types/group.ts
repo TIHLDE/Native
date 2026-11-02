@@ -16,4 +16,16 @@ export type Group = {
     leaderTitle?: string | null;
     /** Markdown om hvordan gruppa praktiserer bøtesystemet. */
     finesInfo?: string;
+    /**
+     * Om den innloggede kan se og gi bøter i gruppa. Photon svarer for
+     * innloggeren, fordi `finesActivated` alene ikke sier det: en som ikke er
+     * medlem får 403 på både bøtene og lovverket. Bare `GET /groups/:slug`
+     * har feltet, så det er udefinert for grupper lest fra listene.
+     */
+    viewerCanUseFines?: boolean;
 }
+
+/** En gruppe i oversikten over alle grupper, `GET /groups`. */
+export type GroupListItem = Group & {
+    memberCount: number;
+};

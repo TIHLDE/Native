@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
@@ -5,12 +6,17 @@ import PageWrapper, { TAB_SCREEN_EDGES, TAB_BAR_CLEARANCE } from "@/components/u
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { fetchMemberships } from "@/actions/fines/memberships";
-import { Membership } from "@/actions/types";
-import { isAutomaticGroupType } from "@/lib/groups/groupPage";
+import { fetchGroups } from "@/actions/groups/list";
+import {
+    GroupRow,
+    GroupSection,
+    GroupSectionKey,
+    groupSections,
+} from "@/lib/groups/groupPage";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { FlatList, Image, Pressable, View } from "react-native";
-import { ChevronRight, Users } from "lucide-react-native";
+import { Image, Pressable, SectionList, View } from "react-native";
+import { ChevronDown, ChevronRight, Users } from "lucide-react-native";
 
 function MembershipCardSkeleton() {
     return (
@@ -24,117 +30,174 @@ function MembershipCardSkeleton() {
     );
 }
 
+function ErrorLine({ message }: { message: string }) {
+    return (
+        <Text className="mx-4 mt-4 mb-2 text-sm text-destructive">{message}</Text>
+    );
+}
+
+function rowSubtitle(row: GroupRow): string {
+    const parts: string[] = [];
+    if (row.role) parts.push(row.role === "LEADER" ? "Leder" : "Medlem");
+    if (row.memberCount !== undefined) {
+        parts.push(
+            row.memberCount === 1 ? "1 medlem" : `${row.memberCount} medlemmer`
+        );
+    }
+    // Bare for egne grupper — for alle andre ville det vært støy.
+    if (row.role && !row.group.finesActivated) parts.push("Uten bøter");
+    return parts.join(" · ");
+}
+
 /**
- * Gruppene brukeren er med i.
+ * Alle grupper, med brukerens egne øverst og resten delt etter type i
+ * seksjoner som kan foldes ut.
  *
- * Til forskjell fra bot-fanen filtreres det ikke på `finesActivated` — «Grupper»
- * lover gruppene dine, og komiteer og undergrupper uten bøtesystem hører med. De
- * som mangler bøter merkes i stedet, sånn at det ikke overrasker at
- * bøtefanen inne på gruppa er tom.
+ * Gruppesida og medlemslista er åpne for alle, så lista er ikke lenger bare
+ * dine grupper. Medlemskapene styrer når lista vises, og gruppene legges til:
+ * kom `["groups"]` først, ville typeseksjonene stått uten roller og «Mine
+ * grupper» dyttet alt ned når den kom.
  */
 export default function Grupper() {
     const router = useRouter();
     const { isDarkColorScheme } = useColorScheme();
-    const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
+    const colors = themeColors(isDarkColorScheme);
+    const [expanded, setExpanded] = useState<Set<GroupSectionKey>>(
+        () => new Set(["mine"])
+    );
 
     const memberships = useQuery({
         queryKey: ["memberships"],
         queryFn: fetchMemberships,
     });
+    const groups = useQuery({
+        queryKey: ["groups"],
+        queryFn: fetchGroups,
+    });
 
-    const refreshControl = useRefresh("memberships");
+    const refreshControl = useRefresh([["groups"], ["memberships"]]);
 
-    // Ukjent type beholdes framfor å skjules — en ny gruppetype i Photon skal
-    // dukke opp i lista, ikke forsvinne stille.
-    const groups =
-        memberships.data?.filter(
-            (item) => !isAutomaticGroupType(item.group.type)
-        ) ?? [];
+    const toggle = (key: GroupSectionKey) =>
+        setExpanded((current) => {
+            const next = new Set(current);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+
+    const sections = memberships.isPending
+        ? []
+        : groupSections(groups.data ?? [], memberships.data ?? []);
+
+    const listData = sections.map((section) => ({
+        ...section,
+        data: expanded.has(section.key) ? section.rows : [],
+    }));
+
+    const bothFailed = memberships.isError && groups.isError;
+
+    const header =
+        memberships.isError && !bothFailed ? (
+            <ErrorLine message={memberships.error.message} />
+        ) : undefined;
+
+    const footer = memberships.isPending || bothFailed ? undefined : groups.isPending ? (
+        <View className="mt-4">
+            <MembershipCardSkeleton />
+            <MembershipCardSkeleton />
+        </View>
+    ) : groups.isError ? (
+        <ErrorLine message={groups.error.message} />
+    ) : undefined;
 
     return (
         <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
-            <FlatList
-                data={groups}
+            <SectionList<GroupRow, GroupSection>
+                sections={listData}
+                stickySectionHeadersEnabled={false}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_CLEARANCE }}
+                contentContainerStyle={{ paddingTop: 4, paddingBottom: TAB_BAR_CLEARANCE }}
                 refreshControl={refreshControl}
-                keyExtractor={(item) => item.group.slug}
-                renderItem={({ item: membership }: { item: Membership }) => (
+                keyExtractor={(row) => row.group.slug}
+                ListHeaderComponent={header}
+                ListFooterComponent={footer}
+                renderSectionHeader={({ section }) => {
+                    const isOpen = expanded.has(section.key);
+                    const Chevron = isOpen ? ChevronDown : ChevronRight;
+                    return (
+                        <Pressable
+                            onPress={() => toggle(section.key)}
+                            accessibilityRole="button"
+                            accessibilityState={{ expanded: isOpen }}
+                            className="mx-4 mt-4 mb-2 flex-row items-center active:opacity-70"
+                        >
+                            <Text className="flex-1 text-lg font-bold text-foreground">
+                                {section.title}
+                                <Text className="text-base font-normal text-muted-foreground">
+                                    {`  ${section.rows.length}`}
+                                </Text>
+                            </Text>
+                            <Chevron size={20} color={colors.mutedForeground} />
+                        </Pressable>
+                    );
+                }}
+                renderItem={({ item: row }) => (
                     <Pressable
                         onPress={() =>
                             router.push({
                                 pathname: "/(app)/(modals)/gruppe/[groupSlug]",
-                                params: { groupSlug: membership.group.slug },
+                                params: { groupSlug: row.group.slug },
                             })
                         }
                         className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
                     >
-                        {membership.group.image ? (
+                        {row.group.image ? (
                             <Image
-                                source={{
-                                    uri: avatarImageUrl(membership.group.image),
-                                }}
+                                source={{ uri: avatarImageUrl(row.group.image) }}
                                 className="w-12 h-12 rounded-full"
                                 resizeMode="cover"
                             />
                         ) : (
                             <View className="w-12 h-12 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                                <Users
-                                    size={20}
-                                    color={
-                                        themeColors(isDarkColorScheme).primary
-                                    }
-                                />
+                                <Users size={20} color={colors.primary} />
                             </View>
                         )}
                         <View className="flex-1 ml-3">
                             <Text className="text-base font-semibold text-foreground">
-                                {membership.group.name}
+                                {row.group.name}
                             </Text>
-                            <View className="flex-row items-center mt-0.5">
-                                <Text className="text-sm text-muted-foreground">
-                                    {membership.membershipType === "LEADER"
-                                        ? "Leder"
-                                        : "Medlem"}
+                            {rowSubtitle(row) ? (
+                                <Text className="text-sm text-muted-foreground mt-0.5">
+                                    {rowSubtitle(row)}
                                 </Text>
-                                {!membership.group.finesActivated ? (
-                                    <Text className="text-sm text-muted-foreground">
-                                        {" · Uten bøter"}
-                                    </Text>
-                                ) : null}
-                            </View>
+                            ) : null}
                         </View>
-                        <ChevronRight size={20} color={mutedColor} />
+                        <ChevronRight size={20} color={colors.mutedForeground} />
                     </Pressable>
                 )}
                 ListEmptyComponent={
                     memberships.isPending ? (
-                        <View>
+                        <View className="pt-3">
                             <MembershipCardSkeleton />
                             <MembershipCardSkeleton />
                             <MembershipCardSkeleton />
                         </View>
-                    ) : memberships.isError ? (
+                    ) : bothFailed ? (
                         <View className="flex-1 items-center justify-center px-6 pt-16">
                             <Text className="text-base text-destructive">
-                                {memberships.error.message}
+                                {groups.error.message}
                             </Text>
                         </View>
-                    ) : (
+                    ) : groups.isPending || header || footer ? undefined : (
                         <View className="py-16 items-center">
                             <View className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
-                                <Users
-                                    size={28}
-                                    color={
-                                        themeColors(isDarkColorScheme).primary
-                                    }
-                                />
+                                <Users size={28} color={colors.primary} />
                             </View>
                             <Text className="text-lg font-semibold text-foreground mb-1">
                                 Ingen grupper
                             </Text>
                             <Text className="text-sm text-muted-foreground text-center px-8">
-                                Du er ikke medlem av noen grupper.
+                                Fant ingen grupper.
                             </Text>
                         </View>
                     )
