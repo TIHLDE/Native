@@ -33,10 +33,15 @@ import { useColorScheme } from "@/lib/useColorScheme";
  * fanebytte midt i en lang liste ville hoppet.
  */
 export default function GruppeSide() {
-    const { groupSlug } = useLocalSearchParams<{ groupSlug: string }>();
+    const { groupSlug, tab: initialTab } = useLocalSearchParams<{
+        groupSlug: string;
+        tab?: GroupTabKey;
+    }>();
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
-    const [tab, setTab] = useState<GroupTabKey>("info");
+    // `tab` lar et varsel åpne sida rett på en fane. En ukjent verdi fanges
+    // av `activeTab` under og faller tilbake til Om.
+    const [tab, setTab] = useState<GroupTabKey>(initialTab ?? "info");
 
     const memberships = useQuery({
         queryKey: ["memberships"],
