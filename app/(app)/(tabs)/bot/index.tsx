@@ -49,7 +49,7 @@ export default function MembershipSelection() {
     // er gitt, brukeren forkaster det eller tar et nytt, så den som går inn i
     // feil gruppe og tilbake ikke mister bildet.
     const [pendingImage, setPendingImage] = useState<PickedImage | null>(null);
-    const { pickImage, takePhoto } = useFineImage();
+    const { pickImage, takePhoto, isPicking } = useFineImage();
 
     useEffect(() => onFineSubmitted(() => setPendingImage(null)), []);
 
@@ -186,7 +186,9 @@ export default function MembershipSelection() {
                 <Pressable
                     onPress={() => blitz("camera")}
                     onLongPress={() => blitz("library")}
+                    disabled={isPicking}
                     accessibilityRole="button"
+                    accessibilityState={{ disabled: isPicking }}
                     accessibilityLabel="BotBlitz – ta bilde til bot"
                     accessibilityHint="Hold inne for å velge fra biblioteket"
                     className="absolute right-4 w-14 h-14 rounded-full bg-primary items-center justify-center shadow-lg active:opacity-80"

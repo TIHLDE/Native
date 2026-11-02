@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
@@ -62,16 +62,54 @@ function toPickedImage(
 
 /**
  * Bildet til en bot, med valg fra biblioteket og kameraet. Begge returnerer
- * bildet de satte (eller `null` ved avbrudd), så den som kaller kan gå videre
- * med det med én gang.
+ * bildet de satte (eller `null` ved avbrudd, feil eller om en velger alt er
+ * åpen), så den som kaller kan gå videre med det med én gang. Feil vises som
+ * toast her og kastes aldri videre.
  */
 export function useFineImage(initial: PickedImage | null = null) {
     const [image, setImage] = useState<PickedImage | null>(initial);
 
+    // Én velger om gangen. Et dobbelttrykk kommer før `isPicking` har nådd
+    // knappen, så sperren er en ref; staten er bare for å vise knappen som
+    // deaktivert. Et nytt kall mens velgeren er åpen avvises av
+    // expo-image-picker.
+    const busy = useRef(false);
+    const [isPicking, setIsPicking] = useState(false);
+
+    const run = useCallback(
+        async (
+            launch: () => Promise<PickedImage | null>,
+            failure: string,
+        ): Promise<PickedImage | null> => {
+            if (busy.current) return null;
+            busy.current = true;
+            setIsPicking(true);
+            try {
+                const picked = await launch();
+                if (picked) setImage(picked);
+                return picked;
+            } catch {
+                // F.eks. ingen kamera (simulator), eller at velgeren ikke
+                // kunne åpnes. Uten denne ble det et ubehandlet løfte og
+                // ingen beskjed.
+                Toast.show({
+                    type: "error",
+                    text1: failure,
+                    text2: "Prøv igjen.",
+                });
+                return null;
+            } finally {
+                busy.current = false;
+                setIsPicking(false);
+            }
+        },
+        [],
+    );
+
     // Ingen `allowsEditing`: den tvang bildet gjennom systemets beskjæring
     // (kvadratisk på iOS), og et beskåret bevis er ikke et bevis. Photon og
     // nettsida tar bilder i alle sideforhold.
-    const pickImage = useCallback(async () => {
+    const launchLibrary = useCallback(async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
             quality: 0.8,
@@ -83,12 +121,10 @@ export function useFineImage(initial: PickedImage | null = null) {
                     .Compatible,
         });
 
-        const picked = toPickedImage(result);
-        if (picked) setImage(picked);
-        return picked;
+        return toPickedImage(result);
     }, []);
 
-    const takePhoto = useCallback(async () => {
+    const launchCamera = useCallback(async () => {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
             Toast.show({
@@ -103,12 +139,19 @@ export function useFineImage(initial: PickedImage | null = null) {
             quality: 0.8,
         });
 
-        const picked = toPickedImage(result);
-        if (picked) setImage(picked);
-        return picked;
+        return toPickedImage(result);
     }, []);
 
-    return { image, setImage, pickImage, takePhoto };
+    const pickImage = useCallback(
+        () => run(launchLibrary, "Kunne ikke åpne bildebiblioteket"),
+        [run, launchLibrary],
+    );
+    const takePhoto = useCallback(
+        () => run(launchCamera, "Kunne ikke åpne kameraet"),
+        [run, launchCamera],
+    );
+
+    return { image, setImage, pickImage, takePhoto, isPicking };
 }
 
 /**

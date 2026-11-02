@@ -79,7 +79,7 @@ export default function ConfirmFine() {
     const [reason, setReason] = useState("");
     // Et BotBlitz-bilde er tatt før flyten startet og ligger klart her. Det
     // lastes opp først ved «Gi bot», som et bilde valgt på denne skjermen.
-    const { image, setImage, pickImage, takePhoto } = useFineImage(
+    const { image, setImage, pickImage, takePhoto, isPicking } = useFineImage(
         imageFromParams({ imageUri, w, h }),
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -312,6 +312,7 @@ export default function ConfirmFine() {
                         <View className="flex-row gap-3">
                             <Pressable
                                 onPress={pickImage}
+                                disabled={isPicking}
                                 className="flex-1 h-24 rounded-2xl bg-gray-100 dark:bg-secondary/30 items-center justify-center active:opacity-70"
                             >
                                 <ImagePlus size={24} color={mutedColor} />
@@ -321,6 +322,7 @@ export default function ConfirmFine() {
                             </Pressable>
                             <Pressable
                                 onPress={takePhoto}
+                                disabled={isPicking}
                                 className="flex-1 h-24 rounded-2xl bg-gray-100 dark:bg-secondary/30 items-center justify-center active:opacity-70"
                             >
                                 <Camera size={24} color={mutedColor} />
