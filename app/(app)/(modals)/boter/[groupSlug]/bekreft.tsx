@@ -27,7 +27,12 @@ import {
     X,
 } from "lucide-react-native";
 import Toast from "react-native-toast-message";
-import { previewSize, useFineImage } from "@/components/boter/useFineImage";
+import {
+    ImageParams,
+    imageFromParams,
+    previewSize,
+    useFineImage,
+} from "@/components/boter/useFineImage";
 
 type SelectedUser = {
     /** Photons bruker-id — det API-et slår opp på. */
@@ -52,21 +57,30 @@ export default function ConfirmFine() {
         lawParagraph,
         lawAmount,
         selectedUsers: selectedUsersParam,
-    } = useLocalSearchParams<{
-        groupSlug: string;
-        lawId: string;
-        lawTitle: string;
-        lawParagraph: string;
-        lawAmount: string;
-        lawDescription: string;
-        selectedUsers: string;
-    }>();
+        imageUri,
+        w,
+        h,
+    } = useLocalSearchParams<
+        {
+            groupSlug: string;
+            lawId: string;
+            lawTitle: string;
+            lawParagraph: string;
+            lawAmount: string;
+            lawDescription: string;
+            selectedUsers: string;
+        } & ImageParams
+    >();
 
     const selectedUsers: SelectedUser[] = JSON.parse(selectedUsersParam ?? "[]");
 
     const [amount, setAmount] = useState(parseInt(lawAmount) || 1);
     const [reason, setReason] = useState("");
-    const { image, setImage, pickImage, takePhoto } = useFineImage();
+    // Et BotBlitz-bilde er tatt før flyten startet og ligger klart her. Det
+    // lastes opp først ved «Gi bot», som et bilde valgt på denne skjermen.
+    const { image, setImage, pickImage, takePhoto } = useFineImage(
+        imageFromParams({ imageUri, w, h }),
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
