@@ -8,7 +8,7 @@ import { fetchMemberships } from "@/actions/fines/memberships";
 import { Membership } from "@/actions/types";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FlatList, Image, Pressable, View } from "react-native";
 import { Camera, ChevronRight, Users, X } from "lucide-react-native";
 import {
@@ -47,11 +47,20 @@ export default function MembershipSelection() {
 
     // BotBlitz: bildet tas før gruppa er valgt. Det blir liggende til boten
     // er gitt, brukeren forkaster det eller tar et nytt, så den som går inn i
-    // feil gruppe og tilbake ikke mister bildet.
-    const [pendingImage, setPendingImage] = useState<PickedImage | null>(null);
-    const { pickImage, takePhoto, isPicking } = useFineImage();
+    // feil gruppe og tilbake ikke mister bildet. Hooken eier bildet: velgerne
+    // setter det, og forkast-knappen og `onFineSubmitted` nullstiller det.
+    const {
+        image: pendingImage,
+        setImage: setPendingImage,
+        pickImage,
+        takePhoto,
+        isPicking,
+    } = useFineImage();
 
-    useEffect(() => onFineSubmitted(() => setPendingImage(null)), []);
+    useEffect(
+        () => onFineSubmitted(() => setPendingImage(null)),
+        [setPendingImage],
+    );
 
     const openGroup = (groupSlug: string, image: PickedImage | null) => {
         router.push({
@@ -63,9 +72,9 @@ export default function MembershipSelection() {
     const blitz = async (source: "camera" | "library") => {
         const image =
             source === "camera" ? await takePhoto() : await pickImage();
+        // Hooken har alt lagt bildet i `pendingImage`, også med én gruppe, så
+        // det står klart om brukeren går tilbake.
         if (!image) return;
-        // Også med én gruppe, så bildet står klart om brukeren går tilbake.
-        setPendingImage(image);
 
         if (finesGroups.length === 1) {
             // Et push i samme tikk som velgeren lukkes kan miste overgangen
