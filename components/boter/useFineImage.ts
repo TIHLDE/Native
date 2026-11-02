@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
+import { Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
+import { isPickerCacheUri } from "@/lib/fines/pickerImage";
 
 export type PickedImage = {
     uri: string;
@@ -10,9 +12,10 @@ export type PickedImage = {
 
 /**
  * Bildet som route-params. BotBlitz tar bildet før gruppe, lov og brukere er
- * valgt, og det følger med gjennom flyten som disse til bekreft-skjermen.
- * Bare den veien kan et bilde havne der, så den vanlige flyten starter alltid
- * uten.
+ * valgt, og det følger med gjennom flyten som disse til bekreft-skjermen. Den
+ * vanlige flyten sender ingen bilde-params, men ruta kan også åpnes med en
+ * dyplenke, og da kommer params rett fra lenka. `imageFromParams` godtar
+ * derfor bare filer bildevelgeren selv har lagt i cachen.
  */
 export type ImageParams = { imageUri?: string; w?: string; h?: string };
 
@@ -35,7 +38,8 @@ export function forwardImageParams(params: ImageParams): ImageParams {
 
 export function imageFromParams(params: ImageParams): PickedImage | null {
     // Mangler målene, blir de 0, og `previewSize` faller tilbake til fast høyde.
-    return params.imageUri
+    return params.imageUri &&
+        isPickerCacheUri(params.imageUri, Paths.cache.uri)
         ? {
               uri: params.imageUri,
               width: Number(params.w) || 0,
