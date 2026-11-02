@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { GroupListItem } from "@/actions/types";
 import { useLocalSearchParams } from "expo-router";
 import { Image, View } from "react-native";
 import { Crown, Users } from "lucide-react-native";
@@ -13,7 +14,12 @@ import { GroupFinesTab } from "@/components/grupper/GroupFinesTab";
 import { GroupInfoTab } from "@/components/grupper/GroupInfoTab";
 import { GroupLawsList } from "@/components/grupper/GroupLawsList";
 import { GroupMembersList } from "@/components/grupper/GroupMembersList";
-import { GroupTabKey, groupTabs, groupTypeLabel } from "@/lib/groups/groupPage";
+import {
+    GroupTabKey,
+    finesTabsVisible,
+    groupTabs,
+    groupTypeLabel,
+} from "@/lib/groups/groupPage";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -22,13 +28,13 @@ import { useColorScheme } from "@/lib/useColorScheme";
  * Én gruppe: om den, hvem som er med, og — når bøter er skrudd på — bøtene og
  * lovverket de er gitt under.
  *
- * Medlemskapet leses ut av `["memberships"]` framfor å vente på gruppekallet —
- * cachen er varm fra grupper-lista brukeren nettopp sto i, så fanene og hodet
- * står klare med en gang. `GET /groups/:slug` hentes i tillegg for det bare
- * den har: hva gruppa kaller lederen sin.
+ * Hodet fylles fra `["memberships"]` eller `["groups"]` framfor å vente på
+ * gruppekallet — cachen er varm fra grupper-lista brukeren nettopp sto i.
+ * `GET /groups/:slug` hentes i tillegg for det bare den har: hva gruppa kaller
+ * lederen sin, og om innloggeren får se bøtene (`finesTabsVisible`).
  *
  * Fanene identifiseres med nøkkel, ikke indeks, fordi settet endrer seg med
- * `finesActivated`. Bryteren og gruppehodet ligger fast over innholdet, ikke
+ * tilgangen til bøter. Bryteren og gruppehodet ligger fast over innholdet, ikke
  * som `ListHeaderComponent`. Ellers ville bryteren rullet vekk, og et
  * fanebytte midt i en lang liste ville hoppet.
  */
@@ -42,6 +48,7 @@ export default function GruppeSide() {
     // `tab` lar et varsel åpne sida rett på en fane. En ukjent verdi fanges
     // av `activeTab` under og faller tilbake til Om.
     const [tab, setTab] = useState<GroupTabKey>(initialTab ?? "info");
+    const queryClient = useQueryClient();
 
     const memberships = useQuery({
         queryKey: ["memberships"],
@@ -61,11 +68,17 @@ export default function GruppeSide() {
     const membership = memberships.data?.find(
         (item) => item.group.slug === groupSlug
     );
-    const group = groupDetail.data ?? membership?.group;
-    const finesActivated = group?.finesActivated ?? false;
+    // Bare en lesning av cachen: åpnes sida fra et varsel, skal den ikke
+    // hente alle grupper for å fylle hodet.
+    const listed = queryClient
+        .getQueryData<GroupListItem[]>(["groups"])
+        ?.find((item) => item.slug === groupSlug);
+    const group = groupDetail.data ?? membership?.group ?? listed;
     const typeLabel = group ? groupTypeLabel(group.type) : "";
 
-    const tabs = groupTabs(finesActivated);
+    const tabs = groupTabs(
+        finesTabsVisible(groupDetail.data, membership?.group)
+    );
     // En nøkkel som ikke finnes i settet — «Bøter» i en gruppe uten bøter —
     // faller tilbake til Om framfor å vise ingenting.
     const activeTab = tabs.some((item) => item.key === tab) ? tab : "info";

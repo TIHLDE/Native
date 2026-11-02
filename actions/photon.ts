@@ -15,6 +15,7 @@ import type {
     FineStatistics,
     FineStatus,
     Group,
+    GroupListItem,
     GroupMember,
     GroupUser,
     Law,
@@ -175,6 +176,12 @@ export type PhotonGroup = {
 export type PhotonGroupDetail = PhotonGroup & {
     leaderTitle?: string | null;
     finesInfo?: string | null;
+    viewerCanUseFines?: boolean;
+};
+
+/** `GET /groups` — alle aktive grupper, med antall medlemmer. */
+export type PhotonGroupListItem = PhotonGroup & {
+    memberCount?: number;
 };
 
 /**
@@ -195,6 +202,15 @@ export const toGroup = (group: PhotonGroup | PhotonGroupDetail): Group => ({
     leaderTitle: "leaderTitle" in group ? (group.leaderTitle ?? null) : undefined,
     finesInfo:
         "finesInfo" in group ? (group.finesInfo ?? undefined) : undefined,
+    viewerCanUseFines:
+        "viewerCanUseFines" in group
+            ? (group.viewerCanUseFines ?? false)
+            : undefined,
+});
+
+export const toGroupListItem = (group: PhotonGroupListItem): GroupListItem => ({
+    ...toGroup(group),
+    memberCount: group.memberCount ?? 0,
 });
 
 export type PhotonGroupMember = {
