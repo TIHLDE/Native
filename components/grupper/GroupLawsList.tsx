@@ -5,25 +5,13 @@ import { fetchLaws } from "@/actions/fines/laws";
 import { Text } from "@/components/ui/text";
 import useRefresh from "@/lib/useRefresh";
 import { GroupEmptyState } from "./GroupEmptyState";
-import { LawRow } from "./LawRow";
-
-function LawCardSkeleton() {
-    return (
-        <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center">
-            <View className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-secondary/50 animate-pulse" />
-            <View className="flex-1 ml-3">
-                <View className="w-32 h-4 rounded bg-gray-200 dark:bg-secondary/50 animate-pulse mb-2" />
-                <View className="w-40 h-3 rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
-            </View>
-        </View>
-    );
-}
+import { LawRow, LawRowSkeleton, useOpenLaws } from "./LawRow";
 
 /**
  * Lovverket til gruppa, til lesing.
  *
  * Botflyten har sin egen liste, men bruker samme `LawRow`, så paragrafene ser
- * like ut begge steder; der får den åpne raden en knapp som velger paragrafen.
+ * like ut begge steder; der velger et trykk på raden paragrafen.
  * De deler `["laws", groupSlug]`-cachen, så det koster ingen ekstra kall.
  *
  * Lovverk-endepunktet er ikke stengt bak `finesActivated` i Photon — en gruppe
@@ -37,6 +25,7 @@ export function GroupLawsList({ groupSlug }: { groupSlug: string }) {
     });
 
     const refreshControl = useRefresh(["laws", groupSlug]);
+    const { openIds, toggle } = useOpenLaws();
 
     return (
         <FlatList
@@ -46,13 +35,20 @@ export function GroupLawsList({ groupSlug }: { groupSlug: string }) {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
             refreshControl={refreshControl}
-            renderItem={({ item: law }) => <LawRow law={law} />}
+            extraData={openIds}
+            renderItem={({ item: law }) => (
+                <LawRow
+                    law={law}
+                    isOpen={openIds.has(law.id)}
+                    onToggle={toggle}
+                />
+            )}
             ListEmptyComponent={
                 laws.isPending ? (
                     <View>
-                        <LawCardSkeleton />
-                        <LawCardSkeleton />
-                        <LawCardSkeleton />
+                        <LawRowSkeleton />
+                        <LawRowSkeleton />
+                        <LawRowSkeleton />
                     </View>
                 ) : laws.isError ? (
                     <View className="items-center px-6 pt-16">

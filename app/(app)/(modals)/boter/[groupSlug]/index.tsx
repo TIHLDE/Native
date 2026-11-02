@@ -9,19 +9,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { FlatList, View } from "react-native";
 import { Scale } from "lucide-react-native";
 import { Law } from "@/actions/types";
-import { LawRow } from "@/components/grupper/LawRow";
-
-function LawCardSkeleton() {
-    return (
-        <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center">
-            <View className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-secondary/50 animate-pulse" />
-            <View className="flex-1 ml-3">
-                <View className="w-24 h-4 rounded bg-gray-200 dark:bg-secondary/50 animate-pulse mb-2" />
-                <View className="w-40 h-3 rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
-            </View>
-        </View>
-    );
-}
+import {
+    LawRow,
+    LawRowSkeleton,
+    useOpenLaws,
+} from "@/components/grupper/LawRow";
+import { useCallback } from "react";
 
 export default function LawSelection() {
     const router = useRouter();
@@ -35,20 +28,25 @@ export default function LawSelection() {
 
     const refreshControl = useRefresh(["laws", groupSlug]);
 
-    // Raden åpnes med et trykk, så man ser hele beskrivelsen før man velger;
-    // knappen i den åpne raden går videre til å velge personer.
-    const selectLaw = (law: Law) =>
-        router.push({
-            pathname: "/(app)/(modals)/boter/[groupSlug]/brukere",
-            params: {
-                groupSlug,
-                lawId: law.id,
-                lawTitle: law.title,
-                lawParagraph: law.paragraph,
-                lawAmount: law.amount.toString(),
-                lawDescription: law.description,
-            },
-        });
+    const { openIds, toggle } = useOpenLaws();
+
+    // Å gi en bot skal være ett trykk: raden velger paragrafen med én gang, og
+    // bare pila åpner beskrivelsen. Stabil, så de memoiserte radene står i ro.
+    const selectLaw = useCallback(
+        (law: Law) =>
+            router.push({
+                pathname: "/(app)/(modals)/boter/[groupSlug]/brukere",
+                params: {
+                    groupSlug,
+                    lawId: law.id,
+                    lawTitle: law.title,
+                    lawParagraph: law.paragraph,
+                    lawAmount: law.amount.toString(),
+                    lawDescription: law.description,
+                },
+            }),
+        [router, groupSlug],
+    );
 
     return (
         <PageWrapper className="flex-1 bg-background">
@@ -58,15 +56,21 @@ export default function LawSelection() {
                 contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
                 refreshControl={refreshControl}
                 keyExtractor={(item) => item.id}
+                extraData={openIds}
                 renderItem={({ item: law }) => (
-                    <LawRow law={law} onSelect={selectLaw} />
+                    <LawRow
+                        law={law}
+                        isOpen={openIds.has(law.id)}
+                        onToggle={toggle}
+                        onSelect={selectLaw}
+                    />
                 )}
                 ListEmptyComponent={
                     laws.isPending ? (
                         <View>
-                            <LawCardSkeleton />
-                            <LawCardSkeleton />
-                            <LawCardSkeleton />
+                            <LawRowSkeleton />
+                            <LawRowSkeleton />
+                            <LawRowSkeleton />
                         </View>
                     ) : laws.isError ? (
                         <View className="flex-1 items-center justify-center px-6 pt-16">
