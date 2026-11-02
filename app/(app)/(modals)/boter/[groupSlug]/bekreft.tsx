@@ -27,6 +27,7 @@ import {
     X,
 } from "lucide-react-native";
 import Toast from "react-native-toast-message";
+import { emitFineSubmitted } from "@/lib/fines/fine-events";
 import {
     ImageParams,
     imageFromParams,
@@ -127,6 +128,8 @@ export default function ConfirmFine() {
             // ikke holdes igjen av en ny henting.
             queryClient.invalidateQueries({ queryKey: ["fines", groupSlug] });
 
+            // Bot-fanen holder på BotBlitz-bildet til denne kommer.
+            emitFineSubmitted();
             setIsSuccess(true);
         } catch (error: any) {
             Toast.show({

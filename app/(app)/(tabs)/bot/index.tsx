@@ -8,7 +8,7 @@ import { fetchMemberships } from "@/actions/fines/memberships";
 import { Membership } from "@/actions/types";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, View } from "react-native";
 import { Camera, ChevronRight, Users, X } from "lucide-react-native";
 import {
@@ -16,6 +16,7 @@ import {
     PickedImage,
     useFineImage,
 } from "@/components/boter/useFineImage";
+import { onFineSubmitted } from "@/lib/fines/fine-events";
 
 function MembershipCardSkeleton() {
     return (
@@ -44,32 +45,34 @@ export default function MembershipSelection() {
     const finesGroups =
         memberships.data?.filter((m: Membership) => m.group.finesActivated) ?? [];
 
-    // BotBlitz: bildet tas før gruppa er valgt. Ligger bare her til en gruppe
-    // trykkes, og tømmes da, så det ikke står igjen når flyten lukkes.
+    // BotBlitz: bildet tas før gruppa er valgt. Det blir liggende til boten
+    // er gitt, brukeren forkaster det eller tar et nytt, så den som går inn i
+    // feil gruppe og tilbake ikke mister bildet.
     const [pendingImage, setPendingImage] = useState<PickedImage | null>(null);
     const { pickImage, takePhoto } = useFineImage();
+
+    useEffect(() => onFineSubmitted(() => setPendingImage(null)), []);
 
     const openGroup = (groupSlug: string, image: PickedImage | null) => {
         router.push({
             pathname: "/(app)/(modals)/boter/[groupSlug]",
             params: { groupSlug, ...imageParams(image) },
         });
-        setPendingImage(null);
     };
 
     const blitz = async (source: "camera" | "library") => {
         const image =
             source === "camera" ? await takePhoto() : await pickImage();
         if (!image) return;
+        // Også med én gruppe, så bildet står klart om brukeren går tilbake.
+        setPendingImage(image);
 
         if (finesGroups.length === 1) {
             // Et push i samme tikk som velgeren lukkes kan miste overgangen
             // på iOS.
             const slug = finesGroups[0].group.slug;
             setTimeout(() => openGroup(slug, image), 0);
-            return;
         }
-        setPendingImage(image);
     };
 
     return (
