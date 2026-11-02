@@ -99,9 +99,10 @@ export default function UserSelection() {
     return (
         <PageWrapper className="flex-1 bg-background">
             <FlatList
+                className="flex-1"
                 data={users.data?.results ?? []}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 16 }}
                 keyboardDismissMode="on-drag"
                 keyExtractor={(item) => item.userId}
                 ListHeaderComponent={
@@ -221,7 +222,7 @@ export default function UserSelection() {
             />
 
             {/* Bottom action bar */}
-            <View className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 bg-background border-t border-border">
+            <View className="px-4 pt-3 pb-3 bg-background border-t border-border">
                 <Pressable
                     onPress={handleNext}
                     disabled={selectedUsers.length === 0}

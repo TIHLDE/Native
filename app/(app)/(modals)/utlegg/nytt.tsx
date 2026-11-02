@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import {
     ActivityIndicator,
     Image,
@@ -13,7 +13,9 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+    type DateTimePickerChangeEvent,
+} from "@react-native-community/datetimepicker";
 import Toast from "react-native-toast-message";
 import {
     Calendar,
@@ -125,6 +127,17 @@ export default function NyttUtlegg() {
     const [amount, setAmount] = useState("");
     const [expenseDate, setExpenseDate] = useState(() => toIsoDate(new Date()));
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+    // Android-dialogen åpnes på nytt hver gang disse får ny identitet, så en
+    // render mens den er oppe ville åpnet den igjen. Derfor useCallback.
+    const onAndroidDatePicked = useCallback(
+        (_event: DateTimePickerChangeEvent, date: Date) => {
+            setIsDatePickerOpen(false);
+            setExpenseDate(toIsoDate(date));
+        },
+        [],
+    );
+    const onAndroidDateDismissed = useCallback(() => setIsDatePickerOpen(false), []);
     const [groupSlug, setGroupSlug] = useState<string | null>(null);
     const [budgetType, setBudgetType] = useState<BudgetType | null>(null);
     const [description, setDescription] = useState("");
@@ -418,9 +431,9 @@ export default function NyttUtlegg() {
                                             locale="nb-NO"
                                             maximumDate={new Date()}
                                             themeVariant={isDarkColorScheme ? "dark" : "light"}
-                                            onChange={(_event, date) => {
-                                                if (date) setExpenseDate(toIsoDate(date));
-                                            }}
+                                            onValueChange={(_event, date) =>
+                                                setExpenseDate(toIsoDate(date))
+                                            }
                                         />
                                         <View
                                             pointerEvents="none"
@@ -466,12 +479,9 @@ export default function NyttUtlegg() {
                                         mode="date"
                                         display="default"
                                         maximumDate={new Date()}
-                                        onChange={(event, date) => {
-                                            // Dialogen lukker seg selv etter valg.
-                                            setIsDatePickerOpen(false);
-                                            if (event.type === "set" && date)
-                                                setExpenseDate(toIsoDate(date));
-                                        }}
+                                        // Dialogen lukker seg selv, både etter valg og avbryt.
+                                        onValueChange={onAndroidDatePicked}
+                                        onDismiss={onAndroidDateDismissed}
                                     />
                                 )}
                             </View>

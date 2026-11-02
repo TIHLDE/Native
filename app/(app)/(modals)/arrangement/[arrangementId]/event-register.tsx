@@ -325,7 +325,7 @@ function ManualRegistration() {
                     <View className="py-6">
                         <ActivityIndicator />
                     </View>
-                ) : null
+                ) : undefined
             }
         />
     );

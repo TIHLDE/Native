@@ -14,8 +14,13 @@ export type UserSettings = {
     publicEventRegistrations: boolean;
     /** Om TIHLDE kan sende deg e-post. */
     receiveMailCommunication: boolean;
-    /** Slugene fra allergikatalogen, ikke fritekst. */
+    /** Slugene fra allergikatalogen. */
     allergies: string[];
+    /**
+     * Det medlemmet har skrevet inn selv. Lagres på medlemmet, ikke som nye
+     * rader i katalogen — Photon renser og fjerner duplikater ved lagring.
+     */
+    customAllergies: string[];
 };
 
 /** En rad i allergikatalogen — `/user/allergy`. */

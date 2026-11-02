@@ -15,6 +15,7 @@ import {
     Pressable,
     ScrollView,
     TextInput,
+    useWindowDimensions,
     View,
 } from "react-native";
 import {
@@ -27,6 +28,15 @@ import {
 } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
+
+type PickedImage = {
+    uri: string;
+    width: number;
+    height: number;
+};
+
+/** Høyden forhåndsvisningen sikter mot. Brede bilder blir lavere enn dette. */
+const PREVIEW_HEIGHT = 192;
 
 type SelectedUser = {
     /** Photons bruker-id — det API-et slår opp på. */
@@ -41,6 +51,7 @@ export default function ConfirmFine() {
     const router = useRouter();
     const queryClient = useQueryClient();
     const { isDarkColorScheme } = useColorScheme();
+    const { width: windowWidth } = useWindowDimensions();
     const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
 
     const {
@@ -64,7 +75,7 @@ export default function ConfirmFine() {
 
     const [amount, setAmount] = useState(parseInt(lawAmount) || 1);
     const [reason, setReason] = useState("");
-    const [imageUri, setImageUri] = useState<string | null>(null);
+    const [image, setImage] = useState<PickedImage | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -80,15 +91,24 @@ export default function ConfirmFine() {
         }
     }, [isSuccess, router]);
 
+    // Ingen `allowsEditing`: den tvang bildet gjennom systemets beskjæring
+    // (kvadratisk på iOS), og et beskåret bevis er ikke et bevis. Photon og
+    // nettsida tar bilder i alle sideforhold.
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
-            allowsEditing: true,
             quality: 0.8,
+            // Uten `allowsEditing` bruker iOS PHPicker, som gir HEIC-bilder
+            // videre som rå .heic. Photon avviser det, og nettlesere kan ikke
+            // vise det, så be om et kompatibelt format (JPEG).
+            preferredAssetRepresentationMode:
+                ImagePicker.UIImagePickerPreferredAssetRepresentationMode
+                    .Compatible,
         });
 
-        if (!result.canceled && result.assets[0]) {
-            setImageUri(result.assets[0].uri);
+        const asset = result.canceled ? undefined : result.assets[0];
+        if (asset) {
+            setImage({ uri: asset.uri, width: asset.width, height: asset.height });
         }
     };
 
@@ -104,12 +124,12 @@ export default function ConfirmFine() {
         }
 
         const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
             quality: 0.8,
         });
 
-        if (!result.canceled && result.assets[0]) {
-            setImageUri(result.assets[0].uri);
+        const asset = result.canceled ? undefined : result.assets[0];
+        if (asset) {
+            setImage({ uri: asset.uri, width: asset.width, height: asset.height });
         }
     };
 
@@ -119,8 +139,8 @@ export default function ConfirmFine() {
         setIsSubmitting(true);
         try {
             let uploadedUrl: string | null = null;
-            if (imageUri) {
-                uploadedUrl = await uploadImage(imageUri);
+            if (image) {
+                uploadedUrl = await uploadImage(image.uri);
             }
 
             await createFine(groupSlug, {
@@ -193,7 +213,7 @@ export default function ConfirmFine() {
         <PageWrapper className="flex-1 bg-background">
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 16 }}
                 keyboardDismissMode="on-drag"
             >
                 {/* Law summary */}
@@ -303,19 +323,24 @@ export default function ConfirmFine() {
                     <Text className="text-base font-semibold text-foreground mb-3">
                         Bilde (valgfritt)
                     </Text>
-                    {imageUri ? (
-                        <View className="relative">
-                            <Image
-                                source={{ uri: imageUri }}
-                                className="w-full h-48 rounded-2xl"
-                                resizeMode="cover"
-                            />
-                            <Pressable
-                                onPress={() => setImageUri(null)}
-                                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 items-center justify-center"
+                    {image ? (
+                        <View className="items-center">
+                            <View
+                                className="relative"
+                                style={previewSize(image, windowWidth - 32)}
                             >
-                                <X size={16} color="white" />
-                            </Pressable>
+                                <Image
+                                    source={{ uri: image.uri }}
+                                    className="w-full h-full rounded-2xl"
+                                    resizeMode="contain"
+                                />
+                                <Pressable
+                                    onPress={() => setImage(null)}
+                                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 items-center justify-center"
+                                >
+                                    <X size={16} color="white" />
+                                </Pressable>
+                            </View>
                         </View>
                     ) : (
                         <View className="flex-row gap-3">
@@ -343,7 +368,7 @@ export default function ConfirmFine() {
             </ScrollView>
 
             {/* Submit button */}
-            <View className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-3 bg-background border-t border-border">
+            <View className="px-4 pt-3 pb-3 bg-background border-t border-border">
                 <Pressable
                     onPress={handleSubmit}
                     disabled={!reason.trim() || isSubmitting}
@@ -371,4 +396,20 @@ export default function ConfirmFine() {
             </View>
         </PageWrapper>
     );
+}
+
+/**
+ * Rammen for forhåndsvisningen, i bildets eget sideforhold, så det som vises
+ * er det som lastes opp. Bredden regnes ut direkte framfor å la `aspectRatio`
+ * og `maxWidth` møtes: da holder Yoga fast høyden, og et panorama ender i en
+ * ramme som ikke passer bildet. Appen er låst til stående, så vindusbredden
+ * minus marg er innholdsbredden.
+ */
+function previewSize(image: PickedImage, maxWidth: number) {
+    if (!(image.width > 0 && image.height > 0)) {
+        return { width: maxWidth, height: PREVIEW_HEIGHT };
+    }
+    const aspect = image.width / image.height;
+    const width = Math.min(maxWidth, PREVIEW_HEIGHT * aspect);
+    return { width, height: width / aspect };
 }

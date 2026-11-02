@@ -25,8 +25,7 @@ import {
     TriangleAlert,
 } from "lucide-react-native";
 import { useRef } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 /** Rekkefølgen i bryteren, og etikettene som vises. */
@@ -194,7 +193,8 @@ export default function Innstillinger() {
     );
     const channelIndex = CHANNELS.findIndex((option) => option.value === channel);
 
-    const allergyCount = current.allergies.length;
+    const allergyCount =
+        current.allergies.length + current.customAllergies.length;
 
     const handleLogoutConfirm = async () => {
         logoutSheetRef.current?.dismiss();

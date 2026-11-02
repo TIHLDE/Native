@@ -1,6 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { RefreshControl } from "react-native-gesture-handler";
+// Fra react-native, ikke gesture-handler: i v3 krever gesture-handler sin
+// RefreshControl at den ligger i gesture-handler sin ScrollView, og alle
+// listene og ScrollView-ene i appen er fra react-native.
+import { RefreshControl } from "react-native";
 
 /**
  * `KeyPart[]` er én nøkkel. `KeyPart[][]` er flere nøkler som skal invalideres

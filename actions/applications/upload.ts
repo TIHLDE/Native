@@ -1,3 +1,4 @@
+import { File } from "expo-file-system";
 import { API_URL } from "@/actions/constant";
 import { request } from "@/lib/api/network";
 import { getValidAccessToken } from "@/lib/auth/photon";
@@ -33,6 +34,11 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024;
  * Nøkkelen returneres rå, ikke som URL — `attachmentKeys` på utlegget vil ha
  * nettopp nøkkelen, og Photon avviser søknaden om den får noe annet.
  *
+ * Filen legges i skjemaet som en `File` fra expo-file-system: `expo/fetch`,
+ * som er den globale `fetch`, godtar ikke det gamle `{ uri, name, type }`-
+ * objektet og kaster før noe blir sendt. MIME-typen leses av `File` selv;
+ * filtypesjekken under står likevel, så Photon ikke får filer den avviser.
+ *
  * Går utenom apiFetch fordi den setter Content-Type til application/json; en
  * multipart-body må ha grensen sin satt av runtime.
  */
@@ -51,7 +57,7 @@ export async function uploadReceipt(uri: string): Promise<string> {
     }
 
     const formData = new FormData();
-    formData.append("file", { uri, name: filename, type } as any);
+    formData.append("file", new File(uri), filename);
     // Uten dette blir kvitteringen offentlig — Photons standard er "public".
     formData.append("visibility", "private");
 

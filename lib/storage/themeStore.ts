@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type Theme = "dark" | "light" | "system";
+export type ThemePreference = "dark" | "light" | "system";
 
-export async function storeTheme(theme: Theme): Promise<boolean> {
+export async function storeTheme(theme: ThemePreference): Promise<boolean> {
     try {
         await AsyncStorage.setItem("theme", JSON.stringify(theme ?? "system"));
         return true;
@@ -12,7 +12,7 @@ export async function storeTheme(theme: Theme): Promise<boolean> {
     }
 }
 
-export async function getTheme(): Promise<Theme> {
+export async function getTheme(): Promise<ThemePreference> {
     try {
         let theme = await AsyncStorage.getItem("theme");
         return theme != null ? JSON.parse(theme) : "system";

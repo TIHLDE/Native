@@ -24,11 +24,12 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
     publicEventRegistrations: true,
     receiveMailCommunication: true,
     allergies: [],
+    customAllergies: [],
 };
 
 export const settingsKeys = {
     mine: ["users", "me", "settings"],
-    allergies: ["allergies"],
+    allergies: (curated: boolean) => ["allergies", curated],
 };
 
 export async function mySettings(): Promise<UserSettings> {
@@ -71,11 +72,19 @@ export async function updateMySettings(
 /**
  * Allergikatalogen. Åpne data, som arrangementslista, så den går uten token.
  *
- * Allergier lagres som sluger mot denne tabellen — fritekst finnes ikke, og et
- * navn som ikke står her kan ikke lagres.
+ * Send `curated` for alt et medlem skal velge fra — det er den samme lista
+ * nettsiden viser. Hele katalogen inneholder også fritekstsvarene
+ * Lepton-importen gjorde om til egne rader, og trengs bare for å gi navn til
+ * slike sluger noen allerede har lagret.
  */
-export async function fetchAllergies(): Promise<Allergy[]> {
-    const response = await request(`${API_URL}/user/allergy`);
+export async function fetchAllergies({
+    curated,
+}: {
+    curated: boolean;
+}): Promise<Allergy[]> {
+    const response = await request(
+        `${API_URL}/user/allergy${curated ? "?curated=true" : ""}`,
+    );
 
     if (!response.ok) {
         throw new Error(`Kunne ikke hente allergier (${response.status})`);

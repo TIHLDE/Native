@@ -199,19 +199,3 @@ export async function myMemberships(): Promise<Membership["group"][]> {
     const groups = await apiJson<PhotonGroup[]>("/groups/mine");
     return groups.filter((group) => group.membership).map((group) => toMembership(group).group);
 }
-
-/**
- * Profilfeltene ligger på brukerinnstillinger i Photon, ikke på brukeren.
- */
-export async function updateUserProfile(updates: {
-    bio?: string;
-    github?: string;
-    linkedin?: string;
-    allergies?: string;
-}): Promise<User> {
-    await apiJson("/user/me/settings", {
-        method: "PATCH",
-        body: JSON.stringify(updates),
-    });
-    return me();
-}
