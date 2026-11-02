@@ -83,8 +83,11 @@ const LawRowInner = forwardRef<ViewRef, LawRowProps>(
                     className="p-4 active:opacity-70"
                 >
                     <View className="flex-row items-center">
-                        <View className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 items-center justify-center">
-                            <Text className="text-sm font-bold text-primary">
+                        <View className="min-w-12 h-12 px-2 rounded-xl bg-primary/10 dark:bg-primary/20 items-center justify-center">
+                            <Text
+                                className="text-sm font-bold text-primary"
+                                numberOfLines={1}
+                            >
                                 §{law.paragraph}
                             </Text>
                         </View>
