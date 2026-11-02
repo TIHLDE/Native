@@ -1,4 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { Text } from "@/components/ui/text";
@@ -16,7 +22,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Image, Pressable, SectionList, View } from "react-native";
-import { ChevronDown, ChevronRight, Users } from "lucide-react-native";
+import { ChevronRight, Users } from "lucide-react-native";
 
 function MembershipCardSkeleton() {
     return (
@@ -27,6 +33,60 @@ function MembershipCardSkeleton() {
                 <View className="w-20 h-3 rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
             </View>
         </View>
+    );
+}
+
+function SectionHeader({
+    title,
+    count,
+    isOpen,
+    onToggle,
+    chevronColor,
+}: {
+    title: string;
+    count: number;
+    isOpen: boolean;
+    onToggle: () => void;
+    chevronColor: string;
+}) {
+    const rotation = useSharedValue(isOpen ? 90 : 0);
+
+    useEffect(() => {
+        // withSpring følger ReduceMotion.System som standard: med «Reduser
+        // bevegelse» på hopper den rett til målet, så det trengs ingen egen gren.
+        rotation.value = withSpring(isOpen ? 90 : 0, {
+            dampingRatio: 1,
+            duration: 300,
+        });
+    }, [isOpen, rotation]);
+
+    const chevronStyle = useAnimatedStyle(() => ({
+        transform: [{ rotate: `${rotation.value}deg` }],
+    }));
+
+    const countLabel = count === 1 ? "1 gruppe" : `${count} grupper`;
+
+    return (
+        <Pressable
+            onPress={() => {
+                void Haptics.selectionAsync();
+                onToggle();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`${title}, ${countLabel}`}
+            accessibilityState={{ expanded: isOpen }}
+            className="mx-4 mt-2 py-2 flex-row items-center active:opacity-70"
+        >
+            <Text className="flex-1 text-lg font-bold text-foreground">
+                {title}
+                <Text className="text-base font-normal text-muted-foreground">
+                    {`  ${count}`}
+                </Text>
+            </Text>
+            <Animated.View style={chevronStyle}>
+                <ChevronRight size={20} color={chevronColor} />
+            </Animated.View>
+        </Pressable>
     );
 }
 
@@ -121,26 +181,16 @@ export default function Grupper() {
                 keyExtractor={(row) => row.group.slug}
                 ListHeaderComponent={header}
                 ListFooterComponent={footer}
-                renderSectionHeader={({ section }) => {
-                    const isOpen = expanded.has(section.key);
-                    const Chevron = isOpen ? ChevronDown : ChevronRight;
-                    return (
-                        <Pressable
-                            onPress={() => toggle(section.key)}
-                            accessibilityRole="button"
-                            accessibilityState={{ expanded: isOpen }}
-                            className="mx-4 mt-4 mb-2 flex-row items-center active:opacity-70"
-                        >
-                            <Text className="flex-1 text-lg font-bold text-foreground">
-                                {section.title}
-                                <Text className="text-base font-normal text-muted-foreground">
-                                    {`  ${section.rows.length}`}
-                                </Text>
-                            </Text>
-                            <Chevron size={20} color={colors.mutedForeground} />
-                        </Pressable>
-                    );
-                }}
+                renderSectionHeader={({ section }) => (
+                    <SectionHeader
+                        title={section.title}
+                        // rows, ikke data: data er [] når seksjonen er lukket.
+                        count={section.rows.length}
+                        isOpen={expanded.has(section.key)}
+                        onToggle={() => toggle(section.key)}
+                        chevronColor={colors.mutedForeground}
+                    />
+                )}
                 renderItem={({ item: row }) => (
                     <Pressable
                         onPress={() =>
