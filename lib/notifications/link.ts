@@ -30,14 +30,14 @@ export async function toAppRoute(
         return `/(modals)/arrangement/${event.id}`;
     }
 
-    // `/grupper/<slug>?tab=boter` er bøtelenken. Gruppesider ellers finnes
-    // ikke i appen, så bare bøtefanen tas.
+    // `/grupper/<slug>?tab=boter` er bøtelenken. Den åpner gruppesida på
+    // bøtefanen, der den som fikk boten kan se den — ikke flyten for å gi en.
     if (
         segments[0] === "grupper" &&
         segments[1] &&
         new URLSearchParams(query).get("tab") === "boter"
     ) {
-        return `/(modals)/boter/${segments[1]}`;
+        return `/(modals)/gruppe/${segments[1]}?tab=fines`;
     }
 
     return null;
