@@ -11,18 +11,11 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, Image, Pressable, View } from "react-native";
 import { Camera, ChevronRight, Users, X } from "lucide-react-native";
-import { PickedImage, useFineImage } from "@/components/boter/useFineImage";
-
-/** Bildet som route-params, så det følger med gjennom hele bøteflyten. */
-function imageParams(image: PickedImage | null) {
-    return image
-        ? {
-              imageUri: image.uri,
-              w: String(image.width),
-              h: String(image.height),
-          }
-        : {};
-}
+import {
+    imageParams,
+    PickedImage,
+    useFineImage,
+} from "@/components/boter/useFineImage";
 
 function MembershipCardSkeleton() {
     return (

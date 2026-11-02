@@ -15,10 +15,16 @@ import {
     useOpenLaws,
 } from "@/components/grupper/LawRow";
 import { useCallback } from "react";
+import {
+    forwardImageParams,
+    ImageParams,
+} from "@/components/boter/useFineImage";
 
 export default function LawSelection() {
     const router = useRouter();
-    const { groupSlug } = useLocalSearchParams<{ groupSlug: string }>();
+    const { groupSlug, imageUri, w, h } = useLocalSearchParams<
+        { groupSlug: string } & ImageParams
+    >();
     const { isDarkColorScheme } = useColorScheme();
 
     const laws = useQuery({
@@ -43,9 +49,10 @@ export default function LawSelection() {
                     lawParagraph: law.paragraph,
                     lawAmount: law.amount.toString(),
                     lawDescription: law.description,
+                    ...forwardImageParams({ imageUri, w, h }),
                 },
             }),
-        [router, groupSlug],
+        [router, groupSlug, imageUri, w, h],
     );
 
     return (

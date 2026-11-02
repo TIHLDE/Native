@@ -8,6 +8,42 @@ export type PickedImage = {
     height: number;
 };
 
+/**
+ * Bildet som route-params. BotBlitz tar bildet før gruppe, lov og brukere er
+ * valgt, og det følger med gjennom flyten som disse til bekreft-skjermen.
+ * Bare den veien kan et bilde havne der, så den vanlige flyten starter alltid
+ * uten.
+ */
+export type ImageParams = { imageUri?: string; w?: string; h?: string };
+
+export function imageParams(image: PickedImage | null): ImageParams {
+    return image
+        ? {
+              imageUri: image.uri,
+              w: String(image.width),
+              h: String(image.height),
+          }
+        : {};
+}
+
+/** Sender bildet videre til neste skjerm, om det er et. */
+export function forwardImageParams(params: ImageParams): ImageParams {
+    return params.imageUri
+        ? { imageUri: params.imageUri, w: params.w, h: params.h }
+        : {};
+}
+
+export function imageFromParams(params: ImageParams): PickedImage | null {
+    // Mangler målene, blir de 0, og `previewSize` faller tilbake til fast høyde.
+    return params.imageUri
+        ? {
+              uri: params.imageUri,
+              width: Number(params.w) || 0,
+              height: Number(params.h) || 0,
+          }
+        : null;
+}
+
 /** Høyden forhåndsvisningen sikter mot. Brede bilder blir lavere enn dette. */
 const PREVIEW_HEIGHT = 192;
 
