@@ -26,17 +26,8 @@ import {
     Plus,
     X,
 } from "lucide-react-native";
-import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
-
-type PickedImage = {
-    uri: string;
-    width: number;
-    height: number;
-};
-
-/** Høyden forhåndsvisningen sikter mot. Brede bilder blir lavere enn dette. */
-const PREVIEW_HEIGHT = 192;
+import { previewSize, useFineImage } from "@/components/boter/useFineImage";
 
 type SelectedUser = {
     /** Photons bruker-id — det API-et slår opp på. */
@@ -75,7 +66,7 @@ export default function ConfirmFine() {
 
     const [amount, setAmount] = useState(parseInt(lawAmount) || 1);
     const [reason, setReason] = useState("");
-    const [image, setImage] = useState<PickedImage | null>(null);
+    const { image, setImage, pickImage, takePhoto } = useFineImage();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -90,48 +81,6 @@ export default function ConfirmFine() {
             return () => clearTimeout(timeout);
         }
     }, [isSuccess, router]);
-
-    // Ingen `allowsEditing`: den tvang bildet gjennom systemets beskjæring
-    // (kvadratisk på iOS), og et beskåret bevis er ikke et bevis. Photon og
-    // nettsida tar bilder i alle sideforhold.
-    const pickImage = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            quality: 0.8,
-            // Uten `allowsEditing` bruker iOS PHPicker, som gir HEIC-bilder
-            // videre som rå .heic. Photon avviser det, og nettlesere kan ikke
-            // vise det, så be om et kompatibelt format (JPEG).
-            preferredAssetRepresentationMode:
-                ImagePicker.UIImagePickerPreferredAssetRepresentationMode
-                    .Compatible,
-        });
-
-        const asset = result.canceled ? undefined : result.assets[0];
-        if (asset) {
-            setImage({ uri: asset.uri, width: asset.width, height: asset.height });
-        }
-    };
-
-    const takePhoto = async () => {
-        const permission = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permission.granted) {
-            Toast.show({
-                type: "error",
-                text1: "Tilgang nektet",
-                text2: "Du må gi tilgang til kameraet for å ta bilder.",
-            });
-            return;
-        }
-
-        const result = await ImagePicker.launchCameraAsync({
-            quality: 0.8,
-        });
-
-        const asset = result.canceled ? undefined : result.assets[0];
-        if (asset) {
-            setImage({ uri: asset.uri, width: asset.width, height: asset.height });
-        }
-    };
 
     const handleSubmit = async () => {
         if (!reason.trim()) return;
@@ -396,20 +345,4 @@ export default function ConfirmFine() {
             </View>
         </PageWrapper>
     );
-}
-
-/**
- * Rammen for forhåndsvisningen, i bildets eget sideforhold, så det som vises
- * er det som lastes opp. Bredden regnes ut direkte framfor å la `aspectRatio`
- * og `maxWidth` møtes: da holder Yoga fast høyden, og et panorama ender i en
- * ramme som ikke passer bildet. Appen er låst til stående, så vindusbredden
- * minus marg er innholdsbredden.
- */
-function previewSize(image: PickedImage, maxWidth: number) {
-    if (!(image.width > 0 && image.height > 0)) {
-        return { width: maxWidth, height: PREVIEW_HEIGHT };
-    }
-    const aspect = image.width / image.height;
-    const width = Math.min(maxWidth, PREVIEW_HEIGHT * aspect);
-    return { width, height: width / aspect };
 }
