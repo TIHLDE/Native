@@ -8,7 +8,7 @@ import { fetchMemberships } from "@/actions/fines/memberships";
 import { Membership } from "@/actions/types";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { FlatList, Image, Pressable, View } from "react-native";
 import { Camera, ChevronRight, Users, X } from "lucide-react-native";
 import {
@@ -62,6 +62,16 @@ export default function MembershipSelection() {
         [setPendingImage],
     );
 
+    // Bildebanneret er listas header. Er lista skrollet ned, havner et nytt
+    // bilde utenfor skjermen, og det ser ut som ingenting skjedde.
+    const listRef = useRef<FlatList<Membership>>(null);
+    const pendingUri = pendingImage?.uri;
+    useEffect(() => {
+        if (pendingUri) {
+            listRef.current?.scrollToOffset({ offset: 0, animated: true });
+        }
+    }, [pendingUri]);
+
     const openGroup = (groupSlug: string, image: PickedImage | null) => {
         router.push({
             pathname: "/(app)/(modals)/boter/[groupSlug]",
@@ -87,6 +97,7 @@ export default function MembershipSelection() {
     return (
         <PageWrapper className="flex-1 bg-background" edges={TAB_SCREEN_EDGES}>
             <FlatList
+                ref={listRef}
                 data={finesGroups}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{
