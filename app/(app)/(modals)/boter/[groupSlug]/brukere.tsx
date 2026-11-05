@@ -18,7 +18,10 @@ import {
     View,
 } from "react-native";
 import { Check, Search, X } from "lucide-react-native";
-import { SelectedLawCard } from "@/components/boter/SelectedLawCard";
+import {
+    SelectedLawCard,
+    useCollapseOnScroll,
+} from "@/components/boter/SelectedLawCard";
 
 function UserCardSkeleton() {
     return (
@@ -55,6 +58,9 @@ export default function UserSelection() {
     const [searchText, setSearchText] = useState("");
     const [selectedUsers, setSelectedUsers] = useState<GroupUser[]>([]);
     const debouncedSearch = useDebounce(searchText, 500);
+
+    // Kortet øverst klapper sammen når man blar ned i medlemslista.
+    const { collapsed: lawCardCollapsed, onScroll } = useCollapseOnScroll();
 
     const users = useQuery({
         queryKey: ["group-users", groupSlug, debouncedSearch],
@@ -107,6 +113,7 @@ export default function UserSelection() {
                 description={lawDescription}
                 amount={lawAmount}
                 onChange={() => router.back()}
+                collapsed={lawCardCollapsed}
             />
 
             <FlatList
@@ -115,6 +122,8 @@ export default function UserSelection() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 16 }}
                 keyboardDismissMode="on-drag"
+                onScroll={onScroll}
+                scrollEventThrottle={16}
                 keyExtractor={(item) => item.userId}
                 ListHeaderComponent={
                     <View>
