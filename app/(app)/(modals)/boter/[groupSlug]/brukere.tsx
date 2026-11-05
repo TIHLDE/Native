@@ -12,12 +12,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
-    FlatList,
     Pressable,
     TextInput,
     View,
 } from "react-native";
 import { Check, Search, X } from "lucide-react-native";
+import Animated from "react-native-reanimated";
 import {
     SelectedLawCard,
     useCollapseOnScroll,
@@ -60,7 +60,7 @@ export default function UserSelection() {
     const debouncedSearch = useDebounce(searchText, 500);
 
     // Kortet øverst klapper sammen når man blar ned i medlemslista.
-    const { collapsed: lawCardCollapsed, onScroll } = useCollapseOnScroll();
+    const { collapse: lawCardCollapse, onScroll } = useCollapseOnScroll();
 
     const users = useQuery({
         queryKey: ["group-users", groupSlug, debouncedSearch],
@@ -113,11 +113,12 @@ export default function UserSelection() {
                 description={lawDescription}
                 amount={lawAmount}
                 onChange={() => router.back()}
-                collapsed={lawCardCollapsed}
+                collapse={lawCardCollapse}
             />
 
-            <FlatList
-                className="flex-1"
+            {/* Reanimated-lista, så blaingen kan styre kortet over på UI-tråden. */}
+            <Animated.FlatList
+                style={{ flex: 1 }}
                 data={users.data?.results ?? []}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 16 }}

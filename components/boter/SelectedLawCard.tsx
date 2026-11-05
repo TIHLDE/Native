@@ -1,19 +1,50 @@
-import { forwardRef, useCallback, useRef, useState } from "react";
+import { forwardRef, useMemo } from "react";
 import {
-    LayoutAnimation,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
+    LayoutChangeEvent,
     Pressable,
     ScrollView,
     useWindowDimensions,
     View,
 } from "react-native";
+import Animated, {
+    Extrapolation,
+    interpolate,
+    SharedValue,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import type { ViewRef } from "@rn-primitives/types";
 
 /** Hvor stor del av skjermhøyden kortet høyst får ta. */
 const MAX_SCREEN_SHARE = 0.22;
+
+/**
+ * Omtrent hvor mye av makshøyden som går til øverste rad, kortets marger og
+ * skillelinja. Resten er plassen beskrivelsen kan bruke før den må rulles.
+ */
+const TOP_ROW_RESERVE = 84;
+
+/**
+ * Hvor mye lengre enn skjermen lista må være (utover selve beskrivelsen)
+ * før kortet får klappe sammen. Uten denne kunne en kort liste, med plassen
+ * beskrivelsen frigjør, plutselig få plass, hoppe til toppen og åpne kortet
+ * igjen — og så videre.
+ */
+const MIN_EXTRA_SCROLL = 40;
+
+/**
+ * Hvor langt kortet er klappet sammen, delt mellom lista som blar og kortet
+ * som krymper. Lages av `useCollapseOnScroll`.
+ */
+export type LawCardCollapse = {
+    /** Hvor mange piksler av beskrivelsen som er klappet bort, 0 til `height`. */
+    collapsed: SharedValue<number>;
+    /** Beskrivelsens naturlige høyde, målt ved første tegning. 0 før målingen. */
+    height: SharedValue<number>;
+};
 
 type SelectedLawCardProps = {
     paragraph: string;
@@ -24,11 +55,11 @@ type SelectedLawCardProps = {
     /** Gis denne, vises en «Endre»-knapp som tar brukeren tilbake til lovvalget. */
     onChange?: () => void;
     /**
-     * Sammenklappet skjules beskrivelsen, og bare raden med paragraf, navn,
-     * antall bøter og «Endre» står igjen. Animer overgangen hos den som eier
-     * tilstanden (se `useCollapseOnScroll`).
+     * Gis denne, krymper og tones beskrivelsen gradvis ut i takt med at man
+     * blar nedover i lista, til bare raden med paragraf, navn, antall bøter og
+     * «Endre» står igjen. Se `useCollapseOnScroll`.
      */
-    collapsed?: boolean;
+    collapse?: LawCardCollapse;
     className?: string;
 };
 
@@ -39,28 +70,46 @@ type SelectedLawCardProps = {
  *
  * Kortet holdes kompakt og tar høyst ca. en femtedel av skjermen. En lang
  * beskrivelse ruller inne i kortet, så søkefeltet og medlemslista under
- * alltid har resten av plassen. Når man blar nedover i lista, kan kortet
- * klappes sammen til bare øverste rad (`collapsed`).
+ * alltid har resten av plassen.
  */
 export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
     (
-        {
-            paragraph,
-            title,
-            description,
-            amount,
-            onChange,
-            collapsed = false,
-            className,
-        },
+        { paragraph, title, description, amount, onChange, collapse, className },
         ref,
     ) => {
-        const { height } = useWindowDimensions();
+        const { height: windowHeight } = useWindowDimensions();
+        const descriptionMaxHeight = Math.max(
+            48,
+            windowHeight * MAX_SCREEN_SHARE - TOP_ROW_RESERVE,
+        );
 
         const count = parseInt(amount ?? "", 10);
         const fines = Number.isFinite(count)
             ? `${count} ${count === 1 ? "bot" : "bøter"}`
             : null;
+
+        // Beskrivelsen krymper piksel for piksel med blaingen, og tones ut
+        // litt raskere enn den krymper, så teksten er borte før den kuttes.
+        const descriptionStyle = useAnimatedStyle(() => {
+            if (!collapse || collapse.height.value === 0) return {};
+            const full = collapse.height.value;
+            const hidden = Math.min(collapse.collapsed.value, full);
+            return {
+                height: full - hidden,
+                opacity: interpolate(
+                    hidden,
+                    [0, full * 0.7],
+                    [1, 0],
+                    Extrapolation.CLAMP,
+                ),
+            };
+        });
+
+        // Det indre innholdet har alltid sin naturlige høyde (overflow skjuler
+        // resten), så målingen er riktig også mens kortet er klappet sammen.
+        const measureDescription = (event: LayoutChangeEvent) => {
+            if (collapse) collapse.height.value = event.nativeEvent.layout.height;
+        };
 
         return (
             <View
@@ -69,7 +118,6 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
                     "mx-4 mt-2 rounded-2xl px-3 py-2.5 bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40",
                     className,
                 )}
-                style={{ maxHeight: height * MAX_SCREEN_SHARE }}
                 accessibilityLabel={`Gir bot for paragraf ${paragraph}, ${title}${fines ? `, ${fines}` : ""}`}
             >
                 <View className="flex-row items-center">
@@ -110,103 +158,82 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
                     ) : null}
                 </View>
 
-                {/* flexGrow 0 + flexShrink 1: beskrivelsen tar bare plassen den
-                    trenger, og krymper til rullbar når kortet når makshøyden. */}
-                {collapsed ? null : (
-                    <ScrollView
+                <Animated.View style={[{ overflow: "hidden" }, descriptionStyle]}>
+                    <View
+                        onLayout={measureDescription}
                         className="mt-2 pt-2 border-t border-primary/20 dark:border-primary/30"
-                        style={{ flexGrow: 0, flexShrink: 1 }}
-                        showsVerticalScrollIndicator
-                        nestedScrollEnabled
                     >
-                        {description ? (
-                            <Text className="text-sm text-foreground">
-                                {description}
-                            </Text>
-                        ) : (
-                            <Text className="text-sm text-muted-foreground italic">
-                                Ingen beskrivelse
-                            </Text>
-                        )}
-                    </ScrollView>
-                )}
+                        <ScrollView
+                            style={{ maxHeight: descriptionMaxHeight }}
+                            showsVerticalScrollIndicator
+                            nestedScrollEnabled
+                        >
+                            {description ? (
+                                <Text className="text-sm text-foreground">
+                                    {description}
+                                </Text>
+                            ) : (
+                                <Text className="text-sm text-muted-foreground italic">
+                                    Ingen beskrivelse
+                                </Text>
+                            )}
+                        </ScrollView>
+                    </View>
+                </Animated.View>
             </View>
         );
     },
 );
 SelectedLawCard.displayName = "SelectedLawCard";
 
-/** Hvor langt man må bla i én retning før kortet klapper sammen eller åpner seg. */
-const SCROLL_THRESHOLD = 16;
-
 /**
- * Hvor mye lengre lista må være enn plassen den har før kortet får klappe
- * sammen. Uten denne kunne lista, med plassen beskrivelsen frigjør, plutselig
- * få plass på skjermen, hoppe til toppen og åpne kortet igjen — og så videre.
- */
-const MIN_SCROLL_RANGE = 160;
-
-const collapseAnimation = LayoutAnimation.create(
-    220,
-    LayoutAnimation.Types.easeInEaseOut,
-    LayoutAnimation.Properties.opacity,
-);
-
-/**
- * Klapper `SelectedLawCard` sammen når man blar nedover i lista under, og åpner
- * det igjen når man blar oppover eller er tilbake på toppen.
+ * Knytter `SelectedLawCard` til lista under, så beskrivelsen gradvis krymper
+ * og tones ut når man blar nedover, og kommer like gradvis tilbake når man
+ * blar oppover — hvor som helst i lista, ikke bare på toppen.
  *
- * Retningen måles fra et ankerpunkt med en terskel, så små skjelvinger i
- * fingeren ikke får kortet til å blafre fram og tilbake. Endringen animeres
- * med `LayoutAnimation`, så kortet og lista under glir på plass sammen.
+ * Hver piksel man blar ned klapper bort én piksel av beskrivelsen, hver piksel
+ * opp henter én tilbake (begrenset til 0 og hele høyden). Alt kjører på
+ * UI-tråden, så animasjonen følger fingeren uten hakk.
+ *
+ * Gi `onScroll` til en `Animated.FlatList` (fra Reanimated) og `collapse` til
+ * kortet.
  */
 export function useCollapseOnScroll() {
-    const [collapsed, setCollapsed] = useState(false);
-    const collapsedRef = useRef(false);
-    const anchorY = useRef(0);
+    const collapsed = useSharedValue(0);
+    const height = useSharedValue(0);
+    const lastY = useSharedValue(0);
 
-    const update = useCallback((next: boolean) => {
-        if (collapsedRef.current === next) return;
-        collapsedRef.current = next;
-        LayoutAnimation.configureNext(collapseAnimation);
-        setCollapsed(next);
-    }, []);
+    const onScroll = useAnimatedScrollHandler((event) => {
+        const y = event.contentOffset.y;
+        const dy = y - lastY.value;
+        lastY.value = y;
 
-    const onScroll = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const { contentOffset, contentSize, layoutMeasurement } =
-                event.nativeEvent;
-            const y = contentOffset.y;
-            const scrollRange = contentSize.height - layoutMeasurement.height;
+        // På toppen (eller i iOS-strikken over den) skal alt synes.
+        if (y <= 0) {
+            collapsed.value = 0;
+            return;
+        }
 
-            // På toppen (eller i iOS-strikken over den) skal alt synes.
-            if (y <= 0) {
-                anchorY.current = 0;
-                update(false);
-                return;
-            }
+        // Nederst (og i strikken under) står kortet stille. Når kortet krymper,
+        // blir lista høyere og bunnen flytter seg opp, så lista hopper litt
+        // tilbake av seg selv — det skal ikke tolkes som at man blar opp.
+        const maxY = event.contentSize.height - event.layoutMeasurement.height;
+        if (y >= maxY - 1) return;
 
-            if (collapsedRef.current) {
-                // Følg punktet lengst ned i lista; åpne når man har bladd opp
-                // et stykke derfra.
-                if (y > anchorY.current) anchorY.current = y;
-                else if (anchorY.current - y > SCROLL_THRESHOLD) {
-                    anchorY.current = y;
-                    update(false);
-                }
-            } else {
-                if (y < anchorY.current) anchorY.current = y;
-                else if (
-                    y - anchorY.current > SCROLL_THRESHOLD &&
-                    scrollRange > MIN_SCROLL_RANGE
-                ) {
-                    anchorY.current = y;
-                    update(true);
-                }
-            }
-        },
-        [update],
+        // En kort liste kan ikke klappe sammen kortet (se MIN_EXTRA_SCROLL).
+        // Lista er `collapsed` piksler høyere nå enn med kortet helt åpent.
+        const rangeWhenOpen = maxY + collapsed.value;
+        if (dy > 0 && rangeWhenOpen < height.value + MIN_EXTRA_SCROLL) return;
+
+        collapsed.value = Math.min(
+            Math.max(collapsed.value + dy, 0),
+            height.value,
+        );
+    });
+
+    const collapse = useMemo<LawCardCollapse>(
+        () => ({ collapsed, height }),
+        [collapsed, height],
     );
-
-    return { collapsed, onScroll };
+    return { collapse, onScroll };
 }
