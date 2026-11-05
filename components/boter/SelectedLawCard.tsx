@@ -122,30 +122,37 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
                     "mx-4 mt-2 rounded-2xl px-3 py-2.5 bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40",
                     className,
                 )}
-                accessibilityLabel={`Gir bot for paragraf ${paragraph}, ${title}${fines ? `, ${fines}` : ""}`}
             >
                 <View className="flex-row items-center">
-                    <View className="min-w-10 h-10 px-1.5 rounded-lg bg-primary/15 dark:bg-primary/25 items-center justify-center">
-                        <Text
-                            className="text-xs font-bold text-primary"
-                            numberOfLines={1}
-                        >
-                            §{paragraph}
-                        </Text>
-                    </View>
-                    <View className="flex-1 ml-2.5">
-                        <Text
-                            className="text-[11px] font-semibold uppercase tracking-wider text-primary"
-                            numberOfLines={1}
-                        >
-                            Gir bot for{fines ? ` · ${fines}` : ""}
-                        </Text>
-                        <Text
-                            className="text-base font-semibold text-foreground"
-                            numberOfLines={2}
-                        >
-                            {title}
-                        </Text>
+                    {/* Merket og tekstene leses som ett element av VoiceOver
+                        og TalkBack. «Endre» står for seg som egen knapp. */}
+                    <View
+                        accessible
+                        accessibilityLabel={`Gir bot for paragraf ${paragraph}, ${title}${fines ? `, ${fines}` : ""}`}
+                        className="flex-1 flex-row items-center"
+                    >
+                        <View className="min-w-10 h-10 px-1.5 rounded-lg bg-primary/15 dark:bg-primary/25 items-center justify-center">
+                            <Text
+                                className="text-xs font-bold text-primary"
+                                numberOfLines={1}
+                            >
+                                §{paragraph}
+                            </Text>
+                        </View>
+                        <View className="flex-1 ml-2.5">
+                            <Text
+                                className="text-[11px] font-semibold uppercase tracking-wider text-primary"
+                                numberOfLines={1}
+                            >
+                                Gir bot for{fines ? ` · ${fines}` : ""}
+                            </Text>
+                            <Text
+                                className="text-base font-semibold text-foreground"
+                                numberOfLines={2}
+                            >
+                                {title}
+                            </Text>
+                        </View>
                     </View>
                     {onChange ? (
                         <Pressable
