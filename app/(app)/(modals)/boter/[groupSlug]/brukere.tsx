@@ -22,6 +22,10 @@ import {
     SelectedLawCard,
     useCollapseOnScroll,
 } from "@/components/boter/SelectedLawCard";
+import {
+    forwardImageParams,
+    ImageParams,
+} from "@/components/boter/useFineImage";
 
 function UserCardSkeleton() {
     return (
@@ -43,14 +47,19 @@ export default function UserSelection() {
         lawParagraph,
         lawAmount,
         lawDescription,
-    } = useLocalSearchParams<{
-        groupSlug: string;
-        lawId: string;
-        lawTitle: string;
-        lawParagraph: string;
-        lawAmount: string;
-        lawDescription: string;
-    }>();
+        imageUri,
+        w,
+        h,
+    } = useLocalSearchParams<
+        {
+            groupSlug: string;
+            lawId: string;
+            lawTitle: string;
+            lawParagraph: string;
+            lawAmount: string;
+            lawDescription: string;
+        } & ImageParams
+    >();
 
     const { isDarkColorScheme } = useColorScheme();
     const mutedColor = themeColors(isDarkColorScheme).mutedForeground;
@@ -104,6 +113,7 @@ export default function UserSelection() {
                         image: u.image,
                     }))
                 ),
+                ...forwardImageParams({ imageUri, w, h }),
             },
         });
     };
