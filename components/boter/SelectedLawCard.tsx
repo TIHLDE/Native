@@ -187,7 +187,7 @@ export function useCollapseOnScroll() {
             }
 
             if (collapsedRef.current) {
-                // Følg punktet lengst ned i lista; åpne når man har blått opp
+                // Følg punktet lengst ned i lista; åpne når man har bladd opp
                 // et stykke derfra.
                 if (y > anchorY.current) anchorY.current = y;
                 else if (anchorY.current - y > SCROLL_THRESHOLD) {
