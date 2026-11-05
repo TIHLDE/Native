@@ -28,10 +28,8 @@ const MAX_SCREEN_SHARE = 0.22;
 const TOP_ROW_RESERVE = 84;
 
 /**
- * Hvor mye lengre enn skjermen lista må være (utover selve beskrivelsen)
- * før kortet får klappe sammen. Uten denne kunne en kort liste, med plassen
- * beskrivelsen frigjør, plutselig få plass, hoppe til toppen og åpne kortet
- * igjen — og så videre.
+ * Ekstra slingringsmonn i kravet til hvor lang lista må være før kortet får
+ * klappe sammen (se `useCollapseOnScroll`).
  */
 const MIN_EXTRA_SCROLL = 40;
 
@@ -91,7 +89,9 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
         // Beskrivelsen krymper piksel for piksel med blaingen, og tones ut
         // litt raskere enn den krymper, så teksten er borte før den kuttes.
         const descriptionStyle = useAnimatedStyle(() => {
-            if (!collapse || collapse.height.value === 0) return {};
+            // Før beskrivelsen er målt (eller uten blaing koblet til) vises
+            // den alltid i full høyde.
+            if (!collapse || collapse.height.value <= 0) return {};
             const full = collapse.height.value;
             const hidden = Math.min(collapse.collapsed.value, full);
             return {
@@ -108,7 +108,8 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
         // Det indre innholdet har alltid sin naturlige høyde (overflow skjuler
         // resten), så målingen er riktig også mens kortet er klappet sammen.
         const measureDescription = (event: LayoutChangeEvent) => {
-            if (collapse) collapse.height.value = event.nativeEvent.layout.height;
+            const measured = event.nativeEvent.layout.height;
+            if (collapse && measured > 0) collapse.height.value = measured;
         };
 
         return (
@@ -159,25 +160,32 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
                 </View>
 
                 <Animated.View style={[{ overflow: "hidden" }, descriptionStyle]}>
-                    <View
-                        onLayout={measureDescription}
-                        className="mt-2 pt-2 border-t border-primary/20 dark:border-primary/30"
-                    >
-                        <ScrollView
-                            style={{ maxHeight: descriptionMaxHeight }}
-                            showsVerticalScrollIndicator
-                            nestedScrollEnabled
-                        >
-                            {description ? (
-                                <Text className="text-sm text-foreground">
-                                    {description}
-                                </Text>
-                            ) : (
-                                <Text className="text-sm text-muted-foreground italic">
-                                    Ingen beskrivelse
-                                </Text>
-                            )}
-                        </ScrollView>
+                    {/* Padding i stedet for margin her: onLayout tar med
+                        padding, men ikke margin, og målingen må dekke alt
+                        som skal klappes bort. */}
+                    <View onLayout={measureDescription} className="pt-2">
+                        <View className="pt-2 border-t border-primary/20 dark:border-primary/30">
+                            {/* flexGrow 0: ellers kan rullefeltet få en annen
+                                høyde enn teksten det inneholder. */}
+                            <ScrollView
+                                style={{
+                                    flexGrow: 0,
+                                    maxHeight: descriptionMaxHeight,
+                                }}
+                                showsVerticalScrollIndicator
+                                nestedScrollEnabled
+                            >
+                                {description ? (
+                                    <Text className="text-sm text-foreground">
+                                        {description}
+                                    </Text>
+                                ) : (
+                                    <Text className="text-sm text-muted-foreground italic">
+                                        Ingen beskrivelse
+                                    </Text>
+                                )}
+                            </ScrollView>
+                        </View>
                     </View>
                 </Animated.View>
             </View>
@@ -187,13 +195,14 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
 SelectedLawCard.displayName = "SelectedLawCard";
 
 /**
- * Knytter `SelectedLawCard` til lista under, så beskrivelsen gradvis krymper
- * og tones ut når man blar nedover, og kommer like gradvis tilbake når man
- * blar oppover — hvor som helst i lista, ikke bare på toppen.
+ * Knytter `SelectedLawCard` til lista under: på toppen av lista vises hele
+ * beskrivelsen, og jo lenger ned man blar, jo mindre og svakere blir den,
+ * til den er helt borte. Blar man opp mot toppen igjen, kommer den like
+ * gradvis tilbake.
  *
- * Hver piksel man blar ned klapper bort én piksel av beskrivelsen, hver piksel
- * opp henter én tilbake (begrenset til 0 og hele høyden). Alt kjører på
- * UI-tråden, så animasjonen følger fingeren uten hakk.
+ * Hvor mye som er skjult regnes rett fra hvor langt ned i lista man er, ikke
+ * ved å summere bevegelser. Da kan kortet aldri bli stående skjult på toppen.
+ * Alt kjører på UI-tråden, så animasjonen følger fingeren uten hakk.
  *
  * Gi `onScroll` til en `Animated.FlatList` (fra Reanimated) og `collapse` til
  * kortet.
@@ -201,34 +210,27 @@ SelectedLawCard.displayName = "SelectedLawCard";
 export function useCollapseOnScroll() {
     const collapsed = useSharedValue(0);
     const height = useSharedValue(0);
-    const lastY = useSharedValue(0);
 
     const onScroll = useAnimatedScrollHandler((event) => {
-        const y = event.contentOffset.y;
-        const dy = y - lastY.value;
-        lastY.value = y;
+        const full = height.value;
+        if (full <= 0) return;
 
-        // På toppen (eller i iOS-strikken over den) skal alt synes.
-        if (y <= 0) {
+        const y = event.contentOffset.y;
+
+        // Lista er `collapsed` piksler høyere nå enn med kortet helt åpent, så
+        // dette er hvor langt den kan blas når kortet er åpent. En kort liste
+        // får ikke klappe sammen kortet: da kunne plassen beskrivelsen frigjør
+        // gjøre at lista plutselig får plass, hopper til toppen og åpner kortet
+        // igjen. Kravet om dobbel høyde sikrer at bunnen alltid kan nås med
+        // kortet helt sammenklappet.
+        const maxY = event.contentSize.height - event.layoutMeasurement.height;
+        const rangeWhenOpen = maxY + collapsed.value;
+        if (rangeWhenOpen < full * 2 + MIN_EXTRA_SCROLL) {
             collapsed.value = 0;
             return;
         }
 
-        // Nederst (og i strikken under) står kortet stille. Når kortet krymper,
-        // blir lista høyere og bunnen flytter seg opp, så lista hopper litt
-        // tilbake av seg selv — det skal ikke tolkes som at man blar opp.
-        const maxY = event.contentSize.height - event.layoutMeasurement.height;
-        if (y >= maxY - 1) return;
-
-        // En kort liste kan ikke klappe sammen kortet (se MIN_EXTRA_SCROLL).
-        // Lista er `collapsed` piksler høyere nå enn med kortet helt åpent.
-        const rangeWhenOpen = maxY + collapsed.value;
-        if (dy > 0 && rangeWhenOpen < height.value + MIN_EXTRA_SCROLL) return;
-
-        collapsed.value = Math.min(
-            Math.max(collapsed.value + dy, 0),
-            height.value,
-        );
+        collapsed.value = Math.min(Math.max(y, 0), full);
     });
 
     const collapse = useMemo<LawCardCollapse>(
