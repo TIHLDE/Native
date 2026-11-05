@@ -78,6 +78,8 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
             windowHeight * MAX_SCREEN_SHARE - TOP_ROW_RESERVE,
         );
 
+        const hasDescription = !!description?.trim();
+
         const count = parseInt(amount ?? "", 10);
         const fines = Number.isFinite(count)
             ? `${count} ${count === 1 ? "bot" : "bøter"}`
@@ -169,42 +171,40 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
                     ) : null}
                 </View>
 
-                <Animated.View style={[{ overflow: "hidden" }, descriptionStyle]}>
-                    {/* Padding i stedet for margin her: onLayout tar med
-                        padding, men ikke margin, og målingen må dekke alt
-                        som skal klappes bort. */}
-                    <View
-                        onLayout={measureDescription}
-                        className="pt-2"
-                        style={{ flexShrink: 0 }}
-                    >
-                        <View className="pt-2 border-t border-primary/20 dark:border-primary/30">
-                            {/* flexGrow 0 / flexShrink 0: rullefeltet skal ha
-                                tekstens høyde (opp til maks), og ikke presses
-                                sammen når beskrivelsen klappes bort — det er
-                                rammen rundt som krymper og skjuler det. */}
-                            <ScrollView
-                                style={{
-                                    flexGrow: 0,
-                                    flexShrink: 0,
-                                    maxHeight: descriptionMaxHeight,
-                                }}
-                                showsVerticalScrollIndicator
-                                nestedScrollEnabled
-                            >
-                                {description ? (
+                {/* Uten beskrivelse står bare øverste rad igjen, og
+                    kortet har ingenting å klappe sammen. */}
+                {hasDescription ? (
+                    <Animated.View style={[{ overflow: "hidden" }, descriptionStyle]}>
+                        {/* Padding i stedet for margin her: onLayout tar med
+                            padding, men ikke margin, og målingen må dekke alt
+                            som skal klappes bort. */}
+                        <View
+                            onLayout={measureDescription}
+                            className="pt-2"
+                            style={{ flexShrink: 0 }}
+                        >
+                            <View className="pt-2 border-t border-primary/20 dark:border-primary/30">
+                                {/* flexGrow 0 / flexShrink 0: rullefeltet skal ha
+                                    tekstens høyde (opp til maks), og ikke presses
+                                    sammen når beskrivelsen klappes bort — det er
+                                    rammen rundt som krymper og skjuler det. */}
+                                <ScrollView
+                                    style={{
+                                        flexGrow: 0,
+                                        flexShrink: 0,
+                                        maxHeight: descriptionMaxHeight,
+                                    }}
+                                    showsVerticalScrollIndicator
+                                    nestedScrollEnabled
+                                >
                                     <Text className="text-sm text-foreground">
                                         {description}
                                     </Text>
-                                ) : (
-                                    <Text className="text-sm text-muted-foreground italic">
-                                        Ingen beskrivelse
-                                    </Text>
-                                )}
-                            </ScrollView>
+                                </ScrollView>
+                            </View>
                         </View>
-                    </View>
-                </Animated.View>
+                    </Animated.View>
+                ) : null}
             </View>
         );
     },
