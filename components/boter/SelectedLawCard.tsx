@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from "react";
+import { forwardRef, useCallback, useMemo, useState } from "react";
 import {
     LayoutChangeEvent,
     Pressable,
@@ -29,15 +29,6 @@ const TOP_ROW_RESERVE = 84;
 
 /** Så mange piksler fra toppen står beskrivelsen helt åpen, uansett. */
 const TOP_LOCK = 4;
-
-/** Minste blaing (i piksler) fra helt åpen til helt borte. */
-const FADE_DISTANCE = 120;
-
-/**
- * Ekstra slingringsmonn i kravet til hvor lang lista må være før kortet får
- * klappe sammen (se `useCollapseOnScroll`).
- */
-const MIN_EXTRA_SCROLL = 40;
 
 /**
  * Hvor langt kortet er klappet sammen, delt mellom lista som blar og kortet
@@ -215,57 +206,53 @@ SelectedLawCard.displayName = "SelectedLawCard";
 
 /**
  * Knytter `SelectedLawCard` til lista under: på toppen av lista vises hele
- * beskrivelsen, og jo lenger ned man blar, jo mindre og svakere blir den,
- * til den er helt borte. Blar man opp mot toppen igjen, kommer den like
- * gradvis tilbake.
+ * beskrivelsen, og når man blar nedover, krymper den piksel for piksel i
+ * samme takt som fingeren, til den er helt borte. Blar man opp mot toppen
+ * igjen, kommer den like gradvis tilbake.
+ *
+ * Kortet skal ligge oppå lista (absolutt plassert), med `spacerHeight` som
+ * tom plass øverst i lista. Da endrer ikke kortet lista sin ramme når det
+ * krymper, så radene følger fingeren 1:1, og en kort liste kan ikke hoppe.
+ * Siden beskrivelsen krymper like fort som lista blar, ligger søkefeltet
+ * tett inntil kortets nederkant helt til beskrivelsen er borte.
  *
  * Hvor mye som er skjult regnes rett fra hvor langt ned i lista man er, ikke
  * ved å summere bevegelser. Da kan kortet aldri bli stående skjult på toppen.
  * Alt kjører på UI-tråden, så animasjonen følger fingeren uten hakk.
  *
- * Gi `onScroll` til en `Animated.FlatList` (fra Reanimated) og `collapse` til
- * kortet.
+ * Gi `onScroll` til en `Animated.FlatList` (fra Reanimated), `collapse` til
+ * kortet, `onCardLayout` til visningen som holder kortet, og `spacerHeight`
+ * til en tom visning øverst i lista.
  */
 export function useCollapseOnScroll() {
     const collapsed = useSharedValue(0);
     const height = useSharedValue(0);
+    const [spacerHeight, setSpacerHeight] = useState(0);
 
     const onScroll = useAnimatedScrollHandler((event) => {
         const full = height.value;
         if (full <= 0) return;
 
-        const y = event.contentOffset.y;
-
-        // Låst åpent på toppen (og i iOS-strikken over den).
-        if (y <= TOP_LOCK) {
-            collapsed.value = 0;
-            return;
-        }
-
-        // Hvor langt man må bla før beskrivelsen er helt borte. Minst
-        // FADE_DISTANCE, så en kort beskrivelse ikke forsvinner på et blunk.
-        const distance = Math.max(full * 1.5, FADE_DISTANCE);
-
-        // Lista er `collapsed` piksler høyere nå enn med kortet helt åpent, så
-        // dette er hvor langt den kan blas når kortet er åpent. En kort liste
-        // får ikke klappe sammen kortet: da kunne plassen beskrivelsen frigjør
-        // gjøre at lista plutselig får plass, hopper til toppen og åpner kortet
-        // igjen. Kravet sikrer at man fortsatt kan bla hele `distance` med
-        // kortet helt sammenklappet.
-        const maxY = event.contentSize.height - event.layoutMeasurement.height;
-        const rangeWhenOpen = maxY + collapsed.value;
-        if (rangeWhenOpen < full + distance + MIN_EXTRA_SCROLL) {
-            collapsed.value = 0;
-            return;
-        }
-
-        const progress = Math.min(Math.max((y - TOP_LOCK) / distance, 0), 1);
-        collapsed.value = full * progress;
+        // Låst åpent på toppen (og i iOS-strikken over den), deretter 1:1
+        // med blaingen.
+        const y = event.contentOffset.y - TOP_LOCK;
+        collapsed.value = Math.min(Math.max(y, 0), full);
     });
+
+    // Mål kortet bare mens det er helt åpent, ellers ville plassholderen fått
+    // høyden til et delvis sammenklappet kort.
+    const onCardLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            const measured = event.nativeEvent.layout.height;
+            if (measured <= 0 || collapsed.value > 0) return;
+            setSpacerHeight(measured);
+        },
+        [collapsed],
+    );
 
     const collapse = useMemo<LawCardCollapse>(
         () => ({ collapsed, height }),
         [collapsed, height],
     );
-    return { collapse, onScroll };
+    return { collapse, onScroll, onCardLayout, spacerHeight };
 }
