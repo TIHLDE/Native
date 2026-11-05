@@ -27,6 +27,12 @@ const MAX_SCREEN_SHARE = 0.22;
  */
 const TOP_ROW_RESERVE = 84;
 
+/** Så mange piksler fra toppen står beskrivelsen helt åpen, uansett. */
+const TOP_LOCK = 4;
+
+/** Minste blaing (i piksler) fra helt åpen til helt borte. */
+const FADE_DISTANCE = 120;
+
 /**
  * Ekstra slingringsmonn i kravet til hvor lang lista må være før kortet får
  * klappe sammen (se `useCollapseOnScroll`).
@@ -107,9 +113,15 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
 
         // Det indre innholdet har alltid sin naturlige høyde (overflow skjuler
         // resten), så målingen er riktig også mens kortet er klappet sammen.
+        // Mål bare mens kortet er helt åpent. Mens det er klappet delvis
+        // sammen, er beskrivelsen presset mindre, og en ny måling da ville
+        // gitt en for lav høyde — som klappet kortet enda mer sammen, som ga
+        // en enda lavere måling, til kortet var lukket og ble værende lukket.
         const measureDescription = (event: LayoutChangeEvent) => {
             const measured = event.nativeEvent.layout.height;
-            if (collapse && measured > 0) collapse.height.value = measured;
+            if (!collapse || measured <= 0) return;
+            if (collapse.collapsed.value > 0) return;
+            collapse.height.value = measured;
         };
 
         return (
@@ -163,13 +175,20 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
                     {/* Padding i stedet for margin her: onLayout tar med
                         padding, men ikke margin, og målingen må dekke alt
                         som skal klappes bort. */}
-                    <View onLayout={measureDescription} className="pt-2">
+                    <View
+                        onLayout={measureDescription}
+                        className="pt-2"
+                        style={{ flexShrink: 0 }}
+                    >
                         <View className="pt-2 border-t border-primary/20 dark:border-primary/30">
-                            {/* flexGrow 0: ellers kan rullefeltet få en annen
-                                høyde enn teksten det inneholder. */}
+                            {/* flexGrow 0 / flexShrink 0: rullefeltet skal ha
+                                tekstens høyde (opp til maks), og ikke presses
+                                sammen når beskrivelsen klappes bort — det er
+                                rammen rundt som krymper og skjuler det. */}
                             <ScrollView
                                 style={{
                                     flexGrow: 0,
+                                    flexShrink: 0,
                                     maxHeight: descriptionMaxHeight,
                                 }}
                                 showsVerticalScrollIndicator
@@ -217,20 +236,31 @@ export function useCollapseOnScroll() {
 
         const y = event.contentOffset.y;
 
-        // Lista er `collapsed` piksler høyere nå enn med kortet helt åpent, så
-        // dette er hvor langt den kan blas når kortet er åpent. En kort liste
-        // får ikke klappe sammen kortet: da kunne plassen beskrivelsen frigjør
-        // gjøre at lista plutselig får plass, hopper til toppen og åpner kortet
-        // igjen. Kravet om dobbel høyde sikrer at bunnen alltid kan nås med
-        // kortet helt sammenklappet.
-        const maxY = event.contentSize.height - event.layoutMeasurement.height;
-        const rangeWhenOpen = maxY + collapsed.value;
-        if (rangeWhenOpen < full * 2 + MIN_EXTRA_SCROLL) {
+        // Låst åpent på toppen (og i iOS-strikken over den).
+        if (y <= TOP_LOCK) {
             collapsed.value = 0;
             return;
         }
 
-        collapsed.value = Math.min(Math.max(y, 0), full);
+        // Hvor langt man må bla før beskrivelsen er helt borte. Minst
+        // FADE_DISTANCE, så en kort beskrivelse ikke forsvinner på et blunk.
+        const distance = Math.max(full * 1.5, FADE_DISTANCE);
+
+        // Lista er `collapsed` piksler høyere nå enn med kortet helt åpent, så
+        // dette er hvor langt den kan blas når kortet er åpent. En kort liste
+        // får ikke klappe sammen kortet: da kunne plassen beskrivelsen frigjør
+        // gjøre at lista plutselig får plass, hopper til toppen og åpner kortet
+        // igjen. Kravet sikrer at man fortsatt kan bla hele `distance` med
+        // kortet helt sammenklappet.
+        const maxY = event.contentSize.height - event.layoutMeasurement.height;
+        const rangeWhenOpen = maxY + collapsed.value;
+        if (rangeWhenOpen < full + distance + MIN_EXTRA_SCROLL) {
+            collapsed.value = 0;
+            return;
+        }
+
+        const progress = Math.min(Math.max((y - TOP_LOCK) / distance, 0), 1);
+        collapsed.value = full * progress;
     });
 
     const collapse = useMemo<LawCardCollapse>(
