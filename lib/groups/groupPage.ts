@@ -6,7 +6,7 @@ import type {
     Membership,
 } from "@/actions/types";
 
-export type GroupTabKey = "info" | "members" | "fines" | "laws";
+export type GroupTabKey = "info" | "members" | "fines";
 
 /**
  * Fanene på gruppesida, i rekkefølge.
@@ -23,7 +23,7 @@ export function groupTabs(
         { key: "members", label: "Medlemmer" },
     ];
     if (finesActivated) {
-        tabs.push({ key: "fines", label: "Bøter" }, { key: "laws", label: "Lovverk" });
+        tabs.push({ key: "fines", label: "Bøter" });
     }
     return tabs;
 }
@@ -123,7 +123,7 @@ export function isAutomaticGroupType(type: string | null | undefined): boolean {
 }
 
 /**
- * Om Bøter- og Lovverk-fanene skal vises på gruppesida.
+ * Om Bøter-fanen skal vises på gruppesida.
  *
  * Photon avgjør det for innloggeren med `viewerCanUseFines` i
  * `GET /groups/:slug`. `finesActivated` alene holder ikke: en som ikke er med

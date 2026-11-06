@@ -74,6 +74,14 @@ export default function ModalsLayout() {
                 }}
             />
             <Stack.Screen
+                name="gruppe/[groupSlug]/lovverk"
+                options={{
+                    ...modalScreenOptions,
+                    title: "Lovverk",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
                 name="utlegg/index"
                 options={{
                     ...modalScreenOptions,

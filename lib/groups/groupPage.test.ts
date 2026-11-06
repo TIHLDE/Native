@@ -34,12 +34,11 @@ describe("groupTabs", () => {
         expect(groupTabs(false).map((tab) => tab.key)).toEqual(["info", "members"]);
     });
 
-    it("legger til Bøter og Lovverk når bøter er aktivert", () => {
+    it("legger til Bøter når bøter er aktivert", () => {
         expect(groupTabs(true).map((tab) => tab.key)).toEqual([
             "info",
             "members",
             "fines",
-            "laws",
         ]);
     });
 });

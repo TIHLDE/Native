@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pressable, View } from "react-native";
-import { X } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { ChevronRight, X } from "lucide-react-native";
 import { fetchFineStatistics } from "@/actions/fines/statistics";
 import { fetchGroupMembers } from "@/actions/groups/members";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -42,15 +43,21 @@ function FineSummary({ groupSlug }: { groupSlug: string }) {
         queryFn: () => fetchGroupMembers(groupSlug),
     });
 
+    const lawsLink = <LawsLink groupSlug={groupSlug} />;
+
     if (!statistics.data) {
         // En feil her skal ikke skyve lista ned med en melding — lista under
         // viser sin egen, og summene kommer tilbake ved neste oppdatering.
-        if (statistics.isError) return null;
+        // Lenka til lovverket står likevel.
+        if (statistics.isError) return lawsLink;
         return (
-            <View className="flex-row gap-2 mx-4 mb-3">
-                <FineStatCardSkeleton />
-                <FineStatCardSkeleton />
-                <FineStatCardSkeleton />
+            <View>
+                {lawsLink}
+                <View className="flex-row gap-2 mx-4 mb-3">
+                    <FineStatCardSkeleton />
+                    <FineStatCardSkeleton />
+                    <FineStatCardSkeleton />
+                </View>
             </View>
         );
     }
@@ -59,22 +66,54 @@ function FineSummary({ groupSlug }: { groupSlug: string }) {
     const { notApproved, approvedNotPaid, paid } = statistics.data;
 
     return (
-        <View className="flex-row gap-2 mx-4 mb-3">
-            <FineStatCard
-                label="Ikke godkjent"
-                value={notApproved}
-                perMember={perMember(notApproved, memberCount)}
-            />
-            <FineStatCard
-                label="Godkjent, ikke betalt"
-                value={approvedNotPaid}
-                perMember={perMember(approvedNotPaid, memberCount)}
-            />
-            <FineStatCard
-                label="Betalt"
-                value={paid}
-                perMember={perMember(paid, memberCount)}
-            />
+        <View>
+            {lawsLink}
+            <View className="flex-row gap-2 mx-4 mb-3">
+                <FineStatCard
+                    label="Ikke godkjent"
+                    value={notApproved}
+                    perMember={perMember(notApproved, memberCount)}
+                />
+                <FineStatCard
+                    label="Godkjent, ikke betalt"
+                    value={approvedNotPaid}
+                    perMember={perMember(approvedNotPaid, memberCount)}
+                />
+                <FineStatCard
+                    label="Betalt"
+                    value={paid}
+                    perMember={perMember(paid, memberCount)}
+                />
+            </View>
+        </View>
+    );
+}
+
+/** «Lovverk ›», høyrestilt over summene. Åpner lovverket som egen skjerm. */
+function LawsLink({ groupSlug }: { groupSlug: string }) {
+    const router = useRouter();
+    const { isDarkColorScheme } = useColorScheme();
+
+    return (
+        <View className="flex-row justify-end mx-4 mb-2">
+            <Pressable
+                onPress={() =>
+                    router.push({
+                        pathname: "/(app)/(modals)/gruppe/[groupSlug]/lovverk",
+                        params: { groupSlug },
+                    })
+                }
+                accessibilityRole="link"
+                className="flex-row items-center active:opacity-70"
+            >
+                <Text className="text-sm font-semibold text-primary">
+                    Lovverk
+                </Text>
+                <ChevronRight
+                    size={16}
+                    color={themeColors(isDarkColorScheme).primary}
+                />
+            </Pressable>
         </View>
     );
 }

@@ -12,7 +12,6 @@ import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
 import { GroupFinesTab } from "@/components/grupper/GroupFinesTab";
 import { GroupInfoTab } from "@/components/grupper/GroupInfoTab";
-import { GroupLawsList } from "@/components/grupper/GroupLawsList";
 import { GroupMembersList } from "@/components/grupper/GroupMembersList";
 import {
     GroupTabKey,
@@ -25,8 +24,8 @@ import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 /**
- * Én gruppe: om den, hvem som er med, og — når bøter er skrudd på — bøtene og
- * lovverket de er gitt under.
+ * Én gruppe: om den, hvem som er med, og — når bøter er skrudd på — bøtene.
+ * Lovverket har en egen skjerm (`lovverk.tsx`), som åpnes fra Bøter-fanen.
  *
  * Hodet fylles fra `["memberships"]` eller `["groups"]` framfor å vente på
  * gruppekallet — cachen er varm fra grupper-lista brukeren nettopp sto i.
@@ -155,10 +154,8 @@ export default function GruppeSide() {
                     groupSlug={groupSlug}
                     leaderTitle={groupDetail.data?.leaderTitle}
                 />
-            ) : activeTab === "fines" ? (
-                <GroupFinesTab groupSlug={groupSlug} />
             ) : (
-                <GroupLawsList groupSlug={groupSlug} />
+                <GroupFinesTab groupSlug={groupSlug} />
             )}
         </PageWrapper>
     );
