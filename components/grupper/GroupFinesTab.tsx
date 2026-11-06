@@ -165,17 +165,25 @@ export function GroupFinesTab({ groupSlug }: { groupSlug: string }) {
                     hitSlop={8}
                     className="flex-row items-center ml-3 py-2 active:opacity-70"
                 >
-                    <SlidersHorizontal size={16} color={colors.foreground} />
-                    <Text className="text-base font-semibold text-foreground ml-1.5">
+                    {/* Samme tellemerke som filterknappen i arrangementer.
+                        Labelen over sier det samme til skjermleseren. */}
+                    <View>
+                        <SlidersHorizontal size={18} color={colors.foreground} />
+                        {statusFilter ? (
+                            <View
+                                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary items-center justify-center"
+                                accessibilityElementsHidden
+                                importantForAccessibility="no-hide-descendants"
+                            >
+                                <Text className="text-[10px] font-bold text-white">
+                                    1
+                                </Text>
+                            </View>
+                        ) : null}
+                    </View>
+                    <Text className="text-base font-semibold text-foreground ml-2">
                         Filter
                     </Text>
-                    {statusFilter ? (
-                        <View
-                            className="w-2 h-2 rounded-full bg-primary ml-1.5"
-                            accessibilityElementsHidden
-                            importantForAccessibility="no-hide-descendants"
-                        />
-                    ) : null}
                 </Pressable>
             </View>
 

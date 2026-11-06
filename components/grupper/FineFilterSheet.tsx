@@ -6,7 +6,7 @@ import {
     BottomSheetModal,
     BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Check } from "lucide-react-native";
+import { Check, FilterX } from "lucide-react-native";
 import { FineStatistics } from "@/actions/types";
 import { Text } from "@/components/ui/text";
 import {
@@ -56,7 +56,7 @@ function optionCount(
  * Filteret i bøtefanen. Bare status — visningen velges i menyen over lista.
  *
  * Et valg gjelder med en gang, så lista bak arket oppdateres mens det står
- * oppe. Derfor ingen bruk-knapp nederst; «Ferdig» lukker bare arket.
+ * oppe. «Ferdig» nederst bruker ingenting — den lukker bare arket.
  */
 export const FineFilterSheet = forwardRef<
     FineFilterSheetRef,
@@ -96,54 +96,53 @@ export const FineFilterSheet = forwardRef<
             enableDynamicSizing
             backdropComponent={renderBackdrop}
         >
-            <BottomSheetView className="bg-popover px-6 pb-10 pt-2">
-                <View className="flex-row items-center mb-4">
-                    <View className="flex-1 items-start">
+            {/* Samme oppsett som filteret i arrangementer, så de to arkene
+                ser like ut. */}
+            <BottomSheetView className="bg-popover px-6 pb-10 pt-4">
+                <View className="flex-row items-center justify-between mb-5">
+                    <View className="flex-row items-center">
+                        <Text
+                            className="text-xl font-bold text-foreground"
+                            accessibilityRole="header"
+                        >
+                            Filter
+                        </Text>
+                        {isActive ? (
+                            <View
+                                className="ml-2.5 w-6 h-6 rounded-full bg-primary/15 dark:bg-primary/25 items-center justify-center"
+                                accessibilityElementsHidden
+                                importantForAccessibility="no-hide-descendants"
+                            >
+                                <Text className="text-xs font-bold text-primary">
+                                    1
+                                </Text>
+                            </View>
+                        ) : null}
+                    </View>
+                    {isActive ? (
                         <Pressable
                             onPress={() => onChange("alle")}
-                            disabled={!isActive}
                             accessibilityRole="button"
-                            accessibilityState={{ disabled: !isActive }}
-                            hitSlop={8}
-                            className="active:opacity-70"
+                            className="flex-row items-center active:opacity-70"
                         >
+                            <FilterX size={16} color={colors.mutedForeground} />
                             <Text
-                                className={cn(
-                                    "text-base",
-                                    isActive
-                                        ? "text-primary"
-                                        : "text-muted-foreground opacity-50"
-                                )}
+                                className="text-sm text-muted-foreground ml-1.5"
+                                style={{ fontFamily: "Inter" }}
                             >
                                 Nullstill
                             </Text>
                         </Pressable>
-                    </View>
-                    <Text
-                        className="text-lg font-bold text-foreground"
-                        accessibilityRole="header"
-                    >
-                        Filter
-                    </Text>
-                    <View className="flex-1 items-end">
-                        <Pressable
-                            onPress={() => sheetRef.current?.dismiss()}
-                            accessibilityRole="button"
-                            hitSlop={8}
-                            className="active:opacity-70"
-                        >
-                            <Text className="text-base font-semibold text-primary">
-                                Ferdig
-                            </Text>
-                        </Pressable>
-                    </View>
+                    ) : null}
                 </View>
 
-                <Text className="text-sm font-semibold text-muted-foreground mb-2">
+                <View className="h-px bg-border dark:bg-muted mb-5" />
+
+                <Text className="text-base font-semibold text-foreground mb-3">
                     Status
                 </Text>
                 <View
-                    className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden"
+                    className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-6"
                     accessibilityRole="radiogroup"
                 >
                     {STATUS_OPTIONS.map((option, index) => {
@@ -190,6 +189,19 @@ export const FineFilterSheet = forwardRef<
                         );
                     })}
                 </View>
+
+                <Pressable
+                    onPress={() => sheetRef.current?.dismiss()}
+                    accessibilityRole="button"
+                    className="h-14 rounded-2xl bg-primary flex-row items-center justify-center active:opacity-80"
+                >
+                    <Text
+                        className="text-white text-base font-semibold"
+                        style={{ fontFamily: "Inter" }}
+                    >
+                        Ferdig
+                    </Text>
+                </Pressable>
             </BottomSheetView>
         </InteropBottomSheetModal>
     );
