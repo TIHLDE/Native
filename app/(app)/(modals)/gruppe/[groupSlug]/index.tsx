@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { GroupListItem } from "@/actions/types";
 import { useLocalSearchParams } from "expo-router";
@@ -26,6 +26,13 @@ import { avatarImageUrl } from "@/lib/images";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 
+// Fanene blir stående montert etter første besøk. Uten memo ville et
+// fanebytte rendret alle sammen på nytt, også de skjulte, siden sida selv
+// rendres når `tab` endres.
+const InfoTab = memo(GroupInfoTab);
+const MembersTab = memo(GroupMembersList);
+const FinesTab = memo(GroupFinesTab);
+
 /**
  * Én gruppe: om den, hvem som er med, og — når bøter er skrudd på — bøtene.
  * Lovverket har en egen skjerm (`lovverk.tsx`), som åpnes fra Bøter-fanen.
@@ -51,8 +58,8 @@ export default function GruppeSide() {
     // av `activeTab` under og faller tilbake til Om.
     const [tab, setTab] = useState<GroupTabKey>(initialTab ?? "info");
     const queryClient = useQueryClient();
-    // Her og ikke i fanen: bare den valgte fanen er montert, og bøtefanen skal
-    // huske visning, filter og åpent medlem gjennom et fanebytte.
+    // Visning, filter og åpent medlem i bøtefanen. Holdt her, ved siden av
+    // `tab`, så sida eier alt fanene skal huske.
     const finesState = useFinesTabState();
 
     const memberships = useQuery({
@@ -87,6 +94,15 @@ export default function GruppeSide() {
     // En nøkkel som ikke finnes i settet — «Bøter» i en gruppe uten bøter —
     // faller tilbake til Om framfor å vise ingenting.
     const activeTab = tabs.some((item) => item.key === tab) ? tab : "info";
+
+    // Fanene som er valgt minst én gang. Utledet av `activeTab` og ikke av
+    // `tab`: åpnes sida fra et varsel med `tab=fines` før tilgangen er kjent,
+    // vises Om først, og Bøter monteres når den faktisk dukker opp. Oppdatert
+    // under rendringen, så en ny fane er montert i samme frame som den velges.
+    const [mountedTabs, setMountedTabs] = useState<GroupTabKey[]>([]);
+    if (!mountedTabs.includes(activeTab)) {
+        setMountedTabs([...mountedTabs, activeTab]);
+    }
 
     const leader = members.data?.find(
         (member) => member.membershipType === "LEADER"
@@ -147,22 +163,39 @@ export default function GruppeSide() {
                 />
             </View>
 
-            {/* Bare den valgte fanen er montert. Det holder antallet kall nede
-                ved åpning, og hver fane starter på topp. Bøtefanens valg
-                ligger i `finesState` over og overlever byttet. */}
-            {activeTab === "info" ? (
-                <GroupInfoTab
-                    groupSlug={groupSlug}
-                    group={group}
-                    isPending={groupDetail.isPending}
-                />
-            ) : activeTab === "members" ? (
-                <GroupMembersList
-                    groupSlug={groupSlug}
-                    leaderTitle={groupDetail.data?.leaderTitle}
-                />
-            ) : (
-                <GroupFinesTab groupSlug={groupSlug} state={finesState} />
+            {/* En fane monteres første gang den velges og blir stående. Det
+                holder antallet kall nede ved åpning, og en fane man kommer
+                tilbake til, står der man forlot den — rullet like langt, med
+                det samme åpent. `display: none` og ikke `opacity`: en skjult
+                fane skal verken ta plass eller fange trykk. */}
+            {tabs.map((item) =>
+                mountedTabs.includes(item.key) ? (
+                    <View
+                        key={item.key}
+                        className="flex-1"
+                        style={
+                            item.key === activeTab ? undefined : { display: "none" }
+                        }
+                    >
+                        {item.key === "info" ? (
+                            <InfoTab
+                                groupSlug={groupSlug}
+                                group={group}
+                                isPending={groupDetail.isPending}
+                            />
+                        ) : item.key === "members" ? (
+                            <MembersTab
+                                groupSlug={groupSlug}
+                                leaderTitle={groupDetail.data?.leaderTitle}
+                            />
+                        ) : (
+                            <FinesTab
+                                groupSlug={groupSlug}
+                                state={finesState}
+                            />
+                        )}
+                    </View>
+                ) : null
             )}
         </PageWrapper>
     );

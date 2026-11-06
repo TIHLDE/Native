@@ -257,6 +257,8 @@ function MemberFines({
  * ikke `maintainVisibleContentPosition` eller Reanimateds layoutoverganger.
  *
  * Hvilket medlem som er åpent, eies av gruppesida (se `useFinesTabState`).
+ * Hvor langt lista er rullet, trenger ingen egen lagring: gruppesida holder
+ * fanene montert etter første besøk, så lista står der den sto.
  */
 export function GroupLeaderboardList({
     groupSlug,

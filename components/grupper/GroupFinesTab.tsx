@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -101,8 +101,9 @@ export type FinesTabState = {
 /**
  * Tilstanden til bøtefanen, holdt av gruppesida og ikke av fanen.
  *
- * Gruppesida monterer bare fanen som er valgt, så tilstand i fanen selv ble
- * nullstilt ved hvert fanebytte. Her overlever den både fanebytte og en tur
+ * Gruppesida holder fanene montert etter første besøk, så tilstanden ville
+ * overlevd et fanebytte også i fanen. Den ligger her likevel, så sida eier
+ * det fanene skal huske. Den overlever både fanebytte og en tur
  * innom Lovverk, som legges oppå sida i stakken. Hvor mange bøter som er
  * lastet i et åpent medlem, ligger i spørringscachen og ikke her.
  */
@@ -111,19 +112,34 @@ export function useFinesTabState(): FinesTabState {
     const [status, setStatus] = useState<FineStatusFilter>("alle");
     const [openUserId, setOpenUserId] = useState<string | null>(null);
 
-    return {
-        grouping,
-        status,
-        openUserId,
-        setGrouping: (next) => {
+    // Stabil identitet: bøtefanen er memoisert på gruppesida, og et nytt
+    // objekt ved hver rendring ville rendret den på nytt ved hvert fanebytte,
+    // også når den er skjult.
+    const setGrouping = useCallback(
+        (next: FineGrouping) => {
             if (next === grouping) return;
             setGroupingState(next);
             setOpenUserId(null);
         },
-        setStatus,
-        toggleMember: (userId) =>
+        [grouping]
+    );
+    const toggleMember = useCallback(
+        (userId: string) =>
             setOpenUserId((current) => (current === userId ? null : userId)),
-    };
+        []
+    );
+
+    return useMemo(
+        () => ({
+            grouping,
+            status,
+            openUserId,
+            setGrouping,
+            setStatus,
+            toggleMember,
+        }),
+        [grouping, status, openUserId, setGrouping, toggleMember]
+    );
 }
 
 /**
