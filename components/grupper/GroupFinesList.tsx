@@ -37,7 +37,7 @@ const STATUS_CLASSES: Record<FineStatus, string> = {
     rejected: "bg-destructive/15",
 };
 
-function FineCardSkeleton() {
+export function FineCardSkeleton() {
     return (
         <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4">
             <View className="flex-row items-center">
@@ -60,7 +60,7 @@ function FineCardSkeleton() {
  * leter etter — hvem, hvilken paragraf og hvor mange bøter — og resten ligger
  * ett trykk unna.
  */
-function FineCard({ fine }: { fine: Fine }) {
+export function FineCard({ fine }: { fine: Fine }) {
     const { isDarkColorScheme } = useColorScheme();
     const [isOpen, setIsOpen] = useState(false);
     // 16:9 til bildet har sagt fra om sitt eget forhold — da er plassholderen

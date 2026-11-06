@@ -7,6 +7,9 @@ import {
     groupTabs,
     groupTypeLabel,
     isAutomaticGroupType,
+    memberFinesInitialParam,
+    memberFinesNextParam,
+    remainingFines,
     sortMembers,
     statusLabel,
 } from "./groupPage";
@@ -269,5 +272,47 @@ describe("finesTabsVisible", () => {
         expect(
             finesTabsVisible({ ...study, viewerCanUseFines: false }, study)
         ).toBe(false);
+    });
+});
+
+describe("bøtene til ett medlem", () => {
+    it("starter Aktive på pending, og en status på seg selv", () => {
+        expect(memberFinesInitialParam(undefined)).toEqual({
+            status: "pending",
+            page: 0,
+        });
+        expect(memberFinesInitialParam("paid")).toEqual({
+            status: "paid",
+            page: 0,
+        });
+    });
+
+    it("blar videre i samme status så lenge det er flere sider", () => {
+        expect(
+            memberFinesNextParam(undefined, { next: 1 }, { status: "pending", page: 0 })
+        ).toEqual({ status: "pending", page: 1 });
+        expect(
+            memberFinesNextParam("paid", { next: 2 }, { status: "paid", page: 1 })
+        ).toEqual({ status: "paid", page: 2 });
+    });
+
+    it("går fra pending til approved i Aktive", () => {
+        expect(
+            memberFinesNextParam(undefined, { next: null }, { status: "pending", page: 3 })
+        ).toEqual({ status: "approved", page: 0 });
+    });
+
+    it("stopper etter approved i Aktive og etter siste side med én status", () => {
+        expect(
+            memberFinesNextParam(undefined, { next: null }, { status: "approved", page: 0 })
+        ).toBeUndefined();
+        expect(
+            memberFinesNextParam("pending", { next: null }, { status: "pending", page: 0 })
+        ).toBeUndefined();
+    });
+
+    it("teller gjenstående hendelser, aldri under 0", () => {
+        expect(remainingFines(17, 10)).toBe(7);
+        expect(remainingFines(10, 12)).toBe(0);
     });
 });

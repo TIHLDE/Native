@@ -13,10 +13,16 @@ export const PAGE_SIZE = 25;
  */
 export async function fetchFines(
     groupSlug: string,
-    options: { page?: number; status?: FineStatus; userId?: string } = {}
+    options: {
+        page?: number;
+        status?: FineStatus;
+        userId?: string;
+        /** Per medlem henter færre om gangen enn bøtelista. */
+        pageSize?: number;
+    } = {}
 ): Promise<{ results: Fine[]; next: number | null; totalCount: number }> {
     const query = new URLSearchParams({
-        pageSize: String(PAGE_SIZE),
+        pageSize: String(options.pageSize ?? PAGE_SIZE),
         page: String(options.page ?? 0),
     });
     if (options.status) query.set("status", options.status);

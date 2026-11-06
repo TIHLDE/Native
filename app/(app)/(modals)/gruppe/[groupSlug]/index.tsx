@@ -10,7 +10,10 @@ import { fetchGroupMembers } from "@/actions/groups/members";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
-import { GroupFinesTab } from "@/components/grupper/GroupFinesTab";
+import {
+    GroupFinesTab,
+    useFinesTabState,
+} from "@/components/grupper/GroupFinesTab";
 import { GroupInfoTab } from "@/components/grupper/GroupInfoTab";
 import { GroupMembersList } from "@/components/grupper/GroupMembersList";
 import {
@@ -48,6 +51,9 @@ export default function GruppeSide() {
     // av `activeTab` under og faller tilbake til Om.
     const [tab, setTab] = useState<GroupTabKey>(initialTab ?? "info");
     const queryClient = useQueryClient();
+    // Her og ikke i fanen: bare den valgte fanen er montert, og bøtefanen skal
+    // huske visning, filter og åpent medlem gjennom et fanebytte.
+    const finesState = useFinesTabState();
 
     const memberships = useQuery({
         queryKey: ["memberships"],
@@ -142,7 +148,8 @@ export default function GruppeSide() {
             </View>
 
             {/* Bare den valgte fanen er montert. Det holder antallet kall nede
-                ved åpning, og hver fane starter på topp. */}
+                ved åpning, og hver fane starter på topp. Bøtefanens valg
+                ligger i `finesState` over og overlever byttet. */}
             {activeTab === "info" ? (
                 <GroupInfoTab
                     groupSlug={groupSlug}
@@ -155,7 +162,7 @@ export default function GruppeSide() {
                     leaderTitle={groupDetail.data?.leaderTitle}
                 />
             ) : (
-                <GroupFinesTab groupSlug={groupSlug} />
+                <GroupFinesTab groupSlug={groupSlug} state={finesState} />
             )}
         </PageWrapper>
     );

@@ -4,7 +4,7 @@ import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ChevronRight, SlidersHorizontal, X } from "lucide-react-native";
 import { fetchFineStatistics } from "@/actions/fines/statistics";
-import { FineStatistics } from "@/actions/types";
+import { FineStatistics, FineStatus } from "@/actions/types";
 import { Dropdown } from "@/components/ui/dropdown";
 import { Text } from "@/components/ui/text";
 import {
@@ -85,6 +85,47 @@ function LawsLink({ groupSlug }: { groupSlug: string }) {
     );
 }
 
+/** Det bøtefanen husker. Se `useFinesTabState`. */
+export type FinesTabState = {
+    grouping: FineGrouping;
+    status: FineStatusFilter;
+    /** Medlemmet som er åpent i «Per medlem». Bare ett om gangen. */
+    openUserId: string | null;
+    /** Et bytte av visning lukker medlemmet; statusfilteret blir stående. */
+    setGrouping: (grouping: FineGrouping) => void;
+    setStatus: (status: FineStatusFilter) => void;
+    /** Samme medlem lukkes, et annet åpnes og lukker det som var åpent. */
+    toggleMember: (userId: string) => void;
+};
+
+/**
+ * Tilstanden til bøtefanen, holdt av gruppesida og ikke av fanen.
+ *
+ * Gruppesida monterer bare fanen som er valgt, så tilstand i fanen selv ble
+ * nullstilt ved hvert fanebytte. Her overlever den både fanebytte og en tur
+ * innom Lovverk, som legges oppå sida i stakken. Hvor mange bøter som er
+ * lastet i et åpent medlem, ligger i spørringscachen og ikke her.
+ */
+export function useFinesTabState(): FinesTabState {
+    const [grouping, setGroupingState] = useState<FineGrouping>("alle");
+    const [status, setStatus] = useState<FineStatusFilter>("alle");
+    const [openUserId, setOpenUserId] = useState<string | null>(null);
+
+    return {
+        grouping,
+        status,
+        openUserId,
+        setGrouping: (next) => {
+            if (next === grouping) return;
+            setGroupingState(next);
+            setOpenUserId(null);
+        },
+        setStatus,
+        toggleMember: (userId) =>
+            setOpenUserId((current) => (current === userId ? null : userId)),
+    };
+}
+
 /**
  * Bøtefanen: alle bøtene, eller hva hvert medlem står med.
  *
@@ -97,19 +138,25 @@ function LawsLink({ groupSlug }: { groupSlug: string }) {
  * Fanen monteres bare for grupper med bøter aktivert, så kallene her trenger
  * ingen egen port mot Photons 404.
  */
-export function GroupFinesTab({ groupSlug }: { groupSlug: string }) {
+export function GroupFinesTab({
+    groupSlug,
+    state,
+}: {
+    groupSlug: string;
+    state: FinesTabState;
+}) {
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
     const filterSheetRef = useRef<FineFilterSheetRef>(null);
-    const [grouping, setGrouping] = useState<FineGrouping>("alle");
-    const [status, setStatus] = useState<FineStatusFilter>("alle");
+    const { grouping, setGrouping, status, setStatus } = state;
 
     const statistics = useQuery({
         queryKey: ["fines", groupSlug, "statistics"],
         queryFn: () => fetchFineStatistics(groupSlug),
     });
 
-    const statusFilter = status === "alle" ? undefined : status;
+    const statusFilter: FineStatus | undefined =
+        status === "alle" ? undefined : status;
     const activeOption = STATUS_OPTIONS.find(
         (option) => option.value === status
     );
@@ -197,6 +244,8 @@ export function GroupFinesTab({ groupSlug }: { groupSlug: string }) {
                 <GroupLeaderboardList
                     groupSlug={groupSlug}
                     status={statusFilter}
+                    openUserId={state.openUserId}
+                    onToggleMember={state.toggleMember}
                     ListHeaderComponent={header}
                 />
             )}

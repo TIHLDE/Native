@@ -75,6 +75,51 @@ export function statusLabel(
     return option.label;
 }
 
+/** Bøter per «Vis flere» i et åpent medlem. Bøtelista henter 25. */
+export const MEMBER_PAGE_SIZE = 10;
+
+/** Én side av bøtene til ett medlem: hvilken status, og hvilken side av den. */
+export type MemberFinesPageParam = { status: FineStatus; page: number };
+
+/**
+ * Første side for ett medlem. «Aktive bøter» er ikke én status i Photon, og et
+ * kall uten status gir også de betalte, så Aktive starter på `pending`.
+ */
+export function memberFinesInitialParam(
+    status: FineStatus | undefined
+): MemberFinesPageParam {
+    return { status: status ?? "pending", page: 0 };
+}
+
+/**
+ * Neste side for ett medlem. Med Aktive (`status` undefined) blas `pending`
+ * til slutten før `approved` tar over fra side 0, så de som venter på
+ * godkjenning står først.
+ */
+export function memberFinesNextParam(
+    status: FineStatus | undefined,
+    lastPage: { next: number | null },
+    lastParam: MemberFinesPageParam
+): MemberFinesPageParam | undefined {
+    if (lastPage.next != null) {
+        return { status: lastParam.status, page: lastPage.next };
+    }
+    if (!status && lastParam.status === "pending") {
+        return { status: "approved", page: 0 };
+    }
+    return undefined;
+}
+
+/**
+ * Hvor mange hendelser som gjenstår for «Vis flere (n til)». Tallet er
+ * `finesCount` fra medlemsraden — samme tall som «fordelt på y hendelser»
+ * over — og ikke bøtesummen. Aldri under 0, selv om de to kallene skulle
+ * vise hvert sitt øyeblikk.
+ */
+export function remainingFines(finesCount: number, loaded: number): number {
+    return Math.max(0, finesCount - loaded);
+}
+
 const GROUP_TYPE_LABELS: Record<string, string> = {
     SUBGROUP: "Undergruppe",
     COMMITTEE: "Komité",
