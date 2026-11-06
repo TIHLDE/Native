@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
-import { ChevronRight, Users } from "lucide-react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
+import { Users } from "lucide-react-native";
 import { fetchFineLeaderboard } from "@/actions/fines/leaderboard";
 import { FineStatus } from "@/actions/types";
 import { Text } from "@/components/ui/text";
@@ -28,18 +28,19 @@ function LeaderboardRowSkeleton() {
  * først. Var en egen «Toppliste»-fane før den ble flyttet inn under Bøter, slik
  * nettsida har den.
  *
- * Uten `status` teller Photon bare de aktive bøtene. Et trykk på en rad viser
- * bøtene til den personen i «Alle bøter».
+ * Uten `status` teller Photon bare de aktive bøtene.
+ *
+ * Radene er ikke trykkbare. Før hoppet et trykk til «Alle bøter» filtrert på
+ * personen, men der viste lista også betalte bøter som tallet i raden ikke
+ * tok med. Bøtene til ett medlem skal heller åpnes på stedet, her i lista.
  */
 export function GroupLeaderboardList({
     groupSlug,
     status,
-    onSelectUser,
     ListHeaderComponent,
 }: {
     groupSlug: string;
     status?: FineStatus;
-    onSelectUser: (user: { id: string; name: string }) => void;
     /** Ruller med lista, over medlemmene. Bøtefanen legger summene her. */
     ListHeaderComponent?: ReactElement;
 }) {
@@ -79,12 +80,7 @@ export function GroupLeaderboardList({
             refreshControl={refreshControl}
             ListHeaderComponent={ListHeaderComponent}
             renderItem={({ item, index }) => (
-                <Pressable
-                    onPress={() => onSelectUser({ id: item.id, name: item.name })}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Vis bøtene til ${item.name}`}
-                    className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
-                >
+                <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center">
                     {/* Photon sorterer høyest først, så plasseringen er
                         listeindeksen — den regnes ikke ut på nytt her. */}
                     <Text className="w-6 text-base font-bold text-muted-foreground">
@@ -109,12 +105,7 @@ export function GroupLeaderboardList({
                             {`${item.finesAmount} ${item.finesAmount === 1 ? "bot" : "bøter"} fordelt på ${item.finesCount} ${item.finesCount === 1 ? "hendelse" : "hendelser"}`}
                         </Text>
                     </View>
-                    <ChevronRight
-                        size={18}
-                        color={colors.mutedForeground}
-                        style={{ marginLeft: 8 }}
-                    />
-                </Pressable>
+                </View>
             )}
             onEndReachedThreshold={0.5}
             onEndReached={() => {

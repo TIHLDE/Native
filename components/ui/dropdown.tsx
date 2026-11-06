@@ -1,4 +1,5 @@
 import * as SelectPrimitive from "@rn-primitives/select";
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { StyleSheet, useWindowDimensions } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -14,14 +15,49 @@ export interface DropdownOption<T extends string> {
     label: string;
 }
 
-interface DropdownProps<T extends string> {
+/**
+ * Knappen som åpner menyen.
+ *
+ * - `filled` — grå flate, fyller bredden den får. Står for seg selv som et felt.
+ * - `plain` — bare tekst og chevron. For en verktøylinje, der menyen sier hvilken
+ *   visning man ser på og en grå boks ville sett ut som enda en knapp.
+ */
+const triggerVariants = cva("flex-row items-center active:opacity-70", {
+    variants: {
+        variant: {
+            filled: "flex-1 justify-center px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-secondary/30",
+            plain: "py-2",
+        },
+    },
+    defaultVariants: { variant: "filled" },
+});
+
+const triggerTextVariants = cva("flex-shrink font-semibold text-foreground", {
+    variants: {
+        variant: {
+            filled: "text-sm",
+            plain: "text-base",
+        },
+    },
+    defaultVariants: { variant: "filled" },
+});
+
+interface DropdownProps<T extends string>
+    extends VariantProps<typeof triggerVariants> {
     options: DropdownOption<T>[];
     value: T;
     onChange: (value: T) => void;
     /** Teksten på knappen. Faller tilbake til det valgte alternativets navn. */
     label?: string;
     accessibilityLabel?: string;
+    /**
+     * Hvilken kant av knappen menyen legger seg langs. `end` passer en knapp
+     * til høyre, `start` en knapp til venstre.
+     */
+    align?: "start" | "end";
     className?: string;
+    /** Ekstra klasser på selve knappen, flettet inn over varianten. */
+    triggerClassName?: string;
 }
 
 const MENU_GAP = 4;
@@ -41,7 +77,10 @@ function Dropdown<T extends string>({
     onChange,
     label,
     accessibilityLabel,
+    align = "end",
+    variant,
     className,
+    triggerClassName,
 }: DropdownProps<T>) {
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
@@ -62,17 +101,21 @@ function Dropdown<T extends string>({
         >
             <SelectPrimitive.Trigger
                 accessibilityLabel={accessibilityLabel}
-                className="flex-1 flex-row items-center justify-center px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-secondary/30 active:opacity-70"
+                className={cn(triggerVariants({ variant }), triggerClassName)}
             >
                 <Text
-                    className="flex-shrink text-sm font-semibold text-foreground"
+                    className={triggerTextVariants({ variant })}
                     numberOfLines={1}
                 >
                     {label ?? selected?.label ?? ""}
                 </Text>
                 <ChevronDown
                     size={16}
-                    color={colors.mutedForeground}
+                    color={
+                        variant === "plain"
+                            ? colors.foreground
+                            : colors.mutedForeground
+                    }
                     style={{ marginLeft: 4 }}
                 />
             </SelectPrimitive.Trigger>
@@ -89,7 +132,7 @@ function Dropdown<T extends string>({
                     >
                         <SelectPrimitive.Content
                             side="bottom"
-                            align="end"
+                            align={align}
                             sideOffset={MENU_GAP}
                             insets={{
                                 top: insets.top,

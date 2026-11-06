@@ -1,222 +1,205 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ChevronRight, X } from "lucide-react-native";
+import { ChevronRight, SlidersHorizontal, X } from "lucide-react-native";
 import { fetchFineStatistics } from "@/actions/fines/statistics";
-import { fetchGroupMembers } from "@/actions/groups/members";
+import { FineStatistics } from "@/actions/types";
 import { Dropdown } from "@/components/ui/dropdown";
-import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import {
     FineGrouping,
     FineStatusFilter,
     STATUS_OPTIONS,
-    perMember,
     statusLabel,
 } from "@/lib/groups/groupPage";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { FineStatCard, FineStatCardSkeleton } from "./FineStatCard";
+import { FineFilterSheet, FineFilterSheetRef } from "./FineFilterSheet";
 import { GroupFinesList } from "./GroupFinesList";
 import { GroupLeaderboardList } from "./GroupLeaderboardList";
 
-const GROUPINGS: { key: FineGrouping; label: string }[] = [
-    { key: "alle", label: "Alle bøter" },
-    { key: "per-medlem", label: "Per medlem" },
+const VIEW_OPTIONS: { value: FineGrouping; label: string }[] = [
+    { value: "alle", label: "Alle bøter" },
+    { value: "per-medlem", label: "Per medlem" },
 ];
 
 /**
- * Summene over lista.
+ * Summene øverst i lista, på én linje, med «Lovverk ›» til høyre.
  *
  * De gjelder hele gruppa, ikke det som er filtrert fram — ellers ville
- * «Betalt» falt til 0 så snart man så på ubetalte. Snittet deler på
- * medlemslista, som deler cache med medlemsfanen.
+ * «betalt» falt til 0 så snart man så på ubetalte. Tallene er bøter, ikke
+ * antall hendelser.
  */
-function FineSummary({ groupSlug }: { groupSlug: string }) {
-    const statistics = useQuery({
-        queryKey: ["fines", groupSlug, "statistics"],
-        queryFn: () => fetchFineStatistics(groupSlug),
-    });
-    const members = useQuery({
-        queryKey: ["group", groupSlug, "members"],
-        queryFn: () => fetchGroupMembers(groupSlug),
-    });
-
-    const lawsLink = <LawsLink groupSlug={groupSlug} />;
-
-    if (!statistics.data) {
-        // En feil her skal ikke skyve lista ned med en melding — lista under
-        // viser sin egen, og summene kommer tilbake ved neste oppdatering.
-        // Lenka til lovverket står likevel.
-        if (statistics.isError) return lawsLink;
-        return (
-            <View>
-                {lawsLink}
-                <View className="flex-row gap-2 mx-4 mb-3">
-                    <FineStatCardSkeleton />
-                    <FineStatCardSkeleton />
-                    <FineStatCardSkeleton />
-                </View>
-            </View>
-        );
-    }
-
-    const memberCount = members.data?.length ?? 0;
-    const { notApproved, approvedNotPaid, paid } = statistics.data;
-
+function FineStatsRow({
+    groupSlug,
+    statistics,
+}: {
+    groupSlug: string;
+    statistics: { data?: FineStatistics; isError: boolean };
+}) {
     return (
-        <View>
-            {lawsLink}
-            <View className="flex-row gap-2 mx-4 mb-3">
-                <FineStatCard
-                    label="Ikke godkjent"
-                    value={notApproved}
-                    perMember={perMember(notApproved, memberCount)}
-                />
-                <FineStatCard
-                    label="Godkjent, ikke betalt"
-                    value={approvedNotPaid}
-                    perMember={perMember(approvedNotPaid, memberCount)}
-                />
-                <FineStatCard
-                    label="Betalt"
-                    value={paid}
-                    perMember={perMember(paid, memberCount)}
-                />
+        <View className="flex-row items-center mx-4 mb-3">
+            <View className="flex-1 mr-3">
+                {statistics.data ? (
+                    <Text
+                        className="text-sm text-muted-foreground"
+                        numberOfLines={1}
+                    >
+                        {`${statistics.data.notApproved} ikke godkjent · ${statistics.data.approvedNotPaid} ubetalt · ${statistics.data.paid} betalt`}
+                    </Text>
+                ) : statistics.isError ? null : (
+                    // En feil skal ikke skyve lista ned med en melding — lista
+                    // under viser sin egen, og summene kommer tilbake ved neste
+                    // oppdatering. Lenka til lovverket står uansett.
+                    <View className="w-48 h-4 rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
+                )}
             </View>
+            <LawsLink groupSlug={groupSlug} />
         </View>
     );
 }
 
-/** «Lovverk ›», høyrestilt over summene. Åpner lovverket som egen skjerm. */
+/** «Lovverk ›». Åpner lovverket som egen skjerm. */
 function LawsLink({ groupSlug }: { groupSlug: string }) {
     const router = useRouter();
     const { isDarkColorScheme } = useColorScheme();
 
     return (
-        <View className="flex-row justify-end mx-4 mb-2">
-            <Pressable
-                onPress={() =>
-                    router.push({
-                        pathname: "/(app)/(modals)/gruppe/[groupSlug]/lovverk",
-                        params: { groupSlug },
-                    })
-                }
-                accessibilityRole="link"
-                className="flex-row items-center active:opacity-70"
-            >
-                <Text className="text-sm font-semibold text-primary">
-                    Lovverk
-                </Text>
-                <ChevronRight
-                    size={16}
-                    color={themeColors(isDarkColorScheme).primary}
-                />
-            </Pressable>
-        </View>
+        <Pressable
+            onPress={() =>
+                router.push({
+                    pathname: "/(app)/(modals)/gruppe/[groupSlug]/lovverk",
+                    params: { groupSlug },
+                })
+            }
+            accessibilityRole="link"
+            className="flex-row items-center active:opacity-70"
+        >
+            <Text className="text-sm font-semibold text-primary">Lovverk</Text>
+            <ChevronRight
+                size={16}
+                color={themeColors(isDarkColorScheme).primary}
+            />
+        </Pressable>
     );
 }
 
 /**
- * Bøtefanen: summene, alle bøtene og hva hvert medlem står med.
+ * Bøtefanen: alle bøtene, eller hva hvert medlem står med.
  *
- * «Per medlem» var en egen Toppliste-fane. Den er flyttet hit slik nettsida
- * har den, fordi det er samme bøter sett på to måter — og filteret skal gjelde
- * begge.
- *
- * Bryteren og filteret ligger fast over lista, av samme grunn som fanene på
- * gruppesida. Summene ruller med som listehode: de er det første man vil se,
- * men tar for mye plass til å stå fast på en telefon.
+ * Verktøylinja ligger fast over lista, av samme grunn som fanene på
+ * gruppesida: visningsmenyen til venstre, filteret til høyre, og en chip for
+ * statusen når den er satt, så det synes uten å åpne arket. Summene ruller
+ * med som listehode — de er det første man vil se, men skal ikke ta plass
+ * fra lista når man blar.
  *
  * Fanen monteres bare for grupper med bøter aktivert, så kallene her trenger
  * ingen egen port mot Photons 404.
  */
 export function GroupFinesTab({ groupSlug }: { groupSlug: string }) {
     const { isDarkColorScheme } = useColorScheme();
+    const colors = themeColors(isDarkColorScheme);
+    const filterSheetRef = useRef<FineFilterSheetRef>(null);
     const [grouping, setGrouping] = useState<FineGrouping>("alle");
     const [status, setStatus] = useState<FineStatusFilter>("alle");
-    const [selectedUser, setSelectedUser] = useState<
-        { id: string; name: string } | undefined
-    >();
+
+    const statistics = useQuery({
+        queryKey: ["fines", groupSlug, "statistics"],
+        queryFn: () => fetchFineStatistics(groupSlug),
+    });
 
     const statusFilter = status === "alle" ? undefined : status;
-    const statusOptions = STATUS_OPTIONS.map((option) => ({
-        value: option.value,
-        label: statusLabel(option, grouping),
-    }));
-    const summary = <FineSummary groupSlug={groupSlug} />;
+    const activeOption = STATUS_OPTIONS.find(
+        (option) => option.value === status
+    );
+    const activeLabel =
+        statusFilter && activeOption ? statusLabel(activeOption, grouping) : "";
+    const header = (
+        <FineStatsRow groupSlug={groupSlug} statistics={statistics} />
+    );
 
     return (
         <View className="flex-1">
-            <View className="pt-3">
-                <View className="flex-row items-center gap-2 mx-4">
-                    <SegmentedControl
-                        options={GROUPINGS.map((option) => option.label)}
-                        value={GROUPINGS.findIndex(
-                            (option) => option.key === grouping
-                        )}
-                        onChange={(index) => setGrouping(GROUPINGS[index].key)}
-                        className="flex-1"
-                    />
-                    <Dropdown
-                        options={statusOptions}
-                        value={status}
-                        onChange={setStatus}
-                        accessibilityLabel="Filtrer på status"
-                        className="max-w-[45%] self-stretch"
-                    />
-                </View>
+            <View className="flex-row items-center mx-4 pt-2">
+                <Dropdown
+                    options={VIEW_OPTIONS}
+                    value={grouping}
+                    onChange={setGrouping}
+                    variant="plain"
+                    align="start"
+                    accessibilityLabel={`Visning: ${VIEW_OPTIONS.find((option) => option.value === grouping)?.label}`}
+                />
 
-                {selectedUser && grouping === "alle" ? (
-                    <View className="flex-row items-center mx-4 mt-3">
+                {statusFilter ? (
+                    <Pressable
+                        onPress={() => setStatus("alle")}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Fjern filteret ${activeLabel}`}
+                        style={{ flexShrink: 1 }}
+                        className="flex-row items-center ml-3 px-3 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 active:opacity-70"
+                    >
                         <Text
-                            className="flex-1 text-sm text-muted-foreground"
-                            numberOfLines={2}
+                            className="text-sm font-semibold text-primary"
+                            style={{ flexShrink: 1 }}
+                            numberOfLines={1}
                         >
-                            {/* «Per medlem» teller bare aktive bøter, men
-                                «Alle bøter» uten filter viser også betalte og
-                                avviste. Sier fra, så et tall fra raden ikke
-                                ser ut til å stemme dårlig med lista. */}
-                            {status === "alle"
-                                ? `Viser alle bøter for ${selectedUser.name}, også betalte og avviste`
-                                : `Viser bøter for ${selectedUser.name}`}
+                            {activeLabel}
                         </Text>
-                        <Pressable
-                            onPress={() => setSelectedUser(undefined)}
-                            accessibilityRole="button"
-                            className="flex-row items-center ml-2 active:opacity-70"
-                        >
-                            <X
-                                size={16}
-                                color={themeColors(isDarkColorScheme).primary}
-                            />
-                            <Text className="text-sm font-semibold text-primary ml-1">
-                                Vis alle
-                            </Text>
-                        </Pressable>
-                    </View>
+                        <X
+                            size={14}
+                            color={colors.primary}
+                            style={{ marginLeft: 4 }}
+                        />
+                    </Pressable>
                 ) : null}
+
+                <View className="flex-1" />
+
+                <Pressable
+                    onPress={() => filterSheetRef.current?.present()}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                        statusFilter ? "Filter, 1 aktivt" : "Filter"
+                    }
+                    hitSlop={8}
+                    className="flex-row items-center ml-3 py-2 active:opacity-70"
+                >
+                    <SlidersHorizontal size={16} color={colors.foreground} />
+                    <Text className="text-base font-semibold text-foreground ml-1.5">
+                        Filter
+                    </Text>
+                    {statusFilter ? (
+                        <View
+                            className="w-2 h-2 rounded-full bg-primary ml-1.5"
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                        />
+                    ) : null}
+                </Pressable>
             </View>
 
             {grouping === "alle" ? (
                 <GroupFinesList
                     groupSlug={groupSlug}
                     status={statusFilter}
-                    userId={selectedUser?.id}
-                    ListHeaderComponent={summary}
+                    ListHeaderComponent={header}
                 />
             ) : (
                 <GroupLeaderboardList
                     groupSlug={groupSlug}
                     status={statusFilter}
-                    onSelectUser={(user) => {
-                        setSelectedUser(user);
-                        setGrouping("alle");
-                    }}
-                    ListHeaderComponent={summary}
+                    ListHeaderComponent={header}
                 />
             )}
+
+            <FineFilterSheet
+                ref={filterSheetRef}
+                status={status}
+                grouping={grouping}
+                statistics={statistics.data}
+                onChange={setStatus}
+            />
         </View>
     );
 }

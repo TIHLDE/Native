@@ -7,7 +7,6 @@ import {
     groupTabs,
     groupTypeLabel,
     isAutomaticGroupType,
-    perMember,
     sortMembers,
     statusLabel,
 } from "./groupPage";
@@ -68,13 +67,14 @@ describe("sortMembers", () => {
     });
 });
 
-describe("perMember", () => {
-    it("deler på antall medlemmer med én desimal", () => {
-        expect(perMember(7, 4)).toBe("1.8");
-    });
-
-    it("gir 0.0 for en gruppe uten medlemmer", () => {
-        expect(perMember(5, 0)).toBe("0.0");
+describe("STATUS_OPTIONS", () => {
+    it("tilbyr ikke «Avvist», som ingenting kan sette", () => {
+        expect(STATUS_OPTIONS.map((option) => option.value)).toEqual([
+            "alle",
+            "pending",
+            "approved",
+            "paid",
+        ]);
     });
 });
 

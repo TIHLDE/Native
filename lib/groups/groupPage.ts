@@ -41,28 +41,23 @@ export function sortMembers(members: GroupMember[]): GroupMember[] {
     });
 }
 
-/**
- * Snitt per medlem med én desimal, som på nett. En gruppe uten medlemmer gir
- * «0.0» framfor «NaN».
- */
-export function perMember(value: number, memberCount: number): string {
-    if (memberCount <= 0) return "0.0";
-    return (value / memberCount).toFixed(1);
-}
-
 export type FineGrouping = "alle" | "per-medlem";
 export type FineStatusFilter = FineStatus | "alle";
 
 /**
  * Ett statusfilter, ikke to boolske — samme liste som Kvark. Photon lagrer én
  * status per bot, så kombinasjoner som «betalt, men ikke godkjent» finnes ikke.
+ *
+ * `rejected` er utelatt: statusen finnes i Photon, men ingenting setter den —
+ * Kvark sletter bøter i stedet for å avvise dem. Et valg som alltid gir en tom
+ * liste hører ikke hjemme i filteret. `FineCard` viser fortsatt «Avvist» om
+ * en slik bot skulle dukke opp.
  */
 export const STATUS_OPTIONS: { value: FineStatusFilter; label: string }[] = [
     { value: "alle", label: "Alle bøter" },
     { value: "pending", label: "Ikke godkjent" },
     { value: "approved", label: "Godkjent, ikke betalt" },
     { value: "paid", label: "Betalt" },
-    { value: "rejected", label: "Avvist" },
 ];
 
 /**
