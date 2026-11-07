@@ -121,6 +121,29 @@ export function remainingFines(finesCount: number, loaded: number): number {
     return Math.max(0, finesCount - loaded);
 }
 
+/**
+ * Om et åpent medlem skal hente neste side av seg selv. Bare når nøyaktig én
+ * side er lastet: i Aktive kan `pending` være kort eller tom mens `approved`
+ * venter, og da ville første bilde vist én bot og «Vis flere». Etter ett
+ * ekstra kall er det to sider, så regelen slår aldri til igjen — heller ikke
+ * etter en oppdatering, som henter like mange sider som er lastet.
+ */
+export function shouldTopUpMemberFines(state: {
+    pageCount: number;
+    loaded: number;
+    remaining: number;
+    hasNextPage: boolean;
+    isFetching: boolean;
+}): boolean {
+    return (
+        state.pageCount === 1 &&
+        state.loaded < MEMBER_PAGE_SIZE &&
+        state.remaining > 0 &&
+        state.hasNextPage &&
+        !state.isFetching
+    );
+}
+
 export type FineStatKey = keyof FineStatistics;
 
 /**

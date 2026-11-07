@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import type { Group, GroupListItem, GroupMember, Membership } from "@/actions/types";
 import {
+    MEMBER_PAGE_SIZE,
     STATUS_OPTIONS,
     emphasizedStats,
     finesTabsVisible,
@@ -11,6 +12,7 @@ import {
     memberFinesInitialParam,
     memberFinesNextParam,
     remainingFines,
+    shouldTopUpMemberFines,
     sortMembers,
     statusLabel,
 } from "./groupPage";
@@ -315,6 +317,45 @@ describe("bøtene til ett medlem", () => {
     it("teller gjenstående hendelser, aldri under 0", () => {
         expect(remainingFines(17, 10)).toBe(7);
         expect(remainingFines(10, 12)).toBe(0);
+    });
+});
+
+describe("shouldTopUpMemberFines", () => {
+    const shortFirstPage = {
+        pageCount: 1,
+        loaded: 1,
+        remaining: 9,
+        hasNextPage: true,
+        isFetching: false,
+    };
+
+    it("henter neste side med én ikke godkjent og mange godkjente", () => {
+        expect(shouldTopUpMemberFines(shortFirstPage)).toBe(true);
+    });
+
+    it("henter neste side når ingen er ikke godkjent", () => {
+        expect(
+            shouldTopUpMemberFines({ ...shortFirstPage, loaded: 0, remaining: 10 })
+        ).toBe(true);
+    });
+
+    it("stopper når neste side er hentet", () => {
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, pageCount: 2 })).toBe(false);
+    });
+
+    it("henter ikke mens noe hentes", () => {
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, isFetching: true })).toBe(false);
+    });
+
+    it("henter ikke uten flere sider eller uten noe igjen", () => {
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, hasNextPage: false })).toBe(false);
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, remaining: 0 })).toBe(false);
+    });
+
+    it("henter ikke når første side er full", () => {
+        expect(
+            shouldTopUpMemberFines({ ...shortFirstPage, loaded: MEMBER_PAGE_SIZE })
+        ).toBe(false);
     });
 });
 

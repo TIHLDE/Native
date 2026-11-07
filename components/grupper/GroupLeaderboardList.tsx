@@ -2,6 +2,7 @@ import {
     Fragment,
     ReactElement,
     ReactNode,
+    useEffect,
     useLayoutEffect,
     useRef,
 } from "react";
@@ -30,6 +31,7 @@ import {
     memberFinesInitialParam,
     memberFinesNextParam,
     remainingFines,
+    shouldTopUpMemberFines,
 } from "@/lib/groups/groupPage";
 import { themeColors } from "@/lib/theme/colors";
 import useRefresh from "@/lib/useRefresh";
@@ -241,6 +243,7 @@ function MemberFines({
         hasNextPage,
         isPending,
         isError,
+        isFetching,
         isFetchingNextPage,
     } = useInfiniteQuery({
         // Under `["fines", groupSlug]`, så dra-for-å-oppdatere treffer den.
@@ -258,6 +261,22 @@ function MemberFines({
         getNextPageParam: (lastPage, _pages, lastParam: MemberFinesPageParam) =>
             memberFinesNextParam(status, lastPage, lastParam),
     });
+
+    // Én gang: er første side kort, hentes neste av seg selv, så Aktive ikke
+    // viser én ventende bot og «Vis flere» mens de godkjente venter.
+    const pageCount = data?.pages.length ?? 0;
+    const loaded =
+        data?.pages.reduce((sum, page) => sum + page.results.length, 0) ?? 0;
+    const topUp = shouldTopUpMemberFines({
+        pageCount,
+        loaded,
+        remaining: remainingFines(entry.finesCount, loaded),
+        hasNextPage,
+        isFetching,
+    });
+    useEffect(() => {
+        if (topUp) fetchNextPage();
+    }, [topUp, fetchNextPage]);
 
     if (isPending) {
         return (
