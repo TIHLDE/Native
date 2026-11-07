@@ -8,7 +8,7 @@ import { fetchMemberships } from "@/actions/fines/memberships";
 import { Membership } from "@/actions/types";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { FlatList, Image, Pressable, View } from "react-native";
 import { Camera, ChevronRight, Users, X } from "lucide-react-native";
 import {
@@ -17,6 +17,7 @@ import {
     useFineImage,
 } from "@/components/boter/useFineImage";
 import { onFineSubmitted } from "@/lib/fines/fine-events";
+import { clearPendingFineImage } from "@/lib/fines/pendingFineImage";
 
 function MembershipCardSkeleton() {
     return (
@@ -60,9 +61,16 @@ export default function MembershipSelection() {
         isPicking,
     } = useFineImage();
 
+    // Lageret er bare overleveringen til flyten (se `imageParams`), og tømmes
+    // sammen med bildet her.
+    const discardPendingImage = useCallback(() => {
+        setPendingImage(null);
+        clearPendingFineImage();
+    }, [setPendingImage]);
+
     useEffect(
-        () => onFineSubmitted(() => setPendingImage(null)),
-        [setPendingImage],
+        () => onFineSubmitted(discardPendingImage),
+        [discardPendingImage],
     );
 
     // Bildebanneret er listas header. Er lista skrollet ned, havner et nytt
@@ -75,6 +83,8 @@ export default function MembershipSelection() {
         }
     }, [pendingUri]);
 
+    // `imageParams` legger bildet i lageret og gir det en ny id. Kalles bare
+    // herfra, og dette bare fra et trykk, aldri under rendering.
     const openGroup = (groupSlug: string, image: PickedImage | null) => {
         router.push({
             pathname: "/(app)/(modals)/boter/[groupSlug]",
@@ -136,7 +146,7 @@ export default function MembershipSelection() {
                                 Bilde klart – velg gruppe
                             </Text>
                             <Pressable
-                                onPress={() => setPendingImage(null)}
+                                onPress={discardPendingImage}
                                 accessibilityLabel="Forkast bildet"
                                 hitSlop={8}
                                 className="w-8 h-8 rounded-full items-center justify-center active:opacity-70"

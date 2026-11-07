@@ -47,9 +47,7 @@ export default function UserSelection() {
         lawParagraph,
         lawAmount,
         lawDescription,
-        imageUri,
-        w,
-        h,
+        imageId,
     } = useLocalSearchParams<
         {
             groupSlug: string;
@@ -113,7 +111,7 @@ export default function UserSelection() {
                         image: u.image,
                     }))
                 ),
-                ...forwardImageParams({ imageUri, w, h }),
+                ...forwardImageParams({ imageId }),
             },
         });
     };

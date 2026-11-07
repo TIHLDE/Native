@@ -1,8 +1,10 @@
 import { useCallback, useRef, useState } from "react";
-import { Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import Toast from "react-native-toast-message";
-import { isPickerCacheUri } from "@/lib/fines/pickerImage";
+import {
+    getPendingFineImage,
+    putPendingFineImage,
+} from "@/lib/fines/pendingFineImage";
 
 export type PickedImage = {
     uri: string;
@@ -12,40 +14,28 @@ export type PickedImage = {
 
 /**
  * Bildet som route-params. BotBlitz tar bildet før gruppe, lov og brukere er
- * valgt, og det følger med gjennom flyten som disse til bekreft-skjermen. Den
- * vanlige flyten sender ingen bilde-params, men ruta kan også åpnes med en
- * dyplenke, og da kommer params rett fra lenka. `imageFromParams` godtar
- * derfor bare filer bildevelgeren selv har lagt i cachen.
+ * valgt, og det følger med gjennom flyten til bekreft-skjermen. Ruta bærer
+ * bare en id inn i `lib/fines/pendingFineImage.ts`, ikke filstien, så en
+ * dyplenke kan ikke peke bekreft-skjermen på en vilkårlig fil.
  */
-export type ImageParams = { imageUri?: string; w?: string; h?: string };
+export type ImageParams = { imageId?: string };
 
+/**
+ * Legger bildet i lageret og gir id-en som params. Skriver til lageret, så den
+ * skal bare kalles der flyten faktisk åpnes (ved trykk), aldri under rendering.
+ */
 export function imageParams(image: PickedImage | null): ImageParams {
-    return image
-        ? {
-              imageUri: image.uri,
-              w: String(image.width),
-              h: String(image.height),
-          }
-        : {};
+    return image ? { imageId: putPendingFineImage(image) } : {};
 }
 
 /** Sender bildet videre til neste skjerm, om det er et. */
 export function forwardImageParams(params: ImageParams): ImageParams {
-    return params.imageUri
-        ? { imageUri: params.imageUri, w: params.w, h: params.h }
-        : {};
+    return params.imageId ? { imageId: params.imageId } : {};
 }
 
+/** Ukjent eller manglende id gir ingen bilde. */
 export function imageFromParams(params: ImageParams): PickedImage | null {
-    // Mangler målene, blir de 0, og `previewSize` faller tilbake til fast høyde.
-    return params.imageUri &&
-        isPickerCacheUri(params.imageUri, Paths.cache.uri)
-        ? {
-              uri: params.imageUri,
-              width: Number(params.w) || 0,
-              height: Number(params.h) || 0,
-          }
-        : null;
+    return getPendingFineImage(params.imageId);
 }
 
 /** Høyden forhåndsvisningen sikter mot. Brede bilder blir lavere enn dette. */
