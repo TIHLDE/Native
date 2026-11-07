@@ -22,7 +22,7 @@ import {
 
 export default function LawSelection() {
     const router = useRouter();
-    const { groupSlug, imageUri, w, h } = useLocalSearchParams<
+    const { groupSlug, imageId } = useLocalSearchParams<
         { groupSlug: string } & ImageParams
     >();
     const { isDarkColorScheme } = useColorScheme();
@@ -49,10 +49,10 @@ export default function LawSelection() {
                     lawParagraph: law.paragraph,
                     lawAmount: law.amount.toString(),
                     lawDescription: law.description,
-                    ...forwardImageParams({ imageUri, w, h }),
+                    ...forwardImageParams({ imageId }),
                 },
             }),
-        [router, groupSlug, imageUri, w, h],
+        [router, groupSlug, imageId],
     );
 
     return (

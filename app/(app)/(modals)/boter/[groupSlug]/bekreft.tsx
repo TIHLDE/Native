@@ -58,9 +58,7 @@ export default function ConfirmFine() {
         lawParagraph,
         lawAmount,
         selectedUsers: selectedUsersParam,
-        imageUri,
-        w,
-        h,
+        imageId,
     } = useLocalSearchParams<
         {
             groupSlug: string;
@@ -80,7 +78,7 @@ export default function ConfirmFine() {
     // Et BotBlitz-bilde er tatt før flyten startet og ligger klart her. Det
     // lastes opp først ved «Gi bot», som et bilde valgt på denne skjermen.
     const { image, setImage, pickImage, takePhoto, isPicking } = useFineImage(
-        imageFromParams({ imageUri, w, h }),
+        imageFromParams({ imageId }),
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
