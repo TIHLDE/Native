@@ -152,7 +152,6 @@ export default function GruppeSide() {
                     options={tabs.map((item) => item.label)}
                     value={tabs.findIndex((item) => item.key === activeTab)}
                     onChange={(index) => setTab(tabs[index].key)}
-                    scrollable
                     className="mt-4"
                 />
             </View>
