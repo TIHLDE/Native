@@ -1,4 +1,5 @@
 import type {
+    FineStatistics,
     FineStatus,
     Group,
     GroupListItem,
@@ -118,6 +119,28 @@ export function memberFinesNextParam(
  */
 export function remainingFines(finesCount: number, loaded: number): number {
     return Math.max(0, finesCount - loaded);
+}
+
+export type FineStatKey = keyof FineStatistics;
+
+/**
+ * Delene av statistikklinja i et åpent medlem som filteret viser, og som
+ * derfor utheves. Tallene selv er medlemmets hele bilde og endres ikke med
+ * filteret. Aktive (`status` undefined) er de to ubetalte stadiene.
+ */
+export function emphasizedStats(status: FineStatus | undefined): FineStatKey[] {
+    switch (status) {
+        case undefined:
+            return ["notApproved", "approvedNotPaid"];
+        case "pending":
+            return ["notApproved"];
+        case "approved":
+            return ["approvedNotPaid"];
+        case "paid":
+            return ["paid"];
+        default:
+            return [];
+    }
 }
 
 const GROUP_TYPE_LABELS: Record<string, string> = {

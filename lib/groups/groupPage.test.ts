@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import type { Group, GroupListItem, GroupMember, Membership } from "@/actions/types";
 import {
     STATUS_OPTIONS,
+    emphasizedStats,
     finesTabsVisible,
     groupSections,
     groupTabs,
@@ -314,5 +315,24 @@ describe("bøtene til ett medlem", () => {
     it("teller gjenstående hendelser, aldri under 0", () => {
         expect(remainingFines(17, 10)).toBe(7);
         expect(remainingFines(10, 12)).toBe(0);
+    });
+});
+
+describe("emphasizedStats", () => {
+    it("uthever begge ubetalte stadier for Aktive", () => {
+        expect(emphasizedStats(undefined)).toEqual([
+            "notApproved",
+            "approvedNotPaid",
+        ]);
+    });
+
+    it("uthever bare den valgte statusen", () => {
+        expect(emphasizedStats("pending")).toEqual(["notApproved"]);
+        expect(emphasizedStats("approved")).toEqual(["approvedNotPaid"]);
+        expect(emphasizedStats("paid")).toEqual(["paid"]);
+    });
+
+    it("uthever ingenting for avvist", () => {
+        expect(emphasizedStats("rejected")).toEqual([]);
     });
 });

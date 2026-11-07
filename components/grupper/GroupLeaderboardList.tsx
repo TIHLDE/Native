@@ -1,5 +1,5 @@
-import { ReactElement, useLayoutEffect, useRef } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { Fragment, ReactElement, useLayoutEffect, useRef } from "react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
     ActivityIndicator,
     LayoutAnimation,
@@ -13,11 +13,14 @@ import { useReducedMotion } from "react-native-reanimated";
 import { ChevronDown, ChevronUp, Users } from "lucide-react-native";
 import { fetchFineLeaderboard } from "@/actions/fines/leaderboard";
 import { fetchFines } from "@/actions/fines/fines";
+import { fetchFineStatistics } from "@/actions/fines/statistics";
 import { FineLeaderboardEntry, FineStatus } from "@/actions/types";
 import { Text } from "@/components/ui/text";
 import {
+    FineStatKey,
     MEMBER_PAGE_SIZE,
     MemberFinesPageParam,
+    emphasizedStats,
     memberFinesInitialParam,
     memberFinesNextParam,
     remainingFines,
@@ -124,6 +127,71 @@ function MemberHeader({
                 )}
             </Pressable>
         </View>
+    );
+}
+
+const STAT_PARTS: { key: FineStatKey; label: string }[] = [
+    { key: "notApproved", label: "ikke godkjent" },
+    { key: "approvedNotPaid", label: "ubetalt" },
+    { key: "paid", label: "betalt" },
+];
+
+/**
+ * Summene til ett åpent medlem, øverst i seksjonen: «x ikke godkjent ·
+ * y ubetalt · z betalt», i bøter.
+ *
+ * Tallene er medlemmets hele bilde og endres ikke med filteret — ellers ville
+ * «betalt» falt til 0 i Aktive. Delene filteret viser, utheves.
+ *
+ * Skjelettet har samme høyde som linja, så seksjonen ikke hopper når tallene
+ * kommer. En feil skjuler linja; bøtene under har sin egen query og vises
+ * uansett.
+ */
+function MemberStatsLine({
+    groupSlug,
+    userId,
+    status,
+}: {
+    groupSlug: string;
+    userId: string;
+    status?: FineStatus;
+}) {
+    const { data, isError } = useQuery({
+        // Under `["fines", groupSlug]`, så dra-for-å-oppdatere treffer den.
+        queryKey: ["fines", groupSlug, "statistics", { userId }],
+        queryFn: () => fetchFineStatistics(groupSlug, userId),
+    });
+
+    if (isError) return null;
+
+    if (!data) {
+        return (
+            <View className="mx-4 mb-3 w-48 h-[18px] rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
+        );
+    }
+
+    const emphasized = emphasizedStats(status);
+
+    return (
+        <Text
+            className="mx-4 mb-3 text-[13px] leading-[18px] text-muted-foreground"
+            numberOfLines={1}
+        >
+            {STAT_PARTS.map(({ key, label }, index) => (
+                <Fragment key={key}>
+                    {index > 0 ? " · " : ""}
+                    <Text
+                        className={
+                            emphasized.includes(key)
+                                ? "text-[13px] leading-[18px] text-foreground font-semibold"
+                                : "text-[13px] leading-[18px] text-muted-foreground"
+                        }
+                    >
+                        {`${data[key]} ${label}`}
+                    </Text>
+                </Fragment>
+            ))}
+        </Text>
     );
 }
 
@@ -383,6 +451,13 @@ export function GroupLeaderboardList({
                             event.nativeEvent.layout.height;
                     }}
                 >
+                    {/* Inne i målingen, så rulle-justeringen når medlemmet
+                        lukkes tar med linja. */}
+                    <MemberStatsLine
+                        groupSlug={groupSlug}
+                        userId={item.id}
+                        status={status}
+                    />
                     <MemberFines
                         groupSlug={groupSlug}
                         entry={item}
