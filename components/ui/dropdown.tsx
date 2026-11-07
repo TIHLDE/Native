@@ -1,5 +1,4 @@
 import * as SelectPrimitive from "@rn-primitives/select";
-import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { StyleSheet, useWindowDimensions } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -15,35 +14,7 @@ export interface DropdownOption<T extends string> {
     label: string;
 }
 
-/**
- * Knappen som åpner menyen.
- *
- * - `filled` — grå flate, fyller bredden den får. Står for seg selv som et felt.
- * - `plain` — bare tekst og chevron. For en verktøylinje, der menyen sier hvilken
- *   visning man ser på og en grå boks ville sett ut som enda en knapp.
- */
-const triggerVariants = cva("flex-row items-center active:opacity-70", {
-    variants: {
-        variant: {
-            filled: "flex-1 justify-center px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-secondary/30",
-            plain: "py-2",
-        },
-    },
-    defaultVariants: { variant: "filled" },
-});
-
-const triggerTextVariants = cva("flex-shrink font-semibold text-foreground", {
-    variants: {
-        variant: {
-            filled: "text-sm",
-            plain: "text-base",
-        },
-    },
-    defaultVariants: { variant: "filled" },
-});
-
-interface DropdownProps<T extends string>
-    extends VariantProps<typeof triggerVariants> {
+interface DropdownProps<T extends string> {
     options: DropdownOption<T>[];
     value: T;
     onChange: (value: T) => void;
@@ -56,8 +27,6 @@ interface DropdownProps<T extends string>
      */
     align?: "start" | "end";
     className?: string;
-    /** Ekstra klasser på selve knappen, flettet inn over varianten. */
-    triggerClassName?: string;
 }
 
 const MENU_GAP = 4;
@@ -66,6 +35,10 @@ const SCREEN_MARGIN = 16;
 
 /**
  * En nedtrekksmeny: en knapp som viser valget, og en liste som åpnes under den.
+ *
+ * Knappen er bare tekst og chevron, uten egen flate. Den står i en
+ * verktøylinje og sier hvilken visning man ser på; en grå boks ville sett ut
+ * som enda en knapp.
  *
  * Bygd på `@rn-primitives/select`, som tegner listen i rotens `PortalHost` og
  * plasserer den mot knappen selv — også nær skjermkanten og rundt
@@ -78,9 +51,7 @@ function Dropdown<T extends string>({
     label,
     accessibilityLabel,
     align = "end",
-    variant,
     className,
-    triggerClassName,
 }: DropdownProps<T>) {
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
@@ -101,21 +72,17 @@ function Dropdown<T extends string>({
         >
             <SelectPrimitive.Trigger
                 accessibilityLabel={accessibilityLabel}
-                className={cn(triggerVariants({ variant }), triggerClassName)}
+                className="flex-row items-center py-2 active:opacity-70"
             >
                 <Text
-                    className={triggerTextVariants({ variant })}
+                    className="flex-shrink text-base font-semibold text-foreground"
                     numberOfLines={1}
                 >
                     {label ?? selected?.label ?? ""}
                 </Text>
                 <ChevronDown
                     size={16}
-                    color={
-                        variant === "plain"
-                            ? colors.foreground
-                            : colors.mutedForeground
-                    }
+                    color={colors.foreground}
                     style={{ marginLeft: 4 }}
                 />
             </SelectPrimitive.Trigger>

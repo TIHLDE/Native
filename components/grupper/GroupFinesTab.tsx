@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
@@ -85,63 +85,6 @@ function LawsLink({ groupSlug }: { groupSlug: string }) {
     );
 }
 
-/** Det bøtefanen husker. Se `useFinesTabState`. */
-export type FinesTabState = {
-    grouping: FineGrouping;
-    status: FineStatusFilter;
-    /** Medlemmet som er åpent i «Per medlem». Bare ett om gangen. */
-    openUserId: string | null;
-    /** Et bytte av visning lukker medlemmet; statusfilteret blir stående. */
-    setGrouping: (grouping: FineGrouping) => void;
-    setStatus: (status: FineStatusFilter) => void;
-    /** Samme medlem lukkes, et annet åpnes og lukker det som var åpent. */
-    toggleMember: (userId: string) => void;
-};
-
-/**
- * Tilstanden til bøtefanen, holdt av gruppesida og ikke av fanen.
- *
- * Gruppesida holder fanene montert etter første besøk, så tilstanden ville
- * overlevd et fanebytte også i fanen. Den ligger her likevel, så sida eier
- * det fanene skal huske. Den overlever både fanebytte og en tur
- * innom Lovverk, som legges oppå sida i stakken. Hvor mange bøter som er
- * lastet i et åpent medlem, ligger i spørringscachen og ikke her.
- */
-export function useFinesTabState(): FinesTabState {
-    const [grouping, setGroupingState] = useState<FineGrouping>("alle");
-    const [status, setStatus] = useState<FineStatusFilter>("alle");
-    const [openUserId, setOpenUserId] = useState<string | null>(null);
-
-    // Stabil identitet: bøtefanen er memoisert på gruppesida, og et nytt
-    // objekt ved hver rendring ville rendret den på nytt ved hvert fanebytte,
-    // også når den er skjult.
-    const setGrouping = useCallback(
-        (next: FineGrouping) => {
-            if (next === grouping) return;
-            setGroupingState(next);
-            setOpenUserId(null);
-        },
-        [grouping]
-    );
-    const toggleMember = useCallback(
-        (userId: string) =>
-            setOpenUserId((current) => (current === userId ? null : userId)),
-        []
-    );
-
-    return useMemo(
-        () => ({
-            grouping,
-            status,
-            openUserId,
-            setGrouping,
-            setStatus,
-            toggleMember,
-        }),
-        [grouping, status, openUserId, setGrouping, toggleMember]
-    );
-}
-
 /**
  * Bøtefanen: alle bøtene, eller hva hvert medlem står med.
  *
@@ -151,20 +94,32 @@ export function useFinesTabState(): FinesTabState {
  * med som listehode — de er det første man vil se, men skal ikke ta plass
  * fra lista når man blar.
  *
+ * Visning, filter og åpent medlem ligger her. Gruppesida holder fanene
+ * montert etter første besøk, så de overlever både et fanebytte og en tur
+ * innom Lovverk.
+ *
  * Fanen monteres bare for grupper med bøter aktivert, så kallene her trenger
  * ingen egen port mot Photons 404.
  */
-export function GroupFinesTab({
-    groupSlug,
-    state,
-}: {
-    groupSlug: string;
-    state: FinesTabState;
-}) {
+export function GroupFinesTab({ groupSlug }: { groupSlug: string }) {
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
     const filterSheetRef = useRef<FineFilterSheetRef>(null);
-    const { grouping, setGrouping, status, setStatus } = state;
+    const [grouping, setGroupingState] = useState<FineGrouping>("alle");
+    const [status, setStatus] = useState<FineStatusFilter>("alle");
+    // Medlemmet som er åpent i «Per medlem». Bare ett om gangen. Et bytte til
+    // «Alle bøter» lukker det med vilje, og «Per medlem» starter da på toppen.
+    const [openUserId, setOpenUserId] = useState<string | null>(null);
+
+    // Et bytte av visning lukker medlemmet; statusfilteret blir stående.
+    const setGrouping = (next: FineGrouping) => {
+        if (next === grouping) return;
+        setGroupingState(next);
+        setOpenUserId(null);
+    };
+    // Samme medlem lukkes, et annet åpnes og lukker det som var åpent.
+    const toggleMember = (userId: string) =>
+        setOpenUserId((current) => (current === userId ? null : userId));
 
     const statistics = useQuery({
         queryKey: ["fines", groupSlug, "statistics"],
@@ -189,7 +144,6 @@ export function GroupFinesTab({
                     options={VIEW_OPTIONS}
                     value={grouping}
                     onChange={setGrouping}
-                    variant="plain"
                     align="start"
                     accessibilityLabel={`Visning: ${VIEW_OPTIONS.find((option) => option.value === grouping)?.label}`}
                 />
@@ -260,8 +214,8 @@ export function GroupFinesTab({
                 <GroupLeaderboardList
                     groupSlug={groupSlug}
                     status={statusFilter}
-                    openUserId={state.openUserId}
-                    onToggleMember={state.toggleMember}
+                    openUserId={openUserId}
+                    onToggleMember={toggleMember}
                     ListHeaderComponent={header}
                 />
             )}

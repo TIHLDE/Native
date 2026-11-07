@@ -10,10 +10,7 @@ import { fetchGroupMembers } from "@/actions/groups/members";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import PageWrapper from "@/components/ui/pagewrapper";
-import {
-    GroupFinesTab,
-    useFinesTabState,
-} from "@/components/grupper/GroupFinesTab";
+import { GroupFinesTab } from "@/components/grupper/GroupFinesTab";
 import { GroupInfoTab } from "@/components/grupper/GroupInfoTab";
 import { GroupMembersList } from "@/components/grupper/GroupMembersList";
 import {
@@ -58,9 +55,6 @@ export default function GruppeSide() {
     // av `activeTab` under og faller tilbake til Om.
     const [tab, setTab] = useState<GroupTabKey>(initialTab ?? "info");
     const queryClient = useQueryClient();
-    // Visning, filter og åpent medlem i bøtefanen. Holdt her, ved siden av
-    // `tab`, så sida eier alt fanene skal huske.
-    const finesState = useFinesTabState();
 
     const memberships = useQuery({
         queryKey: ["memberships"],
@@ -189,10 +183,7 @@ export default function GruppeSide() {
                                 leaderTitle={groupDetail.data?.leaderTitle}
                             />
                         ) : (
-                            <FinesTab
-                                groupSlug={groupSlug}
-                                state={finesState}
-                            />
+                            <FinesTab groupSlug={groupSlug} />
                         )}
                     </View>
                 ) : null

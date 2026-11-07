@@ -29,13 +29,6 @@ import { FineCard, FineCardSkeleton } from "./GroupFinesList";
 import { GroupEmptyState } from "./GroupEmptyState";
 import { PersonAvatar } from "./PersonAvatar";
 
-/**
- * En lukket bot-side for et medlem lever lenger enn standardens fem minutter
- * i cachen, så «Vis flere» som er trykket fram, står der fortsatt etter en
- * tur innom en annen fane.
- */
-const MEMBER_FINES_GC_TIME = 30 * 60 * 1000;
-
 type MemberSection = {
     entry: FineLeaderboardEntry;
     rank: number;
@@ -181,7 +174,6 @@ function MemberFines({
         initialPageParam: memberFinesInitialParam(status),
         getNextPageParam: (lastPage, _pages, lastParam: MemberFinesPageParam) =>
             memberFinesNextParam(status, lastPage, lastParam),
-        gcTime: MEMBER_FINES_GC_TIME,
     });
 
     if (isPending) {
@@ -252,13 +244,13 @@ function MemberFines({
  * var åpent, flyttes lista — med nøyaktig høyden av innholdet som lukkes, så
  * raden ikke forsvinner oppover når det over den krymper.
  *
- * `scrollToLocation` er ikke brukt. Uten `getItemLayout` regner den med
- * anslåtte høyder, og på enhet havnet den hundrevis av punkter feil. Heller
- * ikke `maintainVisibleContentPosition` eller Reanimateds layoutoverganger.
+ * `scrollToLocation` er ikke brukt: uten `getItemLayout` regner den med
+ * anslåtte høyder og havnet hundrevis av punkter feil på enhet.
  *
- * Hvilket medlem som er åpent, eies av gruppesida (se `useFinesTabState`).
- * Hvor langt lista er rullet, trenger ingen egen lagring: gruppesida holder
- * fanene montert etter første besøk, så lista står der den sto.
+ * Hvilket medlem som er åpent, eies av bøtefanen. Et bytte av visning lukker
+ * det med vilje, og fordi lista da monteres på nytt, starter «Per medlem» på
+ * toppen. At gruppesida holder fanene montert gjelder bare bytte mellom
+ * gruppefaner.
  */
 export function GroupLeaderboardList({
     groupSlug,
@@ -297,7 +289,9 @@ export function GroupLeaderboardList({
         getNextPageParam: (lastPage) => lastPage.next ?? undefined,
     });
 
-    // Samme par som bøtelista — se kommentaren der.
+    // `["fines", groupSlug]` treffer også summene over lista og bøtene i et
+    // åpent medlem. Gruppa er med fordi den bærer viewerCanUseFines og
+    // finesActivated, som avgjør om bøtefanen vises i det hele tatt.
     const refreshControl = useRefresh([
         ["group", groupSlug],
         ["fines", groupSlug],
@@ -338,8 +332,10 @@ export function GroupLeaderboardList({
             // Uten animasjon: lista flyttes like langt som innholdet over
             // krymper, i samme frame, og en animert krymping ville kommet i
             // utakt med flyttingen.
-            const from = scrollY.current;
-            pendingOffset.current = Math.max(0, from - openBodyHeight.current);
+            pendingOffset.current = Math.max(
+                0,
+                scrollY.current - openBodyHeight.current
+            );
         } else if (!reduceMotion) {
             LayoutAnimation.configureNext(
                 LayoutAnimation.Presets.easeInEaseOut

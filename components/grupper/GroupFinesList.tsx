@@ -235,8 +235,7 @@ export function FineCard({ fine }: { fine: Fine }) {
 }
 
 /**
- * Bøtene i gruppa, nyeste først, eventuelt avgrenset til én status eller én
- * person.
+ * Bøtene i gruppa, nyeste først, eventuelt avgrenset til én status.
  *
  * Lista vises bare for grupper med bøter aktivert — Photon svarer 404 ellers —
  * og den porten ligger hos fanen som monterer den, ikke her.
@@ -244,12 +243,10 @@ export function FineCard({ fine }: { fine: Fine }) {
 export function GroupFinesList({
     groupSlug,
     status,
-    userId,
     ListHeaderComponent,
 }: {
     groupSlug: string;
     status?: FineStatus;
-    userId?: string;
     /** Ruller med lista, over bøtene. Bøtefanen legger summene her. */
     ListHeaderComponent?: ReactElement;
 }) {
@@ -268,22 +265,23 @@ export function GroupFinesList({
         // Filteret står i nøkkelen, så hvert utvalg har sin egen cache og et
         // bytte tilbake er umiddelbart. `["fines", groupSlug]` foran gjør at
         // én invalidering treffer alle utvalgene.
-        queryKey: ["fines", groupSlug, { status, userId }],
+        queryKey: ["fines", groupSlug, { status }],
         queryFn: ({ pageParam }) =>
-            fetchFines(groupSlug, { page: pageParam, status, userId }),
+            fetchFines(groupSlug, { page: pageParam, status }),
         initialPageParam: 0,
         // Sidene er 0-baserte og `next` er null på siste side.
         getNextPageParam: (lastPage) => lastPage.next ?? undefined,
     });
 
-    // Gruppa med, ikke bare bøtene: summene over lista regner snitt per
-    // medlem, og de to skal ikke vise tall fra hvert sitt tidspunkt.
+    // `["fines", groupSlug]` treffer også summene over lista. Gruppa er med
+    // fordi den bærer viewerCanUseFines og finesActivated, som avgjør om
+    // bøtefanen vises i det hele tatt.
     const refreshControl = useRefresh([
         ["group", groupSlug],
         ["fines", groupSlug],
     ]);
     const fines = data?.pages.flatMap((page) => page.results) ?? [];
-    const isFiltered = Boolean(status || userId);
+    const isFiltered = Boolean(status);
 
     return (
         <FlatList
