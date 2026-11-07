@@ -21,6 +21,11 @@ interface DropdownProps<T extends string> {
     /** Teksten på knappen. Faller tilbake til det valgte alternativets navn. */
     label?: string;
     accessibilityLabel?: string;
+    /**
+     * Hvilken kant av knappen menyen legger seg langs. `end` passer en knapp
+     * til høyre, `start` en knapp til venstre.
+     */
+    align?: "start" | "end";
     className?: string;
 }
 
@@ -30,6 +35,10 @@ const SCREEN_MARGIN = 16;
 
 /**
  * En nedtrekksmeny: en knapp som viser valget, og en liste som åpnes under den.
+ *
+ * Knappen er bare tekst og chevron, uten egen flate. Den står i en
+ * verktøylinje og sier hvilken visning man ser på; en grå boks ville sett ut
+ * som enda en knapp.
  *
  * Bygd på `@rn-primitives/select`, som tegner listen i rotens `PortalHost` og
  * plasserer den mot knappen selv — også nær skjermkanten og rundt
@@ -41,6 +50,7 @@ function Dropdown<T extends string>({
     onChange,
     label,
     accessibilityLabel,
+    align = "end",
     className,
 }: DropdownProps<T>) {
     const { isDarkColorScheme } = useColorScheme();
@@ -62,17 +72,17 @@ function Dropdown<T extends string>({
         >
             <SelectPrimitive.Trigger
                 accessibilityLabel={accessibilityLabel}
-                className="flex-1 flex-row items-center justify-center px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-secondary/30 active:opacity-70"
+                className="flex-row items-center py-2 active:opacity-70"
             >
                 <Text
-                    className="flex-shrink text-sm font-semibold text-foreground"
+                    className="flex-shrink text-base font-semibold text-foreground"
                     numberOfLines={1}
                 >
                     {label ?? selected?.label ?? ""}
                 </Text>
                 <ChevronDown
                     size={16}
-                    color={colors.mutedForeground}
+                    color={colors.foreground}
                     style={{ marginLeft: 4 }}
                 />
             </SelectPrimitive.Trigger>
@@ -89,7 +99,7 @@ function Dropdown<T extends string>({
                     >
                         <SelectPrimitive.Content
                             side="bottom"
-                            align="end"
+                            align={align}
                             sideOffset={MENU_GAP}
                             insets={{
                                 top: insets.top,

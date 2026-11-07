@@ -1,4 +1,5 @@
 import type {
+    FineStatistics,
     FineStatus,
     Group,
     GroupListItem,
@@ -6,7 +7,7 @@ import type {
     Membership,
 } from "@/actions/types";
 
-export type GroupTabKey = "info" | "members" | "fines" | "laws";
+export type GroupTabKey = "info" | "members" | "fines";
 
 /**
  * Fanene på gruppesida, i rekkefølge.
@@ -23,7 +24,7 @@ export function groupTabs(
         { key: "members", label: "Medlemmer" },
     ];
     if (finesActivated) {
-        tabs.push({ key: "fines", label: "Bøter" }, { key: "laws", label: "Lovverk" });
+        tabs.push({ key: "fines", label: "Bøter" });
     }
     return tabs;
 }
@@ -41,28 +42,23 @@ export function sortMembers(members: GroupMember[]): GroupMember[] {
     });
 }
 
-/**
- * Snitt per medlem med én desimal, som på nett. En gruppe uten medlemmer gir
- * «0.0» framfor «NaN».
- */
-export function perMember(value: number, memberCount: number): string {
-    if (memberCount <= 0) return "0.0";
-    return (value / memberCount).toFixed(1);
-}
-
 export type FineGrouping = "alle" | "per-medlem";
 export type FineStatusFilter = FineStatus | "alle";
 
 /**
  * Ett statusfilter, ikke to boolske — samme liste som Kvark. Photon lagrer én
  * status per bot, så kombinasjoner som «betalt, men ikke godkjent» finnes ikke.
+ *
+ * `rejected` er utelatt: statusen finnes i Photon, men ingenting setter den —
+ * Kvark sletter bøter i stedet for å avvise dem. Et valg som alltid gir en tom
+ * liste hører ikke hjemme i filteret. `FineCard` viser fortsatt «Avvist» om
+ * en slik bot skulle dukke opp.
  */
 export const STATUS_OPTIONS: { value: FineStatusFilter; label: string }[] = [
     { value: "alle", label: "Alle bøter" },
     { value: "pending", label: "Ikke godkjent" },
     { value: "approved", label: "Godkjent, ikke betalt" },
     { value: "paid", label: "Betalt" },
-    { value: "rejected", label: "Avvist" },
 ];
 
 /**
@@ -78,6 +74,96 @@ export function statusLabel(
         return "Aktive bøter";
     }
     return option.label;
+}
+
+/** Bøter per «Vis flere» i et åpent medlem. Bøtelista henter 25. */
+export const MEMBER_PAGE_SIZE = 10;
+
+/** Én side av bøtene til ett medlem: hvilken status, og hvilken side av den. */
+export type MemberFinesPageParam = { status: FineStatus; page: number };
+
+/**
+ * Første side for ett medlem. «Aktive bøter» er ikke én status i Photon, og et
+ * kall uten status gir også de betalte, så Aktive starter på `pending`.
+ */
+export function memberFinesInitialParam(
+    status: FineStatus | undefined
+): MemberFinesPageParam {
+    return { status: status ?? "pending", page: 0 };
+}
+
+/**
+ * Neste side for ett medlem. Med Aktive (`status` undefined) blas `pending`
+ * til slutten før `approved` tar over fra side 0, så de som venter på
+ * godkjenning står først.
+ */
+export function memberFinesNextParam(
+    status: FineStatus | undefined,
+    lastPage: { next: number | null },
+    lastParam: MemberFinesPageParam
+): MemberFinesPageParam | undefined {
+    if (lastPage.next != null) {
+        return { status: lastParam.status, page: lastPage.next };
+    }
+    if (!status && lastParam.status === "pending") {
+        return { status: "approved", page: 0 };
+    }
+    return undefined;
+}
+
+/**
+ * Hvor mange hendelser som gjenstår for «Vis flere (n til)». Tallet er
+ * `finesCount` fra medlemsraden — samme tall som «fordelt på y hendelser»
+ * over — og ikke bøtesummen. Aldri under 0, selv om de to kallene skulle
+ * vise hvert sitt øyeblikk.
+ */
+export function remainingFines(finesCount: number, loaded: number): number {
+    return Math.max(0, finesCount - loaded);
+}
+
+/**
+ * Om et åpent medlem skal hente neste side av seg selv. Bare når nøyaktig én
+ * side er lastet: i Aktive kan `pending` være kort eller tom mens `approved`
+ * venter, og da ville første bilde vist én bot og «Vis flere». Etter ett
+ * ekstra kall er det to sider, så regelen slår aldri til igjen — heller ikke
+ * etter en oppdatering, som henter like mange sider som er lastet.
+ */
+export function shouldTopUpMemberFines(state: {
+    pageCount: number;
+    loaded: number;
+    remaining: number;
+    hasNextPage: boolean;
+    isFetching: boolean;
+}): boolean {
+    return (
+        state.pageCount === 1 &&
+        state.loaded < MEMBER_PAGE_SIZE &&
+        state.remaining > 0 &&
+        state.hasNextPage &&
+        !state.isFetching
+    );
+}
+
+export type FineStatKey = keyof FineStatistics;
+
+/**
+ * Delene av statistikklinja i et åpent medlem som filteret viser, og som
+ * derfor utheves. Tallene selv er medlemmets hele bilde og endres ikke med
+ * filteret. Aktive (`status` undefined) er de to ubetalte stadiene.
+ */
+export function emphasizedStats(status: FineStatus | undefined): FineStatKey[] {
+    switch (status) {
+        case undefined:
+            return ["notApproved", "approvedNotPaid"];
+        case "pending":
+            return ["notApproved"];
+        case "approved":
+            return ["approvedNotPaid"];
+        case "paid":
+            return ["paid"];
+        default:
+            return [];
+    }
 }
 
 const GROUP_TYPE_LABELS: Record<string, string> = {
@@ -123,7 +209,7 @@ export function isAutomaticGroupType(type: string | null | undefined): boolean {
 }
 
 /**
- * Om Bøter- og Lovverk-fanene skal vises på gruppesida.
+ * Om Bøter-fanen skal vises på gruppesida.
  *
  * Photon avgjør det for innloggeren med `viewerCanUseFines` i
  * `GET /groups/:slug`. `finesActivated` alene holder ikke: en som ikke er med

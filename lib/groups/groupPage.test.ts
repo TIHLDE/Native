@@ -1,13 +1,18 @@
 import { describe, it, expect } from "@jest/globals";
 import type { Group, GroupListItem, GroupMember, Membership } from "@/actions/types";
 import {
+    MEMBER_PAGE_SIZE,
     STATUS_OPTIONS,
+    emphasizedStats,
     finesTabsVisible,
     groupSections,
     groupTabs,
     groupTypeLabel,
     isAutomaticGroupType,
-    perMember,
+    memberFinesInitialParam,
+    memberFinesNextParam,
+    remainingFines,
+    shouldTopUpMemberFines,
     sortMembers,
     statusLabel,
 } from "./groupPage";
@@ -34,12 +39,11 @@ describe("groupTabs", () => {
         expect(groupTabs(false).map((tab) => tab.key)).toEqual(["info", "members"]);
     });
 
-    it("legger til Bøter og Lovverk når bøter er aktivert", () => {
+    it("legger til Bøter når bøter er aktivert", () => {
         expect(groupTabs(true).map((tab) => tab.key)).toEqual([
             "info",
             "members",
             "fines",
-            "laws",
         ]);
     });
 });
@@ -69,13 +73,14 @@ describe("sortMembers", () => {
     });
 });
 
-describe("perMember", () => {
-    it("deler på antall medlemmer med én desimal", () => {
-        expect(perMember(7, 4)).toBe("1.8");
-    });
-
-    it("gir 0.0 for en gruppe uten medlemmer", () => {
-        expect(perMember(5, 0)).toBe("0.0");
+describe("STATUS_OPTIONS", () => {
+    it("tilbyr ikke «Avvist», som ingenting kan sette", () => {
+        expect(STATUS_OPTIONS.map((option) => option.value)).toEqual([
+            "alle",
+            "pending",
+            "approved",
+            "paid",
+        ]);
     });
 });
 
@@ -270,5 +275,105 @@ describe("finesTabsVisible", () => {
         expect(
             finesTabsVisible({ ...study, viewerCanUseFines: false }, study)
         ).toBe(false);
+    });
+});
+
+describe("bøtene til ett medlem", () => {
+    it("starter Aktive på pending, og en status på seg selv", () => {
+        expect(memberFinesInitialParam(undefined)).toEqual({
+            status: "pending",
+            page: 0,
+        });
+        expect(memberFinesInitialParam("paid")).toEqual({
+            status: "paid",
+            page: 0,
+        });
+    });
+
+    it("blar videre i samme status så lenge det er flere sider", () => {
+        expect(
+            memberFinesNextParam(undefined, { next: 1 }, { status: "pending", page: 0 })
+        ).toEqual({ status: "pending", page: 1 });
+        expect(
+            memberFinesNextParam("paid", { next: 2 }, { status: "paid", page: 1 })
+        ).toEqual({ status: "paid", page: 2 });
+    });
+
+    it("går fra pending til approved i Aktive", () => {
+        expect(
+            memberFinesNextParam(undefined, { next: null }, { status: "pending", page: 3 })
+        ).toEqual({ status: "approved", page: 0 });
+    });
+
+    it("stopper etter approved i Aktive og etter siste side med én status", () => {
+        expect(
+            memberFinesNextParam(undefined, { next: null }, { status: "approved", page: 0 })
+        ).toBeUndefined();
+        expect(
+            memberFinesNextParam("pending", { next: null }, { status: "pending", page: 0 })
+        ).toBeUndefined();
+    });
+
+    it("teller gjenstående hendelser, aldri under 0", () => {
+        expect(remainingFines(17, 10)).toBe(7);
+        expect(remainingFines(10, 12)).toBe(0);
+    });
+});
+
+describe("shouldTopUpMemberFines", () => {
+    const shortFirstPage = {
+        pageCount: 1,
+        loaded: 1,
+        remaining: 9,
+        hasNextPage: true,
+        isFetching: false,
+    };
+
+    it("henter neste side med én ikke godkjent og mange godkjente", () => {
+        expect(shouldTopUpMemberFines(shortFirstPage)).toBe(true);
+    });
+
+    it("henter neste side når ingen er ikke godkjent", () => {
+        expect(
+            shouldTopUpMemberFines({ ...shortFirstPage, loaded: 0, remaining: 10 })
+        ).toBe(true);
+    });
+
+    it("stopper når neste side er hentet", () => {
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, pageCount: 2 })).toBe(false);
+    });
+
+    it("henter ikke mens noe hentes", () => {
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, isFetching: true })).toBe(false);
+    });
+
+    it("henter ikke uten flere sider eller uten noe igjen", () => {
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, hasNextPage: false })).toBe(false);
+        expect(shouldTopUpMemberFines({ ...shortFirstPage, remaining: 0 })).toBe(false);
+    });
+
+    it("henter ikke når første side er full", () => {
+        expect(
+            shouldTopUpMemberFines({ ...shortFirstPage, loaded: MEMBER_PAGE_SIZE })
+        ).toBe(false);
+    });
+});
+
+describe("emphasizedStats", () => {
+    it("uthever begge ubetalte stadier for Aktive", () => {
+        expect(emphasizedStats(undefined)).toEqual([
+            "notApproved",
+            "approvedNotPaid",
+        ]);
+    });
+
+    it("uthever bare den valgte statusen", () => {
+        expect(emphasizedStats("pending")).toEqual(["notApproved"]);
+        expect(emphasizedStats("approved")).toEqual(["approvedNotPaid"]);
+        expect(emphasizedStats("paid")).toEqual(["paid"]);
+    });
+
+    it("uthever ingenting for avvist", () => {
+        expect(emphasizedStats("rejected")).toEqual([]);
     });
 });
