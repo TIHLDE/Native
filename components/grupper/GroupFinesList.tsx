@@ -13,6 +13,7 @@ import { Fine, FineStatus } from "@/actions/types";
 import { AuthedImage } from "@/components/ui/authedImage";
 import { Text } from "@/components/ui/text";
 import { fineImageUrl } from "@/lib/images";
+import { cn } from "@/lib/utils";
 import { themeColors } from "@/lib/theme/colors";
 import useRefresh from "@/lib/useRefresh";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -37,9 +38,14 @@ const STATUS_CLASSES: Record<FineStatus, string> = {
     rejected: "bg-destructive/15",
 };
 
-export function FineCardSkeleton() {
+export function FineCardSkeleton({ className }: { className?: string }) {
     return (
-        <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4">
+        <View
+            className={cn(
+                "mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4",
+                className
+            )}
+        >
             <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-full bg-gray-200 dark:bg-secondary/50 animate-pulse" />
                 <View className="flex-1 ml-3">
@@ -59,8 +65,19 @@ export function FineCardSkeleton() {
  * utbrettet ble en vegg av tekst uten rader å skanne. Lukket viser raden det man
  * leter etter — hvem, hvilken paragraf og hvor mange bøter — og resten ligger
  * ett trykk unna.
+ *
+ * `hideUser` er for steder der hvem allerede står over kortet, som inne i et
+ * åpent medlem i «Per medlem». Da er paragrafen tittelen.
  */
-export function FineCard({ fine }: { fine: Fine }) {
+export function FineCard({
+    fine,
+    hideUser = false,
+    className,
+}: {
+    fine: Fine;
+    hideUser?: boolean;
+    className?: string;
+}) {
     const { isDarkColorScheme } = useColorScheme();
     const [isOpen, setIsOpen] = useState(false);
     // 16:9 til bildet har sagt fra om sitt eget forhold — da er plassholderen
@@ -98,33 +115,62 @@ export function FineCard({ fine }: { fine: Fine }) {
     const Chevron = isOpen ? ChevronUp : ChevronDown;
 
     return (
-        <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4">
+        <View
+            className={cn(
+                "mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4",
+                className
+            )}
+        >
             <Pressable
                 onPress={toggle}
                 accessibilityRole="button"
                 accessibilityState={{ expanded: isOpen }}
-                accessibilityLabel={`${fine.user.name}, ${paragraph ?? "uten paragraf"}`}
+                accessibilityLabel={
+                    hideUser
+                        ? (paragraph ?? "Uten paragraf")
+                        : `${fine.user.name}, ${paragraph ?? "uten paragraf"}`
+                }
                 className="flex-row items-center active:opacity-70"
             >
-                <PersonAvatar name={fine.user.name} image={fine.user.image} />
-                <View className="flex-1 ml-3">
-                    <Text
-                        className="text-base font-semibold text-foreground"
-                        numberOfLines={1}
-                    >
-                        {fine.user.name}
-                    </Text>
-                    <Text
-                        className={
-                            paragraph
-                                ? "text-sm text-muted-foreground mt-0.5"
-                                : "text-sm text-muted-foreground mt-0.5 italic"
-                        }
-                        numberOfLines={1}
-                    >
-                        {paragraph ?? "Uten paragraf"}
-                    </Text>
-                </View>
+                {hideUser ? (
+                    <View className="flex-1">
+                        <Text
+                            className={
+                                paragraph
+                                    ? "text-base font-semibold text-foreground"
+                                    : "text-base font-semibold text-foreground italic"
+                            }
+                            numberOfLines={1}
+                        >
+                            {paragraph ?? "Uten paragraf"}
+                        </Text>
+                    </View>
+                ) : (
+                    <>
+                        <PersonAvatar
+                            name={fine.user.name}
+                            image={fine.user.image}
+                        />
+                        <View className="flex-1 ml-3">
+                            <Text
+                                className="text-base font-semibold text-foreground"
+                                numberOfLines={1}
+                            >
+                                {fine.user.name}
+                            </Text>
+                            <Text
+                                className={
+                                    paragraph
+                                        ? "text-sm text-muted-foreground mt-0.5"
+                                        : "text-sm text-muted-foreground mt-0.5 italic"
+                                }
+                                numberOfLines={1}
+                            >
+                                {paragraph ?? "Uten paragraf"}
+                            </Text>
+                        </View>
+                    </>
+                )}
                 <View className="items-end ml-2">
                     <Text className="text-base font-semibold text-foreground">
                         {/* `amount` teller bøter, ikke kroner — se `Fine`. */}

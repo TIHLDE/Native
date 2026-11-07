@@ -1,12 +1,18 @@
-import { Fragment, ReactElement, useLayoutEffect, useRef } from "react";
+import {
+    Fragment,
+    ReactElement,
+    ReactNode,
+    useLayoutEffect,
+    useRef,
+} from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
     ActivityIndicator,
+    FlatList,
     LayoutAnimation,
     NativeScrollEvent,
     NativeSyntheticEvent,
     Pressable,
-    SectionList,
     View,
 } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
@@ -32,12 +38,13 @@ import { FineCard, FineCardSkeleton } from "./GroupFinesList";
 import { GroupEmptyState } from "./GroupEmptyState";
 import { PersonAvatar } from "./PersonAvatar";
 
-type MemberSection = {
-    entry: FineLeaderboardEntry;
-    rank: number;
-    /** `[entry]` når medlemmet er åpent, ellers tom. */
-    data: FineLeaderboardEntry[];
-};
+/**
+ * Bøtene inne i et åpent medlem: mindre kort, satt inn fra kanten av
+ * medlemskortet. `bg-background` skiller dem fra kortet i lys modus, og i mørk
+ * modus er de litt lysere enn det.
+ */
+const MEMBER_FINE_CLASS =
+    "mx-2.5 mb-2 rounded-xl p-3 bg-background dark:bg-secondary/50";
 
 function LeaderboardRowSkeleton() {
     return (
@@ -51,17 +58,24 @@ function LeaderboardRowSkeleton() {
     );
 }
 
-/** Medlemsraden, som er seksjonsoverskriften. */
-function MemberHeader({
+/**
+ * Ett medlem: raden, og når medlemmet er åpent, innholdet under den i samme
+ * kort. Kortet bærer bakgrunnen og margen, raden har ingen av delene, så raden
+ * er like høy åpen og lukket.
+ */
+function MemberCard({
     entry,
     rank,
     expanded,
     onPress,
+    children,
 }: {
     entry: FineLeaderboardEntry;
     rank: number;
     expanded: boolean;
     onPress: () => void;
+    /** Innholdet i det åpne medlemmet. */
+    children?: ReactNode;
 }) {
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
@@ -74,7 +88,7 @@ function MemberHeader({
         : `fordelt på ${entry.finesCount} ${entry.finesCount === 1 ? "hendelse" : "hendelser"}`;
 
     return (
-        <View className="bg-background px-4 pb-3">
+        <View className="mx-4 mb-3 bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden">
             <Pressable
                 onPress={onPress}
                 disabled={isEmpty}
@@ -83,7 +97,7 @@ function MemberHeader({
                     isEmpty ? { disabled: true } : { expanded }
                 }
                 accessibilityLabel={`${rank}. ${entry.name}, ${amount}, ${subtitle}`}
-                className="bg-gray-100 dark:bg-secondary/30 rounded-2xl p-4 flex-row items-center active:opacity-70"
+                className="p-4 flex-row items-center active:opacity-70"
             >
                 {/* Photon sorterer høyest først, så plasseringen er
                     listeindeksen — den regnes ikke ut på nytt her. */}
@@ -126,6 +140,7 @@ function MemberHeader({
                     />
                 )}
             </Pressable>
+            {children}
         </View>
     );
 }
@@ -137,13 +152,13 @@ const STAT_PARTS: { key: FineStatKey; label: string }[] = [
 ];
 
 /**
- * Summene til ett åpent medlem, øverst i seksjonen: «x ikke godkjent ·
+ * Summene til ett åpent medlem, øverst i kortet: «x ikke godkjent ·
  * y ubetalt · z betalt», i bøter.
  *
  * Tallene er medlemmets hele bilde og endres ikke med filteret — ellers ville
  * «betalt» falt til 0 i Aktive. Delene filteret viser, utheves.
  *
- * Skjelettet har samme høyde som linja, så seksjonen ikke hopper når tallene
+ * Skjelettet har samme høyde som linja, så kortet ikke hopper når tallene
  * kommer. En feil skjuler linja; bøtene under har sin egen query og vises
  * uansett.
  */
@@ -166,7 +181,7 @@ function MemberStatsLine({
 
     if (!data) {
         return (
-            <View className="mx-4 mb-3 w-48 h-[18px] rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
+            <View className="mx-4 mt-3 w-48 h-[18px] rounded bg-gray-200 dark:bg-secondary/50 animate-pulse" />
         );
     }
 
@@ -174,7 +189,7 @@ function MemberStatsLine({
 
     return (
         <Text
-            className="mx-4 mb-3 text-[13px] leading-[18px] text-muted-foreground"
+            className="mx-4 mt-3 text-[13px] leading-[18px] text-muted-foreground"
             numberOfLines={1}
         >
             {STAT_PARTS.map(({ key, label }, index) => (
@@ -202,7 +217,7 @@ function MemberStatsLine({
  * `approved`. Et kall uten status ville tatt med de betalte, som tallet i
  * raden over ikke teller.
  *
- * Det lastes aldri automatisk her inne. Uendelig rulling i en seksjon ville
+ * Det lastes aldri automatisk her inne. Uendelig rulling i et medlem ville
  * skjøvet de neste medlemmene ned hver gang man nærmet seg dem, så man kom
  * seg aldri forbi. «Vis flere» teller hendelser, ikke bøter, og regnes av
  * `finesCount` i raden — samme tall som «fordelt på y hendelser».
@@ -246,16 +261,16 @@ function MemberFines({
 
     if (isPending) {
         return (
-            <View>
-                <FineCardSkeleton />
-                <FineCardSkeleton />
+            <View className="pt-3 pb-0.5">
+                <FineCardSkeleton className={MEMBER_FINE_CLASS} />
+                <FineCardSkeleton className={MEMBER_FINE_CLASS} />
             </View>
         );
     }
 
     if (isError) {
         return (
-            <Text className="mx-4 mb-3 text-sm text-destructive text-center">
+            <Text className="mx-4 pt-3 mb-3 text-sm text-destructive text-center">
                 {error.message}
             </Text>
         );
@@ -264,14 +279,24 @@ function MemberFines({
     const fines = data.pages.flatMap((page) => page.results);
     const remaining = remainingFines(entry.finesCount, fines.length);
 
+    // `pt-3` står her og ikke under summene, så det er luft under skillelinja
+    // også når summene mangler. `pb-0.5` og bøtenes `mb-2` gir samme luft
+    // under som på sidene.
     return (
-        <View className="pb-2">
+        <View className="pt-3 pb-0.5">
             {fines.length === 0 ? (
                 <Text className="mx-4 mb-3 text-sm text-muted-foreground text-center">
                     Fant ingen bøter
                 </Text>
             ) : (
-                fines.map((fine) => <FineCard key={fine.id} fine={fine} />)
+                fines.map((fine) => (
+                    <FineCard
+                        key={fine.id}
+                        fine={fine}
+                        hideUser
+                        className={MEMBER_FINE_CLASS}
+                    />
+                ))
             )}
 
             {/* Bare med noe igjen å vise: i Aktive er det en side til med
@@ -312,8 +337,13 @@ function MemberFines({
  * var åpent, flyttes lista — med nøyaktig høyden av innholdet som lukkes, så
  * raden ikke forsvinner oppover når det over den krymper.
  *
- * `scrollToLocation` er ikke brukt: uten `getItemLayout` regner den med
- * anslåtte høyder og havnet hundrevis av punkter feil på enhet.
+ * `scrollToIndex` er ikke brukt: uten `getItemLayout` regner den med
+ * anslåtte høyder, og `scrollToLocation` i den gamle SectionList-en havnet
+ * hundrevis av punkter feil på enhet.
+ *
+ * Lista er en FlatList med ett kort per medlem. Raden og innholdet i et åpent
+ * medlem står i samme kort, og det går ikke når de er to celler, som
+ * overskrift og innhold i en SectionList.
  *
  * Hvilket medlem som er åpent, eies av bøtefanen. Et bytte av visning lukker
  * det med vilje, og fordi lista da monteres på nytt, starter «Per medlem» på
@@ -337,9 +367,7 @@ export function GroupLeaderboardList({
     const { isDarkColorScheme } = useColorScheme();
     const colors = themeColors(isDarkColorScheme);
     const reduceMotion = useReducedMotion();
-    const listRef = useRef<SectionList<FineLeaderboardEntry, MemberSection>>(
-        null
-    );
+    const listRef = useRef<FlatList<FineLeaderboardEntry>>(null);
 
     const {
         data,
@@ -367,11 +395,8 @@ export function GroupLeaderboardList({
     const entries = data?.pages.flatMap((page) => page.results) ?? [];
     // Et medlem med 0 under filteret er lukket, selv om det sto åpent. Valget
     // blir stående, så det er åpent igjen når filteret settes tilbake.
-    const sections: MemberSection[] = entries.map((entry, index) => ({
-        entry,
-        rank: index + 1,
-        data: entry.id === openUserId && entry.finesAmount > 0 ? [entry] : [],
-    }));
+    const isOpen = (entry: FineLeaderboardEntry) =>
+        entry.id === openUserId && entry.finesAmount > 0;
 
     // Hvor lista står nå. Trengs når et medlem over lukkes. `onScroll` er
     // strupet til hvert 100. ms, så slutten av et drag og av momentum leses
@@ -382,19 +407,19 @@ export function GroupLeaderboardList({
     };
 
     // Høyden av innholdet i det åpne medlemmet, målt med `onLayout`. Trengs
-    // når det lukkes fordi et medlem lenger ned åpnes.
+    // når det lukkes fordi et medlem lenger ned åpnes. Kortets margin og
+    // radens høyde er de samme åpen og lukket, så dette er nøyaktig hvor mye
+    // lista krymper.
     const openBodyHeight = useRef(0);
     // Satt av trykket, brukt etter committen: hvor lista skal stå når
     // medlemmet over har lukket seg.
     const pendingOffset = useRef<number | null>(null);
 
-    const toggle = (userId: string, sectionIndex: number) => {
-        const previousIndex = sections.findIndex(
-            (section) => section.data.length > 0
-        );
+    const toggle = (userId: string, index: number) => {
+        const previousIndex = entries.findIndex(isOpen);
         const isOpening = openUserId !== userId;
         const closesAbove =
-            isOpening && previousIndex >= 0 && previousIndex < sectionIndex;
+            isOpening && previousIndex >= 0 && previousIndex < index;
 
         if (closesAbove) {
             // Uten animasjon: lista flyttes like langt som innholdet over
@@ -418,53 +443,54 @@ export function GroupLeaderboardList({
         const offset = pendingOffset.current;
         if (offset === null) return;
         pendingOffset.current = null;
-        listRef.current
-            ?.getScrollResponder()
-            ?.scrollTo({ y: offset, animated: false });
+        listRef.current?.scrollToOffset({ offset, animated: false });
     }, [openUserId]);
 
     return (
-        <SectionList
+        <FlatList
             ref={listRef}
-            sections={sections}
+            data={entries}
             className="flex-1"
-            keyExtractor={(item) => `${item.id}-fines`}
-            // Av på begge plattformer (iOS har det på som standard): et åpent
-            // medlem ruller bort som resten av lista.
-            stickySectionHeadersEnabled={false}
+            keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
             refreshControl={refreshControl}
             ListHeaderComponent={ListHeaderComponent}
-            renderSectionHeader={({ section }) => (
-                <MemberHeader
-                    entry={section.entry}
-                    rank={section.rank}
-                    expanded={section.data.length > 0}
-                    onPress={() => toggle(section.entry.id, section.rank - 1)}
-                />
-            )}
-            renderItem={({ item }) => (
-                <View
-                    onLayout={(event) => {
-                        openBodyHeight.current =
-                            event.nativeEvent.layout.height;
-                    }}
-                >
-                    {/* Inne i målingen, så rulle-justeringen når medlemmet
-                        lukkes tar med linja. */}
-                    <MemberStatsLine
-                        groupSlug={groupSlug}
-                        userId={item.id}
-                        status={status}
-                    />
-                    <MemberFines
-                        groupSlug={groupSlug}
+            renderItem={({ item, index }) => {
+                const expanded = isOpen(item);
+                return (
+                    <MemberCard
                         entry={item}
-                        status={status}
-                    />
-                </View>
-            )}
+                        rank={index + 1}
+                        expanded={expanded}
+                        onPress={() => toggle(item.id, index)}
+                    >
+                        {expanded ? (
+                            <View
+                                onLayout={(event) => {
+                                    openBodyHeight.current =
+                                        event.nativeEvent.layout.height;
+                                }}
+                            >
+                                {/* Inne i målingen, så rulle-justeringen når
+                                    medlemmet lukkes tar med skillelinja og
+                                    summene. */}
+                                <View className="mx-4 border-t border-border" />
+                                <MemberStatsLine
+                                    groupSlug={groupSlug}
+                                    userId={item.id}
+                                    status={status}
+                                />
+                                <MemberFines
+                                    groupSlug={groupSlug}
+                                    entry={item}
+                                    status={status}
+                                />
+                            </View>
+                        ) : null}
+                    </MemberCard>
+                );
+            }}
             scrollEventThrottle={100}
             onScroll={trackScroll}
             onScrollEndDrag={trackScroll}
