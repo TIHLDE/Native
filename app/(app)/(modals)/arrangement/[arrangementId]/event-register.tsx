@@ -200,7 +200,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                             <View className="gap-y-2">
                                 <Pressable
                                     onPress={() => {
-                                        updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.userId ?? "" });
+                                        updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.id ?? "" });
                                     }}
                                     className="h-14 rounded-2xl bg-primary items-center justify-center active:opacity-80"
                                 >
@@ -342,7 +342,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
 
     const updateRegistrationMutation = useMutation({
         mutationFn: async (newValue: boolean) => {
-            await updateEventParticipation(eventId, registration.userInfo.userId, newValue);
+            await updateEventParticipation(eventId, registration.userInfo.id, newValue);
             queryClient.invalidateQueries({ queryKey: ["event", eventId, "participants"] });
             return true;
         },
