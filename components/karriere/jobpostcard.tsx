@@ -61,7 +61,7 @@ export default function JobPostCard(props: JobPostProps) {
     return (
         <View className="pb-7">
             {/* Full-width image */}
-            <CoverImage uri={props.image} />
+            <CoverImage uri={props.image} fit="contain" />
 
             {/* Content */}
             <View className="px-4 pt-3.5">

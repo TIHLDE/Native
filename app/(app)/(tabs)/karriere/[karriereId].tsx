@@ -190,7 +190,7 @@ export default function Karriereside() {
                 >
                     {/* Hero image */}
                     {jobpost.data.image && (
-                        <CoverImage uri={jobpost.data.image} />
+                        <CoverImage uri={jobpost.data.image} fit="contain" />
                     )}
 
                     <View className="px-6">

@@ -15,18 +15,30 @@ import ImageMissing from "./imageMissing";
  */
 export const COVER_IMAGE_FRAME = "w-full aspect-[21/9]";
 
+/**
+ * `fit="contain"` viser hele bildet i stedet for å fylle rammen. Det er for
+ * stillingsbilder: de er ofte logoer, og lastes ikke lenger opp i 21:9, så
+ * `cover` skjærer av sidene på dem. Bildene kommer med ugjennomsiktig hvit
+ * bakgrunn, og derfor er rammen hvit i begge temaer — en grå ramme ville gitt
+ * en hvit firkant midt i.
+ */
 export default function CoverImage({
     uri,
+    fit = "cover",
     className,
 }: {
     uri?: string | null;
+    fit?: "cover" | "contain";
     className?: string;
 }) {
     return (
         <View
             className={cn(
                 COVER_IMAGE_FRAME,
-                "overflow-hidden bg-muted dark:bg-secondary/30",
+                "overflow-hidden",
+                uri && fit === "contain"
+                    ? "bg-white"
+                    : "bg-muted dark:bg-secondary/30",
                 className,
             )}
         >
@@ -34,7 +46,7 @@ export default function CoverImage({
                 <Image
                     source={{ uri: coverImageUrl(uri) }}
                     className="w-full h-full"
-                    resizeMode="cover"
+                    resizeMode={fit}
                 />
             ) : (
                 <ImageMissing />
