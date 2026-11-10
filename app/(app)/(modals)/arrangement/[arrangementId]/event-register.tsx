@@ -18,7 +18,14 @@ import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import { Camera, UserCheck, CircleCheck, Search, X } from "lucide-react-native";
 import { useColorScheme } from "@/lib/useColorScheme";
 import useDebounce from "@/lib/useDebounce";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, UnauthorizedError } from "@/lib/api/client";
+
+/**
+ * Kameraet leser en kode som blir liggende foran linsa mange ganger i
+ * sekundet. En kode som nettopp ble avvist får derfor hvile litt før den
+ * prøves igjen, så feilmeldingen vises én gang og ikke som en strøm.
+ */
+const RETRY_COOLDOWN_MS = 3000;
 
 /**
  * Photon svarer 404 for den som ikke er påmeldt og 409 for den som ikke har
@@ -64,6 +71,8 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
     const [userToRegister, setUserToRegister] = useState<User | null>(null);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const lookingUpRef = useRef(false);
+    const rejectedScanRef = useRef<{ value: string; at: number } | null>(null);
     const queryClient = useQueryClient();
     const params = useLocalSearchParams<{ arrangementId: string }>();
     // Photon bruker UUID; ruteparameteren er allerede en streng.
@@ -146,13 +155,48 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                         barcodeTypes: ["qr"]
                     }}
                     onBarcodeScanned={async (code) => {
-                        if (updateRegistrationMutation.isPending) {
+                        if (updateRegistrationMutation.isPending || lookingUpRef.current) {
                             return;
                         }
 
-                        const user = await getUser(code.data);
-                        setUserToRegister(user);
-                        bottomSheetModalRef.current?.present();
+                        const value = code.data.trim();
+                        const rejected = rejectedScanRef.current;
+                        if (
+                            !value ||
+                            (rejected?.value === value &&
+                                Date.now() - rejected.at < RETRY_COOLDOWN_MS)
+                        ) {
+                            return;
+                        }
+
+                        lookingUpRef.current = true;
+                        try {
+                            // Photon godtar både intern id og brukernavn, så
+                            // QR-koder fra nettsiden, fra denne versjonen og
+                            // fra eldre versjoner av appen ender på samme bruker.
+                            const user = await getUser(value);
+                            rejectedScanRef.current = null;
+                            setUserToRegister(user);
+                            bottomSheetModalRef.current?.present();
+                        } catch (error) {
+                            rejectedScanRef.current = { value, at: Date.now() };
+                            // En tapt sesjon sender allerede brukeren til
+                            // innloggingen; en toast i tillegg er bare støy.
+                            if (error instanceof UnauthorizedError) return;
+
+                            const unknown = error instanceof ApiError && error.status === 404;
+                            Toast.show({
+                                type: "error",
+                                text1: unknown ? "Ukjent QR-kode" : "Feil",
+                                text2: unknown
+                                    ? "Fant ingen bruker for denne koden"
+                                    : error instanceof Error
+                                        ? error.message
+                                        : "Kunne ikke slå opp QR-koden",
+                            });
+                        } finally {
+                            lookingUpRef.current = false;
+                        }
                     }}
                     active={!cameraDisabled}
                 >
