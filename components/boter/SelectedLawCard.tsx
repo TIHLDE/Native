@@ -90,9 +90,10 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
         const descriptionStyle = useAnimatedStyle(() => {
             // Før beskrivelsen er målt (eller uten blaing koblet til) vises
             // den alltid i full høyde.
-            if (!collapse || collapse.height.value <= 0) return {};
-            const full = collapse.height.value;
-            const hidden = Math.min(collapse.collapsed.value, full);
+            if (!collapse) return {};
+            const full = collapse.height.get();
+            if (full <= 0) return {};
+            const hidden = Math.min(collapse.collapsed.get(), full);
             return {
                 height: full - hidden,
                 opacity: interpolate(
@@ -113,8 +114,8 @@ export const SelectedLawCard = forwardRef<ViewRef, SelectedLawCardProps>(
         const measureDescription = (event: LayoutChangeEvent) => {
             const measured = event.nativeEvent.layout.height;
             if (!collapse || measured <= 0) return;
-            if (collapse.collapsed.value > 0) return;
-            collapse.height.value = measured;
+            if (collapse.collapsed.get() > 0) return;
+            collapse.height.set(measured);
         };
 
         return (
