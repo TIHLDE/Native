@@ -18,6 +18,25 @@ import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import { Camera, UserCheck, CircleCheck, Search, X } from "lucide-react-native";
 import { useColorScheme } from "@/lib/useColorScheme";
 import useDebounce from "@/lib/useDebounce";
+import { ApiError } from "@/lib/api/client";
+
+/**
+ * Photon svarer 404 for den som ikke er påmeldt og 409 for den som ikke har
+ * plass. Begge er «nei» i døra, men den som skanner må vite hvilken — og
+ * meldingene fra API-et er på engelsk. Samme inndeling som skanneren på
+ * nettsiden bruker.
+ */
+function attendanceErrorMessage(error: Error, name?: string): string {
+    const who = name?.trim() || "Personen";
+    const status = error instanceof ApiError ? error.status : null;
+
+    if (status === 404) return `${who} er ikke påmeldt arrangementet`;
+    if (status === 409) {
+        return `${who} har ikke plass på arrangementet – står på venteliste eller har mistet plassen`;
+    }
+    if (status === 403) return "Du har ikke tilgang til å registrere oppmøte her";
+    return error.message;
+}
 
 
 export default function EventRegisterModal() {
@@ -66,19 +85,10 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
         },
         onError: (error) => {
             bottomSheetModalRef.current?.dismiss();
-            if (error.message === "Not found.") {
-                Toast.show({
-                    type: "error",
-                    text1: "Feil",
-                    text2: `${userToRegister?.firstName} er ikke påmeldt arrangementet`,
-                });
-                return;
-            }
-
             Toast.show({
                 type: "error",
                 text1: "Feil",
-                text2: error.message,
+                text2: attendanceErrorMessage(error, userToRegister?.firstName),
             });
         }
     });
@@ -350,7 +360,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
             Toast.show({
                 type: "error",
                 text1: "Feil",
-                text2: error.message,
+                text2: attendanceErrorMessage(error, registration.userInfo.firstName),
             });
             setChecked(registration.hasAttended);
         }

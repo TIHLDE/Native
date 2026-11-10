@@ -1,4 +1,4 @@
-import { apiFetch, apiJson } from "@/lib/api/client";
+import { ApiError, apiFetch, apiJson } from "@/lib/api/client";
 import { Registration } from "../types";
 import { PhotonRegisteredUser, toRegistration } from "@/actions/photon";
 
@@ -70,7 +70,10 @@ export async function updateEventParticipation(
 
     if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(body?.message ?? `Kunne ikke oppdatere oppmøte (${response.status})`);
+        throw new ApiError(
+            response.status,
+            body?.message ?? `Kunne ikke oppdatere oppmøte (${response.status})`,
+        );
     }
 
     return value;
