@@ -135,15 +135,15 @@ This will prompt you to select a build and submit it to App Store Connect. You c
 eas submit --platform android --profile production
 ```
 
-This uses the service account key (`service-account-file.json`) configured in `eas.json` and submits directly to the production track on Google Play Console.
+This submits the build to the internal testing track on Google Play Console. To release it, promote it to production in Play Console.
 
 ### Full Release Workflow
 
 1. Bump the version in `app.json` and `package.json` if needed
-2. Build: `eas build --platform all --profile production`
-3. Submit: `eas submit --platform ios` and `eas submit --platform android`
+2. Build: `eas build --platform all --profile production`, then submit: `eas submit --platform ios` and `eas submit --platform android`. Alternatively, add `--auto-submit` to the build command to submit automatically when the builds finish.
+3. Test the builds in TestFlight and the internal testing track on Google Play
 4. iOS: Go to App Store Connect to add release notes and submit for review
-5. Android: Release goes live automatically (production track)
+5. Android: In Play Console, promote the internal testing release to production
 
 ## Project Structure
 
