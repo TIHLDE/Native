@@ -62,7 +62,7 @@ function DetailRow({
 }) {
     return (
         <>
-            <View className="flex-row items-center px-4 py-3.5 gap-4">
+            <View className="flex-row items-center px-4 py-3.5 gap-6">
                 {children}
             </View>
             {!isLast && <View className="h-px bg-border dark:bg-muted ml-12" />}
@@ -97,7 +97,7 @@ function DetailSkeleton() {
                     <View className="bg-gray-100 dark:bg-secondary/30 rounded-2xl overflow-hidden mb-6">
                         {[1, 2, 3, 4].map((i) => (
                             <View key={i}>
-                                <View className="flex-row items-center px-4 py-3.5 gap-4">
+                                <View className="flex-row items-center px-4 py-3.5 gap-6">
                                     <SkeletonItem />
                                     {i === 2 && <SkeletonItem />}
                                 </View>
