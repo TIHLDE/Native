@@ -23,7 +23,8 @@
       "package": "com.tihlde.app",
       "permissions": [
         "android.permission.CAMERA"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",

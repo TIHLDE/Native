@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "874003623062",
+    "project_id": "index-432916",
+    "storage_bucket": "index-432916.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:874003623062:android:6f5c3bc54f776d469e26b7",
+        "android_client_info": {
+          "package_name": "com.tihlde.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "874003623062-d1hm8tme85r2emi3sta1d8d31h1me27g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4MXi4-kdUbv27QDJwXBHRwozYbUx5oe4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "874003623062-d1hm8tme85r2emi3sta1d8d31h1me27g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
