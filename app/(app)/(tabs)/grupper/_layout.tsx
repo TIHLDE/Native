@@ -2,6 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { ReceiptText } from "lucide-react-native";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { Text } from "@/components/ui/text";
 import { themeColors } from "@/lib/theme/colors";
 import { useColorScheme } from "@/lib/useColorScheme";
 
@@ -32,10 +33,13 @@ export default function GrupperLayout() {
                             hitSlop={8}
                             accessibilityRole="button"
                             accessibilityLabel="Utlegg"
-                            className="w-10 h-10 items-center justify-center"
+                            className="h-10 flex-row items-center"
                         >
                             {({ pressed }) => (
-                                <View style={{ opacity: pressed ? 0.7 : 1 }}>
+                                <View
+                                    className="flex-row items-center gap-1.5"
+                                    style={{ opacity: pressed ? 0.7 : 1 }}
+                                >
                                     <ReceiptText
                                         size={22}
                                         strokeWidth={2}
@@ -44,6 +48,9 @@ export default function GrupperLayout() {
                                                 .foreground
                                         }
                                     />
+                                    <Text className="text-base font-medium text-foreground">
+                                        Utlegg
+                                    </Text>
                                 </View>
                             )}
                         </Pressable>
