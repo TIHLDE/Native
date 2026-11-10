@@ -1,6 +1,12 @@
 import { Group } from "./group";
 
 export type User = {
+    /**
+     * Photons interne id. Det er den API-et slår opp på — blant annet når
+     * oppmøte registreres — og den som står i QR-koden. `userId` under er
+     * brukernavnet, som er det appen viser.
+     */
+    id: string;
     userId: string;
     firstName: string;
     lastName: string;
