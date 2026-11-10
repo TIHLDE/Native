@@ -22,8 +22,9 @@ import { ApiError, UnauthorizedError } from "@/lib/api/client";
 
 /**
  * Kameraet leser en kode som blir liggende foran linsa mange ganger i
- * sekundet. En kode som nettopp ble avvist får derfor hvile litt før den
- * prøves igjen, så feilmeldingen vises én gang og ikke som en strøm.
+ * sekundet. En kode som nettopp ble avvist — ukjent, feilet, eller lukket uten
+ * registrering — får derfor hvile litt før den prøves igjen, så verken
+ * feilmeldingen eller arket kommer som en strøm.
  */
 const RETRY_COOLDOWN_MS = 3000;
 
@@ -73,6 +74,15 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const lookingUpRef = useRef(false);
     const rejectedScanRef = useRef<{ value: string; at: number } | null>(null);
+    /** Om arket er oppe. Da leses ingen koder: personen i arket skal ikke byttes ut under fingeren. */
+    const sheetOpenRef = useRef(false);
+    /** Koden arket ble åpnet for. */
+    const sheetScanRef = useRef<string | null>(null);
+    /**
+     * Sist registrerte kode. Den hoppes over til en annen kode er skannet, så
+     * arket ikke spør om samme person igjen mens kortet ligger foran kameraet.
+     */
+    const registeredScanRef = useRef<string | null>(null);
     const queryClient = useQueryClient();
     const params = useLocalSearchParams<{ arrangementId: string }>();
     // Photon bruker UUID; ruteparameteren er allerede en streng.
@@ -86,6 +96,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             return true;
         },
         onSuccess: () => {
+            registeredScanRef.current = sheetScanRef.current;
             setRegistrationSuccess(true);
             setTimeout(() => {
                 bottomSheetModalRef.current?.dismiss();
@@ -155,7 +166,11 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                         barcodeTypes: ["qr"]
                     }}
                     onBarcodeScanned={async (code) => {
-                        if (updateRegistrationMutation.isPending || lookingUpRef.current) {
+                        if (
+                            updateRegistrationMutation.isPending ||
+                            lookingUpRef.current ||
+                            sheetOpenRef.current
+                        ) {
                             return;
                         }
 
@@ -169,6 +184,11 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                             return;
                         }
 
+                        if (value === registeredScanRef.current) return;
+                        // En annen kode er skannet, så den forrige kan
+                        // registreres på nytt om den dukker opp igjen.
+                        registeredScanRef.current = null;
+
                         lookingUpRef.current = true;
                         try {
                             // Photon godtar både intern id og brukernavn, så
@@ -177,6 +197,8 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                             const user = await getUser(value);
                             rejectedScanRef.current = null;
                             setUserToRegister(user);
+                            sheetScanRef.current = value;
+                            sheetOpenRef.current = true;
                             bottomSheetModalRef.current?.present();
                         } catch (error) {
                             rejectedScanRef.current = { value, at: Date.now() };
@@ -207,6 +229,16 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             }
             <InteropBottomSheetModal
                 ref={bottomSheetModalRef}
+                onDismiss={() => {
+                    sheetOpenRef.current = false;
+                    const value = sheetScanRef.current;
+                    // Lukket uten registrering — Avbryt, dratt ned, eller en
+                    // feil. Koden hviler som en avvist kode, ellers åpner
+                    // arket seg igjen med en gang.
+                    if (value && value !== registeredScanRef.current) {
+                        rejectedScanRef.current = { value, at: Date.now() };
+                    }
+                }}
                 backgroundStyleClassName="bg-popover rounded-3xl"
                 enableDynamicSizing
                 backdropComponent={(props) => (
