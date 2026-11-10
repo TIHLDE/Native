@@ -30,17 +30,33 @@ export async function toAppRoute(
         return `/(modals)/arrangement/${event.id}`;
     }
 
-    // `/grupper/<slug>?tab=boter` er bøtelenken. Den åpner gruppesida på
+    // Bøtelenken har hatt to former: `/grupper/<slug>?tab=boter` (de eldste
+    // varslene, som fortsatt ligger lagret) og `/grupper/<slug>/boter` etter at
+    // nettsiden gjorde fanene til egne ruter. Begge åpner gruppesida på
     // bøtefanen, der den som fikk boten kan se den — ikke flyten for å gi en.
-    if (
-        segments[0] === "grupper" &&
-        segments[1] &&
-        new URLSearchParams(query).get("tab") === "boter"
-    ) {
-        return `/(modals)/gruppe/${segments[1]}?tab=fines`;
+    if (segments[0] === "grupper" && segments[1]) {
+        const isFineLink =
+            segments[2] === "boter" ||
+            new URLSearchParams(query).get("tab") === "boter";
+
+        if (isFineLink) {
+            const slug = encodeURIComponent(decodeSegment(segments[1]));
+            return `/(modals)/gruppe/${slug}?tab=fines`;
+        }
     }
 
     return null;
+}
+
+// En absolutt lenke går gjennom `new URL`, som prosentkoder æøå i stien; en
+// relativ lenke kommer rå. Dekodes først, så begge gir samme rute og sluggen
+// ikke kodes to ganger. En ødelagt %-sekvens brukes som den står.
+function decodeSegment(segment: string): string {
+    try {
+        return decodeURIComponent(segment);
+    } catch {
+        return segment;
+    }
 }
 
 function stripOrigin(link: string): string {
