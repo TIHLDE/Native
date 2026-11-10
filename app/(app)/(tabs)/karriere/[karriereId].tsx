@@ -242,6 +242,7 @@ export default function Karriereside() {
                                     icon={<MapPin size={18} color={mutedColor} />}
                                     label="Sted"
                                     value={jobpost.data.location}
+                                    lines={2}
                                 />
                             </DetailRow>
                             {jobpost.data.email && (
