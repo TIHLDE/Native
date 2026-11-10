@@ -26,8 +26,7 @@
         "ascAppId": "6742454079"
       },
       "android": {
-        "serviceAccountKeyPath": "./service-account-file.json",
-        "track": "production"
+        "track": "internal"
       }
     }
   }
