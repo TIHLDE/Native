@@ -11,7 +11,9 @@ import { toAppRoute } from "./link";
 const FINES_DRIFT = "/(modals)/gruppe/drift?tab=fines";
 
 describe("toAppRoute", () => {
-    beforeEach(() => mockFetchEvent.mockReset());
+    beforeEach(() => {
+        mockFetchEvent.mockReset();
+    });
 
     describe("bøtelenker", () => {
         it("åpner bøtefanen for den nye formen", async () => {
