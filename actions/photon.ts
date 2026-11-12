@@ -51,6 +51,7 @@ export const splitName = (name?: string | null) => {
 };
 
 export const toUser = (user: PhotonUser | null | undefined): User => ({
+    id: user?.id ?? "",
     // Brukernavnet er nøkkelen appen viser og sammenligner på; Photons
     // interne id brukes bare når brukernavnet mangler.
     userId: user?.username ?? user?.id ?? "",

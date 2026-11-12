@@ -11,6 +11,20 @@ export class UnauthorizedError extends Error {
 }
 
 /**
+ * Et svar som ikke var ok. Meldingen er den samme som før; statuskoden følger
+ * med for de skjermene som må skille «finnes ikke» fra «har ikke plass».
+ */
+export class ApiError extends Error {
+    readonly status: number;
+
+    constructor(status: number, message: string) {
+        super(message);
+        this.name = "ApiError";
+        this.status = status;
+    }
+}
+
+/**
  * Om svaret betyr «tokenet duger ikke», uansett hvilken status det kom med.
  *
  * API-et svarer 401 slik man venter. Auth-endepunktene gjør det ikke:
@@ -94,7 +108,7 @@ export async function apiJson<T>(
         } catch {
             // keep the status-based message
         }
-        throw new Error(message);
+        throw new ApiError(response.status, message);
     }
 
     return (await response.json()) as T;

@@ -48,7 +48,9 @@ export default async function me(): Promise<User> {
     );
 
     return toUser({
-        id: info.sub,
+        // Id-en fra profilruta er den oppmøte-endepunktet slår opp på, og den
+        // som havner i QR-koden.
+        id: profile.id,
         // Profilruta er kilden der begge har feltet: den foretrekker den
         // opplastede avataren, mens userinfo alltid gir Feide-bildet.
         name: profile.name ?? info.name,

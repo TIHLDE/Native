@@ -18,6 +18,33 @@ import { InteropBottomSheetModal } from "@/lib/interopBottomSheet";
 import { Camera, UserCheck, CircleCheck, Search, X } from "lucide-react-native";
 import { useColorScheme } from "@/lib/useColorScheme";
 import useDebounce from "@/lib/useDebounce";
+import { ApiError, UnauthorizedError } from "@/lib/api/client";
+
+/**
+ * Kameraet leser en kode som blir liggende foran linsa mange ganger i
+ * sekundet. En kode som nettopp ble avvist — ukjent, feilet, eller lukket uten
+ * registrering — får derfor hvile litt før den prøves igjen, så verken
+ * feilmeldingen eller arket kommer som en strøm.
+ */
+const RETRY_COOLDOWN_MS = 3000;
+
+/**
+ * Photon svarer 404 for den som ikke er påmeldt og 409 for den som ikke har
+ * plass. Begge er «nei» i døra, men den som skanner må vite hvilken — og
+ * meldingene fra API-et er på engelsk. Samme inndeling som skanneren på
+ * nettsiden bruker.
+ */
+function attendanceErrorMessage(error: Error, name?: string): string {
+    const who = name?.trim() || "Personen";
+    const status = error instanceof ApiError ? error.status : null;
+
+    if (status === 404) return `${who} er ikke påmeldt arrangementet`;
+    if (status === 409) {
+        return `${who} har ikke plass på arrangementet – står på venteliste eller har mistet plassen`;
+    }
+    if (status === 403) return "Du har ikke tilgang til å registrere oppmøte her";
+    return error.message;
+}
 
 
 export default function EventRegisterModal() {
@@ -45,6 +72,17 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
     const [userToRegister, setUserToRegister] = useState<User | null>(null);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const lookingUpRef = useRef(false);
+    const rejectedScanRef = useRef<{ value: string; at: number } | null>(null);
+    /** Om arket er oppe. Da leses ingen koder: personen i arket skal ikke byttes ut under fingeren. */
+    const sheetOpenRef = useRef(false);
+    /** Koden arket ble åpnet for. */
+    const sheetScanRef = useRef<string | null>(null);
+    /**
+     * Sist registrerte kode. Den hoppes over til en annen kode er skannet, så
+     * arket ikke spør om samme person igjen mens kortet ligger foran kameraet.
+     */
+    const registeredScanRef = useRef<string | null>(null);
     const queryClient = useQueryClient();
     const params = useLocalSearchParams<{ arrangementId: string }>();
     // Photon bruker UUID; ruteparameteren er allerede en streng.
@@ -58,6 +96,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             return true;
         },
         onSuccess: () => {
+            registeredScanRef.current = sheetScanRef.current;
             setRegistrationSuccess(true);
             setTimeout(() => {
                 bottomSheetModalRef.current?.dismiss();
@@ -66,19 +105,10 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
         },
         onError: (error) => {
             bottomSheetModalRef.current?.dismiss();
-            if (error.message === "Not found.") {
-                Toast.show({
-                    type: "error",
-                    text1: "Feil",
-                    text2: `${userToRegister?.firstName} er ikke påmeldt arrangementet`,
-                });
-                return;
-            }
-
             Toast.show({
                 type: "error",
                 text1: "Feil",
-                text2: error.message,
+                text2: attendanceErrorMessage(error, userToRegister?.firstName),
             });
         }
     });
@@ -136,13 +166,59 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                         barcodeTypes: ["qr"]
                     }}
                     onBarcodeScanned={async (code) => {
-                        if (updateRegistrationMutation.isPending) {
+                        if (
+                            updateRegistrationMutation.isPending ||
+                            lookingUpRef.current ||
+                            sheetOpenRef.current
+                        ) {
                             return;
                         }
 
-                        const user = await getUser(code.data);
-                        setUserToRegister(user);
-                        bottomSheetModalRef.current?.present();
+                        const value = code.data.trim();
+                        const rejected = rejectedScanRef.current;
+                        if (
+                            !value ||
+                            (rejected?.value === value &&
+                                Date.now() - rejected.at < RETRY_COOLDOWN_MS)
+                        ) {
+                            return;
+                        }
+
+                        if (value === registeredScanRef.current) return;
+                        // En annen kode er skannet, så den forrige kan
+                        // registreres på nytt om den dukker opp igjen.
+                        registeredScanRef.current = null;
+
+                        lookingUpRef.current = true;
+                        try {
+                            // Photon godtar både intern id og brukernavn, så
+                            // QR-koder fra nettsiden, fra denne versjonen og
+                            // fra eldre versjoner av appen ender på samme bruker.
+                            const user = await getUser(value);
+                            rejectedScanRef.current = null;
+                            setUserToRegister(user);
+                            sheetScanRef.current = value;
+                            sheetOpenRef.current = true;
+                            bottomSheetModalRef.current?.present();
+                        } catch (error) {
+                            rejectedScanRef.current = { value, at: Date.now() };
+                            // En tapt sesjon sender allerede brukeren til
+                            // innloggingen; en toast i tillegg er bare støy.
+                            if (error instanceof UnauthorizedError) return;
+
+                            const unknown = error instanceof ApiError && error.status === 404;
+                            Toast.show({
+                                type: "error",
+                                text1: unknown ? "Ukjent QR-kode" : "Feil",
+                                text2: unknown
+                                    ? "Fant ingen bruker for denne koden"
+                                    : error instanceof Error
+                                        ? error.message
+                                        : "Kunne ikke slå opp QR-koden",
+                            });
+                        } finally {
+                            lookingUpRef.current = false;
+                        }
                     }}
                     active={!cameraDisabled}
                 >
@@ -153,6 +229,16 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
             }
             <InteropBottomSheetModal
                 ref={bottomSheetModalRef}
+                onDismiss={() => {
+                    sheetOpenRef.current = false;
+                    const value = sheetScanRef.current;
+                    // Lukket uten registrering — Avbryt, dratt ned, eller en
+                    // feil. Koden hviler som en avvist kode, ellers åpner
+                    // arket seg igjen med en gang.
+                    if (value && value !== registeredScanRef.current) {
+                        rejectedScanRef.current = { value, at: Date.now() };
+                    }
+                }}
                 backgroundStyleClassName="bg-popover rounded-3xl"
                 enableDynamicSizing
                 backdropComponent={(props) => (
@@ -200,7 +286,7 @@ function CameraRegistration({ cameraDisabled = false }: { cameraDisabled?: boole
                             <View className="gap-y-2">
                                 <Pressable
                                     onPress={() => {
-                                        updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.userId ?? "" });
+                                        updateRegistrationMutation.mutate({ newValue: true, userId: userToRegister?.id ?? "" });
                                     }}
                                     className="h-14 rounded-2xl bg-primary items-center justify-center active:opacity-80"
                                 >
@@ -342,7 +428,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
 
     const updateRegistrationMutation = useMutation({
         mutationFn: async (newValue: boolean) => {
-            await updateEventParticipation(eventId, registration.userInfo.userId, newValue);
+            await updateEventParticipation(eventId, registration.userInfo.id, newValue);
             queryClient.invalidateQueries({ queryKey: ["event", eventId, "participants"] });
             return true;
         },
@@ -350,7 +436,7 @@ function EventRegistration({ registration, eventId }: { registration: Registrati
             Toast.show({
                 type: "error",
                 text1: "Feil",
-                text2: error.message,
+                text2: attendanceErrorMessage(error, registration.userInfo.firstName),
             });
             setChecked(registration.hasAttended);
         }

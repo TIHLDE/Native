@@ -141,6 +141,7 @@ const membershipOf = (
     group: g,
     membershipType,
     user: {
+        id: "",
         userId: "",
         firstName: "",
         lastName: "",
