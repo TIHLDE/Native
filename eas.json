@@ -6,16 +6,13 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "env": { "EAS_BUILD_DISABLE_EXPO_DOCTOR_STEP": "1" }
+      "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "env": { "EAS_BUILD_DISABLE_EXPO_DOCTOR_STEP": "1" }
+      "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-      "env": { "EAS_BUILD_DISABLE_EXPO_DOCTOR_STEP": "1" }
+      "autoIncrement": true
     }
   },
   "submit": {
