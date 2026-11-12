@@ -15,10 +15,6 @@ export const ISSUER = `${BASE_URL}/api/auth`;
  * by anyone who downloads it, so there is no client secret here. Photon
  * advertises PKCE (S256), which is what makes that safe — the authorization
  * code is useless without the verifier this device generated.
- *
- * The default is the public client registered in Photon, and it is not a
- * secret. Development in Expo Go needs its own client (see `.env.example`),
- * since Expo Go redirects through `exp://`.
  */
 export const CLIENT_ID =
     process.env.EXPO_PUBLIC_PHOTON_CLIENT_ID ?? "jgNjwWzWAkmhHnApxxJUaIaqJwMJiXQE";
