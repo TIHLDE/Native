@@ -17,7 +17,7 @@ export const ISSUER = `${BASE_URL}/api/auth`;
  * code is useless without the verifier this device generated.
  */
 export const CLIENT_ID =
-    process.env.EXPO_PUBLIC_PHOTON_CLIENT_ID ?? "tihlde-mobile";
+    process.env.EXPO_PUBLIC_PHOTON_CLIENT_ID ?? "jgNjwWzWAkmhHnApxxJUaIaqJwMJiXQE";
 
 export const SCOPES = ["openid", "profile", "email", "offline_access"];
 
@@ -42,7 +42,7 @@ export const discovery: AuthSession.DiscoveryDocument = {
 };
 
 export function makeRedirectUri(): string {
-    return AuthSession.makeRedirectUri({ scheme: "tihlde", path: "oauth" });
+    return AuthSession.makeRedirectUri({ scheme: "tihlde", path: "oauth/callback" });
 }
 
 /**
