@@ -19,7 +19,7 @@ export default function QrModal() {
     if (user.isPending) {
         return (
             <PageWrapper className="flex-1 bg-background">
-                <Text className="text-center">Loading...</Text>
+                <Text className="text-center">Laster...</Text>
             </PageWrapper>
         )
     }
@@ -27,7 +27,7 @@ export default function QrModal() {
     if (user.isError) {
         return (
             <PageWrapper className="flex-1 bg-background">
-                <Text className="text-destructive">Error: {user.error.message}</Text>
+                <Text className="text-destructive">Feil: {user.error.message}</Text>
             </PageWrapper>
         )
     }
