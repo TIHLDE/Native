@@ -59,7 +59,7 @@ The app uses production Photon by default. To use a local Photon instead:
 
 1. Start Photon with `bun dev` in the Photon repo.
    For the Android emulator, run `bun dev --filter=@photon/api` instead, start Kvark separately with `bun run dev --host 127.0.0.1` in `Photon/apps/kvark` (`adb reverse` can't reach Vite's default IPv6 address), and run `adb reverse tcp:4000 tcp:4000 && adb reverse tcp:3000 tcp:3000` after each emulator start.
-2. In Kvark (`localhost:3000`, Admin → OAuth-klienter), create a client with redirect URI `tihlde://oauth` and "Offentlig klient" checked.
+2. In Kvark (`localhost:3000`, Admin → OAuth-klienter), create a client with redirect URI `tihlde://oauth/callback` and "Offentlig klient" checked.
 3. Copy `.env.example` to `.env.local`, uncomment both lines, set the client id, and restart with `bun x expo start --clear`.
 
 ### Testing
